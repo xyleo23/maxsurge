@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %} — Лог стража{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">{{ guard.name }}</h1>
+    <p style="color:var(--text-muted)" class="text-sm">Удалено: {{ guard.deleted_count }} • Забанено: {{ guard.banned_count }}</p>
+  </div>
+  <a href="/app/guard/" class="btn-ghost">← Назад</a>
+</div>
+
+<div class="card">
+  <div class="card-header">События модерации (последние 500)</div>
+  {% if events %}
+  <table class="w-full text-sm">
+    <thead><tr style="color:var(--text-muted)">
+      <th class="text-left py-2">Время</th>
+      <th class="text-left">User</th>
+      <th class="text-left">Действие</th>
+      <th class="text-left">Причина</th>
+      <th class="text-left">Сообщение</th>
+    </tr></thead>
+    <tbody>
+      {% for e in events %}
+      <tr style="border-top:1px solid var(--border)">
+        <td class="py-2 text-xs">{{ e.created_at.strftime("%m-%d %H:%M") }}</td>
+        <td class="text-xs">{{ e.max_user_id }}{% if e.username %} @{{ e.username }}{% endif %}</td>
+        <td>
+          {% if e.action.value == "ban" %}<span style="color:#ef4444">● BAN</span>
+          {% elif e.action.value == "warn" %}<span style="color:#f59e0b">● WARN</span>
+          {% else %}<span style="color:var(--text-muted)">● DEL</span>{% endif %}
+        </td>
+        <td class="text-xs">{{ e.reason }}</td>
+        <td class="text-xs" style="color:var(--text-muted)">{{ (e.message_preview or "")[:100] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:var(--text-muted)">Пока ничего.</p>
+  {% endif %}
+</div>
+{% endblock %}

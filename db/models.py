@@ -456,3 +456,70 @@ class MaxBotBonusClaim(Base):
     username: Mapped[str | None] = mapped_column(String(128), nullable=True)
     bonus_code_given: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Страж чата ───────────────────────────────────────
+class GuardAction(str, Enum):
+    DELETE = "delete"
+    WARN = "warn"
+    BAN = "ban"
+
+
+class ChatGuard(Base):
+    __tablename__ = "chat_guards"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(256))
+
+    # Аккаунт, от которого работает модерация (должен быть админом в чате)
+    account_id: Mapped[int] = mapped_column(Integer, ForeignKey("max_accounts.id"), index=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger, index=True)
+
+    # Правила
+    delete_links: Mapped[bool] = mapped_column(Boolean, default=True)
+    delete_mentions: Mapped[bool] = mapped_column(Boolean, default=False)
+    delete_forwards: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    stop_words: Mapped[str] = mapped_column(Text, default="")  # CSV
+    stop_words_action: Mapped[GuardAction] = mapped_column(SQLEnum(GuardAction), default=GuardAction.DELETE)
+
+    # Флуд-контроль: max N сообщений за interval_sec секунд
+    flood_limit: Mapped[int] = mapped_column(Integer, default=0)  # 0 = off
+    flood_interval_sec: Mapped[int] = mapped_column(Integer, default=10)
+    flood_action: Mapped[GuardAction] = mapped_column(SQLEnum(GuardAction), default=GuardAction.DELETE)
+
+    # Whitelist (CSV user_id)
+    whitelist_ids: Mapped[str] = mapped_column(Text, default="")
+
+    # AI-модерация токсичности
+    ai_moderation: Mapped[bool] = mapped_column(Boolean, default=False)
+    ai_toxicity_threshold: Mapped[float] = mapped_column(Float, default=0.8)
+
+    # Приветствие новых участников
+    welcome_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    welcome_text: Mapped[str] = mapped_column(Text, default="Добро пожаловать! Ознакомьтесь с правилами чата.")
+
+    # Правила чата (для /rules и welcome)
+    rules_text: Mapped[str] = mapped_column(Text, default="")
+
+    # Статистика
+    deleted_count: Mapped[int] = mapped_column(Integer, default=0)
+    banned_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class GuardEvent(Base):
+    """Лог действий модератора."""
+    __tablename__ = "guard_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    guard_id: Mapped[int] = mapped_column(Integer, ForeignKey("chat_guards.id"), index=True)
+    max_user_id: Mapped[int] = mapped_column(BigInteger)
+    username: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    action: Mapped[GuardAction] = mapped_column(SQLEnum(GuardAction))
+    reason: Mapped[str] = mapped_column(String(512))
+    message_preview: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
