@@ -1,0 +1,47 @@
+[Unit]
+Description=MaxSurge FastAPI app
+Documentation=https://github.com/xyleo23/maxsurge
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=10
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/max_leadfinder
+ExecStart=/root/max_leadfinder/venv/bin/python main.py
+ExecStartPre=/bin/bash -c 'pids=$(/usr/bin/lsof -ti:8090 2>/dev/null || true); if [ -n "$pids" ]; then kill -9 $pids || true; sleep 1; fi'
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=maxsurge
+KillMode=mixed
+TimeoutStopSec=15
+TimeoutStartSec=30
+
+# Resource limits
+MemoryMax=2G
+MemoryHigh=1500M
+TasksMax=512
+LimitNOFILE=65536
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/root/max_leadfinder /var/backups/maxsurge
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
