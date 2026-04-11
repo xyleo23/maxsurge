@@ -8,6 +8,12 @@
     <form method="post" action="/app/sender/start">
       <label class="text-gray-400 text-xs mb-1 block">Шаблон</label>
       <select name="template_id" class="form-input mb-3">{% for t in templates %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}</select>
+      <label class="text-gray-400 text-xs mb-1 block">Шаблон B (A/B тест, опц.)</label>
+      <select name="template_b_id" class="form-input mb-3">
+        <option value="0">— без A/B теста —</option>
+        {% for t in templates %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+      </select>
+      <p class="text-xs mb-3" style="color:var(--text-muted)">🧪 Выберите второй шаблон чтобы запустить A/B тест. Цели разделятся 50/50, в логах увидите какой вариант отработал лучше.</p>
 
       <label class="text-gray-400 text-xs mb-1 block">Цель сообщения</label>
       <select name="target_type" class="form-input mb-3">

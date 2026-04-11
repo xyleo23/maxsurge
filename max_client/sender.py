@@ -45,6 +45,7 @@ async def run_broadcast(
     account_ids: list[int] | None = None,
     target_type: str = "users",  # "users" или "chats"
     typing_emulation: bool = True,
+    template_b_id: int | None = None,
 ):
     """Рассылка по лидам (users) или в чаты (chats)."""
     global _broadcast_status
@@ -62,6 +63,16 @@ async def run_broadcast(
                 f"Пройдите модерацию. AI: {tmpl.ai_feedback or '—'}"
             )
             return
+
+        tmpl_b = None
+        if template_b_id:
+            async with async_session_factory() as session:
+                tmpl_b = await session.get(MessageTemplate, template_b_id)
+            if not tmpl_b or (tmpl_b.status and tmpl_b.status != TemplateStatus.APPROVED):
+                _broadcast_status["log"].append(f"🛑 Шаблон B #{template_b_id} не одобрен или не найден — AB выключен")
+                tmpl_b = None
+            else:
+                _broadcast_status["log"].append(f"🧪 A/B тест: {tmpl.name} vs {tmpl_b.name} (50/50)")
 
         # Загружаем цели
         targets = []
@@ -92,7 +103,7 @@ async def run_broadcast(
             _broadcast_status["log"].append("Нет активных MAX аккаунтов")
             return
 
-        for target in targets:
+        for _ab_idx, target in enumerate(targets):
             if not _broadcast_status["running"]:
                 break
             while _broadcast_status.get("paused"):
@@ -101,16 +112,22 @@ async def run_broadcast(
                     return
 
             lead_obj = target.get("lead")
-            text = render_template_with_spintax(tmpl.body, lead_obj)
-            if tmpl.attachment_url:
-                text = text + chr(10) + chr(10) + tmpl.attachment_url
+            # A/B split
+            _active_tmpl = tmpl
+            _active_tmpl_id = template_id
+            if tmpl_b is not None and _ab_idx % 2 == 1:
+                _active_tmpl = tmpl_b
+                _active_tmpl_id = template_b_id
+            text = render_template_with_spintax(_active_tmpl.body, lead_obj)
+            if _active_tmpl.attachment_url:
+                text = text + chr(10) + chr(10) + _active_tmpl.attachment_url
 
             if dry_run:
                 _broadcast_status["log"].append(f"[DRY] {target['name']}: {text[:50]}...")
                 _broadcast_status["sent"] += 1
                 async with async_session_factory() as session:
                     session.add(SendLog(lead_id=target.get("lead_id"), account_id=0,
-                        template_id=template_id, target_type=target["type"],
+                        template_id=_active_tmpl_id, target_type=target["type"],
                         target_id=str(target["id"]), outgoing_text=text, status="dry_run"))
                     await session.commit()
                 await asyncio.sleep(0.1)
@@ -141,7 +158,7 @@ async def run_broadcast(
                         db_acc.sent_total += 1
                         db_acc.last_used_at = datetime.utcnow()
                     session.add(SendLog(lead_id=target.get("lead_id"), account_id=acc.id,
-                        template_id=template_id, target_type=target["type"],
+                        template_id=_active_tmpl_id, target_type=target["type"],
                         target_id=str(target["id"]), outgoing_text=text, status="sent"))
                     await session.commit()
 
@@ -151,7 +168,7 @@ async def run_broadcast(
                 _broadcast_status["log"].append(f"[FAIL] {target['name']}: {err[:60]}")
                 async with async_session_factory() as session:
                     session.add(SendLog(lead_id=target.get("lead_id"), account_id=acc.id,
-                        template_id=template_id, outgoing_text=text, status="failed", error=err))
+                        template_id=_active_tmpl_id, outgoing_text=text, status="failed", error=err))
                     await session.commit()
                 if "block" in err.lower() or "spam" in err.lower():
                     await account_manager.mark_blocked(acc.phone)
@@ -167,12 +184,13 @@ async def run_broadcast(
 
 def start_broadcast_background(template_id: int, limit: int, dry_run: bool,
                                 account_ids: list[int] | None = None,
-                                target_type: str = "users", typing_emulation: bool = True):
+                                target_type: str = "users", typing_emulation: bool = True,
+                                template_b_id: int | None = None):
     global _broadcast_task
     if _broadcast_status.get("running"):
         raise RuntimeError("Рассылка уже запущена")
     _broadcast_task = asyncio.create_task(
-        run_broadcast(template_id, limit, dry_run, account_ids, target_type, typing_emulation)
+        run_broadcast(template_id, limit, dry_run, account_ids, target_type, typing_emulation, template_b_id=template_b_id)
     )
     return _broadcast_task
 

@@ -31,9 +31,11 @@ async def sender_page(request: Request, msg: str = ""):
 @router.post("/start")
 async def start_broadcast(template_id: int = Form(...), limit: int = Form(50),
                            dry_run: bool = Form(False), account_ids: list[int] = Form([]),
-                           target_type: str = Form("users"), typing_emulation: bool = Form(True)):
+                           target_type: str = Form("users"), typing_emulation: bool = Form(True),
+                           template_b_id: int = Form(0)):
     try:
-        start_broadcast_background(template_id, limit, dry_run, account_ids or None, target_type, typing_emulation)
+        start_broadcast_background(template_id, limit, dry_run, account_ids or None, target_type, typing_emulation,
+                                    template_b_id=(template_b_id or None))
         return RedirectResponse("/app/sender/?msg=Рассылка+запущена", status_code=303)
     except RuntimeError as e:
         return RedirectResponse(f"/app/sender/?msg={str(e)}", status_code=303)
