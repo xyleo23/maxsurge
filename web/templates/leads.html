@@ -6,10 +6,13 @@
     <h1 class="text-2xl font-bold text-[color:var(--text-primary)]">Лиды <span class="text-[color:var(--text-muted)] text-lg font-normal">({{ total }})</span></h1>
     <p class="text-[color:var(--text-muted)] text-sm mt-0.5">База потенциальных клиентов</p>
   </div>
-  <a href="/leads/export" class="btn-ghost">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-    CSV
-  </a>
+  <div class="flex items-center gap-2">
+    <form method="post" action="/app/csv/import/leads" enctype="multipart/form-data" class="flex items-center gap-2">
+      <input type="file" name="file" accept=".csv" required class="text-xs" style="color:var(--text-muted)">
+      <button type="submit" class="btn-ghost text-xs">📥 Импорт</button>
+    </form>
+    <a href="/app/csv/export/leads" class="btn-ghost text-xs">📤 Экспорт CSV</a>
+  </div>
 </div>
 
 <!-- Filters -->
