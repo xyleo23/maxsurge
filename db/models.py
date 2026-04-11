@@ -312,6 +312,7 @@ class RefCommission(Base):
     payment_id: Mapped[int] = mapped_column(Integer, ForeignKey("payments.id"), index=True)
     amount: Mapped[float] = mapped_column(Float)
     percent: Mapped[float] = mapped_column(Float, default=20.0)
+    level: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 

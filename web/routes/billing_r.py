@@ -200,25 +200,43 @@ async def webhook(request: Request):
                 notify_user_async(user.id, "\U0001f4b0 <b>\u041f\u043b\u0430\u0442\u0451\u0436 \u0443\u0441\u043f\u0435\u0448\u0435\u043d</b>\n\n\u0422\u0430\u0440\u0438\u0444: <b>" + payment.plan.value + "</b>\n\u0421\u0443\u043c\u043c\u0430: <b>" + str(payment.amount) + "\u20bd</b>", pref_field="notify_on_payment")
 
                 # Реферальная комиссия (20% если юзер пришёл по рефералу)
-                if user.referred_by:
-                    existing_commission = (await s.execute(
-                        select(RefCommission).where(RefCommission.payment_id == payment.id)
-                    )).scalar_one_or_none()
-                    if not existing_commission:
-                        commission_amount = round(payment.amount * 0.20, 2)
+                # 2-level referral commissions: 20% / 5%
+                existing = (await s.execute(
+                    select(RefCommission).where(RefCommission.payment_id == payment.id)
+                )).scalars().all()
+                if not existing:
+                    # Level 1: прямой реферер 20%
+                    if user.referred_by:
+                        l1 = round(payment.amount * 0.20, 2)
                         s.add(RefCommission(
                             referrer_id=user.referred_by,
                             referred_id=user.id,
                             payment_id=payment.id,
-                            amount=commission_amount,
+                            amount=l1,
                             percent=20.0,
+                            level=1,
                         ))
-                        referrer = await s.get(SiteUser, user.referred_by)
-                        if referrer:
-                            referrer.ref_balance = (referrer.ref_balance or 0) + commission_amount
-                            referrer.ref_earned_total = (referrer.ref_earned_total or 0) + commission_amount
-                            logger.info("Ref commission {} RUB for user={} from payment={}",
-                                        commission_amount, referrer.id, payment.id)
+                        l1_user = await s.get(SiteUser, user.referred_by)
+                        if l1_user:
+                            l1_user.ref_balance = (l1_user.ref_balance or 0) + l1
+                            l1_user.ref_earned_total = (l1_user.ref_earned_total or 0) + l1
+                            logger.info("Ref L1 {} RUB for user={} payment={}", l1, l1_user.id, payment.id)
+                            # Level 2: реферер реферера 5%
+                            if l1_user.referred_by and l1_user.referred_by != user.id:
+                                l2 = round(payment.amount * 0.05, 2)
+                                s.add(RefCommission(
+                                    referrer_id=l1_user.referred_by,
+                                    referred_id=user.id,
+                                    payment_id=payment.id,
+                                    amount=l2,
+                                    percent=5.0,
+                                    level=2,
+                                ))
+                                l2_user = await s.get(SiteUser, l1_user.referred_by)
+                                if l2_user:
+                                    l2_user.ref_balance = (l2_user.ref_balance or 0) + l2
+                                    l2_user.ref_earned_total = (l2_user.ref_earned_total or 0) + l2
+                                    logger.info("Ref L2 {} RUB for user={} payment={}", l2, l2_user.id, payment.id)
 
         await s.commit()
 

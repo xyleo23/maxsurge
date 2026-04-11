@@ -85,14 +85,16 @@
 
   <!-- Комиссии -->
   <div class="card">
-    <div class="card-header">Начисления</div>
+    <div class="card mb-4 p-3" style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(245,158,11,0.08));border-left:3px solid #10b981"><b style="color:#10b981">NEW: 2-уровневая программа.</b> Вы получаете <b>20%</b> с платежей прямых рефералов (L1) и <b>5%</b> с платежей их рефералов (L2).</div>
+<div class="card-header">Начисления</div>
     {% if commissions %}
     <table>
-      <thead><tr><th>Дата</th><th>Сумма</th><th>%</th></tr></thead>
+      <thead><tr><th>Дата</th><th>Уровень</th><th>Сумма</th><th>%</th></tr></thead>
       <tbody>
         {% for c in commissions %}
         <tr>
           <td class="text-xs" style="color:var(--text-muted)">{{ c.created_at.strftime('%d.%m.%Y') }}</td>
+          <td class="text-xs">{% if c.level == 2 %}<span style="color:#f59e0b">L2 (внук)</span>{% else %}<span style="color:#10b981">L1</span>{% endif %}</td>
           <td class="font-mono text-green-400">+{{ "%.0f"|format(c.amount) }} ₽</td>
           <td class="text-xs">{{ "%.0f"|format(c.percent) }}%</td>
         </tr>
