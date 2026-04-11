@@ -178,6 +178,11 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         )).scalar_one_or_none()
 
     if not user or not bcrypt.verify(password, user.password_hash):
+        try:
+            from main import record_auth_failure
+            record_auth_failure(ip)
+        except Exception:
+            pass
         return RedirectResponse("/login?msg=Неверный+email+или+пароль", status_code=303)
 
     if not user.is_active:

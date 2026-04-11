@@ -69,6 +69,90 @@ logger.add("logs/maxsurge.log", rotation="10 MB", retention="7 days", level="DEB
 app = FastAPI(title="MaxSurge v3.0", docs_url="/api/docs")
 
 
+
+
+# ── Security headers middleware ──────────────────
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+        # Relaxed CSP — allows Tailwind CDN and Alpine
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:; "
+            "img-src 'self' https: data: blob:; "
+            "frame-ancestors 'self'"
+        )
+        return response
+
+
+# ── IP ban (fail2ban-style) ──────────────────────
+import time as _time_mod
+_failed_logins: dict[str, list[float]] = {}  # ip -> [timestamps]
+_banned_ips: dict[str, float] = {}             # ip -> ban_until_ts
+_FAIL_THRESHOLD = 10
+_FAIL_WINDOW = 600     # 10 min
+_BAN_DURATION = 3600   # 1 hour
+
+
+def record_auth_failure(ip: str):
+    now = _time_mod.time()
+    bucket = _failed_logins.setdefault(ip, [])
+    bucket.append(now)
+    _failed_logins[ip] = [t for t in bucket if now - t < _FAIL_WINDOW]
+    if len(_failed_logins[ip]) >= _FAIL_THRESHOLD:
+        _banned_ips[ip] = now + _BAN_DURATION
+        _failed_logins[ip] = []
+        logger.warning("[fail2ban] IP {} banned for {}s after {} failures", ip, _BAN_DURATION, _FAIL_THRESHOLD)
+        try:
+            from max_client.tg_notifier import notify_async
+            notify_async(f"🚫 <b>IP banned</b>\n\n<code>{ip}</code> забанен на 1ч за {_FAIL_THRESHOLD} неудачных логинов")
+        except Exception:
+            pass
+
+
+def is_ip_banned(ip: str) -> bool:
+    until = _banned_ips.get(ip, 0)
+    if until and _time_mod.time() < until:
+        return True
+    if until:
+        del _banned_ips[ip]
+    return False
+
+
+class IPBanMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "")
+        if ip and is_ip_banned(ip):
+            from fastapi.responses import JSONResponse
+            return JSONResponse({"error": "banned", "retry_after": int(_banned_ips[ip] - _time_mod.time())}, status_code=429)
+        return await call_next(request)
+
+
+# ── Error rate tracker ──────────────────────────
+_error_counter = {"count": 0, "window_start": _time_mod.time(), "last_alert": 0.0}
+_ERROR_WINDOW = 300    # 5 min
+_ERROR_THRESHOLD = 20  # 20 errors in 5 min
+
+def record_error():
+    now = _time_mod.time()
+    if now - _error_counter["window_start"] > _ERROR_WINDOW:
+        _error_counter["count"] = 0
+        _error_counter["window_start"] = now
+    _error_counter["count"] += 1
+    if _error_counter["count"] >= _ERROR_THRESHOLD and now - _error_counter["last_alert"] > 600:
+        _error_counter["last_alert"] = now
+        try:
+            from max_client.tg_notifier import notify_async
+            notify_async(f"🔥 <b>Error rate spike</b>\n\n{_error_counter['count']} ошибок за {_ERROR_WINDOW//60} мин")
+        except Exception:
+            pass
+
+
 # ── Error monitoring middleware ──────────────────
 class ErrorMonitoringMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -96,7 +180,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(AuthMiddleware)
+app.add_middleware(IPBanMiddleware)
 app.add_middleware(ErrorMonitoringMiddleware)
 
 # ── Public routes ──────────────────────────────────────
