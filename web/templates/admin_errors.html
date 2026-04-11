@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %} — Error Log{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Error log</h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Последние 500 ошибок сервера (5xx + unhandled exceptions)</p>
+  </div>
+  <div class="text-sm" style="color:var(--text-muted)">
+    Всего: <b style="color:#ef4444">{{ total }}</b>
+    за 24ч: <b>{{ last_24h }}</b>
+  </div>
+</div>
+
+{% if top_types %}
+<div class="card mb-4">
+  <div class="card-header">Топ типов ошибок (за 24ч)</div>
+  <div class="p-4 space-y-1 text-sm">
+    {% for t, c in top_types %}
+    <div class="flex justify-between" style="color:var(--text-primary)">
+      <span class="font-mono">{{ t or "?" }}</span>
+      <span class="font-bold" style="color:#ef4444">{{ c }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  {% if entries %}
+  {% for e in entries %}
+  <div class="p-3" style="border-bottom:1px solid var(--border)" x-data="{open:false}">
+    <div class="flex items-start justify-between cursor-pointer" @click="open=!open">
+      <div class="flex-1 min-w-0">
+        <div class="text-xs" style="color:var(--text-muted)">
+          {{ e.created_at.strftime("%m-%d %H:%M:%S") }} •
+          <span style="color:#ef4444">{{ e.status_code or "500" }}</span> •
+          {{ e.method or "?" }} {{ e.path or "?" }}
+          {% if e.ip %} • {{ e.ip }}{% endif %}
+        </div>
+        <div class="mt-1 text-sm" style="color:var(--text-primary)">
+          <span style="color:#f59e0b">{{ e.ex_type or "?" }}</span>:
+          <span style="color:var(--text-muted)">{{ (e.ex_message or "")[:200] }}</span>
+        </div>
+      </div>
+      <span class="text-xs ml-3" style="color:var(--text-muted)" x-text="open ? '▲' : '▼'"></span>
+    </div>
+    {% if e.traceback %}
+    <pre x-show="open" x-cloak class="mt-3 p-3 text-xs font-mono overflow-x-auto" style="background:var(--bg-card-alt);color:var(--text-muted);max-height:300px">{{ e.traceback }}</pre>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% else %}
+  <p class="p-4" style="color:var(--text-muted)">Пока ошибок нет 🎉</p>
+  {% endif %}
+</div>
+{% endblock %}

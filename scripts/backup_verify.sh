@@ -76,10 +76,17 @@ fi
 USERS=$(sqlite3 "$TMPDIR/test.db" "SELECT COUNT(*) FROM site_users;" 2>/dev/null || echo 0)
 LEADS=$(sqlite3 "$TMPDIR/test.db" "SELECT COUNT(*) FROM leads;" 2>/dev/null || echo 0)
 
-# 7. Off-site copy (different directory, different mount point ideally)
+# 7. Off-site copy + age encryption
+AGE_PUB="age1wnkcz2hp4j7jfdl869vgq68n2why3ghjzapej9mz3tq6kg92vv0qx256g4"
+ENCRYPTED="$OFFSITE_DIR/$(basename $LATEST).age"
+if [ ! -f "$ENCRYPTED" ]; then
+    age -r "$AGE_PUB" -o "$ENCRYPTED" "$LATEST" 2>/dev/null || send_alert "age encrypt failed для $(basename $LATEST)"
+fi
+# Оставляем также plain копию на 3 дня для быстрого восстановления
 cp "$LATEST" "$OFFSITE_DIR/$(basename $LATEST)"
-# Clean off-site older than 14 days
-find "$OFFSITE_DIR" -name "maxsurge_*.db.gz" -mtime +14 -delete 2>/dev/null
+# Clean off-site: plain >3 дней, encrypted >30 дней
+find "$OFFSITE_DIR" -name "maxsurge_*.db.gz" ! -name "*.age" -mtime +3 -delete 2>/dev/null
+find "$OFFSITE_DIR" -name "*.age" -mtime +30 -delete 2>/dev/null
 
 log "OK $(basename $LATEST) age=${AGE_HOURS}h size=${SIZE}B users=$USERS leads=$LEADS offsite=yes"
 exit 0

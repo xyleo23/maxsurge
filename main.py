@@ -211,6 +211,35 @@ def record_error():
 
 
 # ── Error monitoring middleware ──────────────────
+async def _persist_error(request, ex_type, ex_message, traceback_text, status_code):
+    try:
+        from db.models import ErrorLog, async_session_factory as _asf
+        ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "")
+        ua = request.headers.get("user-agent", "")[:500]
+        uid = None
+        try:
+            user = getattr(request.state, "user", None)
+            if user:
+                uid = user.id
+        except Exception:
+            pass
+        async with _asf() as _s:
+            _s.add(ErrorLog(
+                path=str(request.url.path)[:500],
+                method=request.method[:16],
+                status_code=status_code,
+                ex_type=(ex_type or "")[:256],
+                ex_message=(ex_message or "")[:2000],
+                traceback=(traceback_text or "")[:8000],
+                user_id=uid,
+                ip=ip[:64] if ip else None,
+                user_agent=ua,
+            ))
+            await _s.commit()
+    except Exception:
+        pass
+
+
 class ErrorMonitoringMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         try:
@@ -218,11 +247,15 @@ class ErrorMonitoringMiddleware(BaseHTTPMiddleware):
             if response.status_code >= 500:
                 logger.error("HTTP {} on {}", response.status_code, request.url.path)
                 on_error(f"HTTP {response.status_code}", f"Path: {request.url.path}")
+                record_error()
+                await _persist_error(request, "HTTPError", f"HTTP {response.status_code}", "", response.status_code)
             return response
         except Exception as e:
             tb = traceback.format_exc()
             logger.error("Unhandled exception on {}: {}\n{}", request.url.path, e, tb)
             on_error(f"Unhandled exception on {request.url.path}", f"{type(e).__name__}: {str(e)[:300]}")
+            record_error()
+            await _persist_error(request, type(e).__name__, str(e), tb, 500)
             raise
 
 
@@ -299,6 +332,8 @@ async def startup():
     from max_client.health_digest import run_periodic_digest, check_health
     asyncio.create_task(run_periodic_digest())
     asyncio.create_task(check_health())
+    from max_client.health_digest import run_periodic_weekly as _rpw
+    asyncio.create_task(_rpw())
 
     # systemd watchdog notifier
     try:

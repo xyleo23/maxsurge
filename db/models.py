@@ -560,3 +560,20 @@ class AuditLog(Base):
     details: Mapped[str | None] = mapped_column(Text, nullable=True)
     ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
+# ── Error log ────────────────────────────────────────
+class ErrorLog(Base):
+    __tablename__ = "error_log"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    method: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    status_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    ex_type: Mapped[str | None] = mapped_column(String(256), nullable=True, index=True)
+    ex_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    traceback: Mapped[str | None] = mapped_column(Text, nullable=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)

@@ -10,7 +10,7 @@ from sqlalchemy import select, func, delete, update
 from max_client.audit import log_audit
 
 from db.models import (
-    AuditLog,
+    AuditLog, ErrorLog,
     SiteUser, UserPlan, Lead, MaxAccount, AccountStatus, SendLog,
     ParsedUser, ChatCatalog, Task, TaskStatus, UserFile, WarmingLog,
     Payment, PaymentStatus, async_session_factory,
@@ -227,4 +227,28 @@ async def audit_page(request: Request):
         request=request,
         name="admin_audit.html",
         context={"entries": entries},
+    )
+
+
+@router.get("/errors", response_class=HTMLResponse)
+async def errors_page(request: Request):
+    user = await _require_admin(request)
+    if not user:
+        return RedirectResponse("/app/", status_code=303)
+    from datetime import datetime, timedelta
+    since_24h = datetime.utcnow() - timedelta(hours=24)
+    async with async_session_factory() as s:
+        total = (await s.execute(select(func.count(ErrorLog.id)))).scalar() or 0
+        last_24h = (await s.execute(select(func.count(ErrorLog.id)).where(ErrorLog.created_at >= since_24h))).scalar() or 0
+        entries = (await s.execute(
+            select(ErrorLog).order_by(ErrorLog.created_at.desc()).limit(500)
+        )).scalars().all()
+        top_types_rows = (await s.execute(
+            select(ErrorLog.ex_type, func.count(ErrorLog.id)).where(ErrorLog.created_at >= since_24h).group_by(ErrorLog.ex_type).order_by(func.count(ErrorLog.id).desc()).limit(10)
+        )).all()
+    top_types = [(r[0], r[1]) for r in top_types_rows]
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_errors.html",
+        context={"entries": entries, "total": total, "last_24h": last_24h, "top_types": top_types},
     )
