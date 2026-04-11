@@ -113,6 +113,7 @@
         <a href="#features" class="hover:text-white transition">Возможности</a>
         <a href="#niches" class="hover:text-white transition">Ниши</a>
         <a href="#compare" class="hover:text-white transition">Сравнение</a>
+        <a href="#roi" class="hover:text-white transition">Калькулятор</a>
         <a href="#pricing" class="hover:text-white transition">Тарифы</a>
         <a href="/blog/" class="hover:text-white transition">Блог</a>
         <a href="#faq" class="hover:text-white transition">FAQ</a>
@@ -343,6 +344,84 @@
           <div class="text-3xl mb-3">⚖️</div>
           <h3 class="font-semibold text-white mb-2">Юридические услуги</h3>
           <p class="text-gray-400 text-sm leading-relaxed">Таргетированная рассылка по бизнес-базам из 2GIS. AI автоответчик на первичные консультации.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROI Calculator -->
+  <section id="roi" class="py-20 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Калькулятор окупаемости</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Прикиньте возможную выручку и срок окупаемости MaxSurge под вашу нишу. Ползунки меняются — цифры обновляются на лету.</p>
+      </div>
+      <div class="grid md:grid-cols-5 gap-6 bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 md:p-8">
+        <!-- Controls -->
+        <div class="md:col-span-2 space-y-6">
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-gray-500 font-medium mb-2">Ваша ниша</label>
+            <select id="roi-niche" class="w-full bg-[#0a0e1a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500">
+              <option value="construction">Строительство / подрядчики</option>
+              <option value="medicine">Медицина / стоматология</option>
+              <option value="restaurants">Рестораны / кафе</option>
+              <option value="realty">Недвижимость</option>
+              <option value="fitness">Фитнес / студии</option>
+              <option value="law">Юридические услуги</option>
+              <option value="other">Другое</option>
+            </select>
+          </div>
+          <div>
+            <div class="flex justify-between items-baseline mb-2">
+              <label class="text-xs uppercase tracking-wider text-gray-500 font-medium">База лидов</label>
+              <span id="roi-base-label" class="text-sm font-semibold text-white">2 000</span>
+            </div>
+            <input id="roi-base" type="range" min="100" max="50000" step="100" value="2000" class="w-full accent-indigo-500"/>
+            <div class="flex justify-between text-[10px] text-gray-600 mt-1"><span>100</span><span>50 000</span></div>
+          </div>
+          <div>
+            <div class="flex justify-between items-baseline mb-2">
+              <label class="text-xs uppercase tracking-wider text-gray-500 font-medium">Конверсия в ответ</label>
+              <span id="roi-conv-label" class="text-sm font-semibold text-white">5%</span>
+            </div>
+            <input id="roi-conv" type="range" min="1" max="20" step="1" value="5" class="w-full accent-indigo-500"/>
+            <div class="flex justify-between text-[10px] text-gray-600 mt-1"><span>1%</span><span>20%</span></div>
+          </div>
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-gray-500 font-medium mb-2">Средний чек клиента, ₽</label>
+            <input id="roi-check" type="number" min="0" step="500" value="25000" class="w-full bg-[#0a0e1a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500"/>
+          </div>
+        </div>
+        <!-- Results -->
+        <div class="md:col-span-3 bg-[#0a0e1a] border border-[#1e293b] rounded-xl p-6 md:p-7">
+          <div class="grid grid-cols-2 gap-5 mb-6">
+            <div>
+              <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Ответов</div>
+              <div id="roi-answers" class="text-2xl md:text-3xl font-bold text-white">100</div>
+              <div class="text-xs text-gray-600 mt-1">из базы</div>
+            </div>
+            <div>
+              <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Сделок</div>
+              <div id="roi-deals" class="text-2xl md:text-3xl font-bold text-white">20</div>
+              <div class="text-xs text-gray-600 mt-1">при закрытии 20%</div>
+            </div>
+            <div class="col-span-2">
+              <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Ожидаемая выручка</div>
+              <div id="roi-revenue" class="text-3xl md:text-4xl font-bold gradient-text">500 000 ₽</div>
+            </div>
+          </div>
+          <div class="border-t border-[#1e293b] pt-5">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+              <div class="text-xs uppercase tracking-wider text-gray-500">Рекомендуемый тариф</div>
+              <div id="roi-payback" class="text-xs text-emerald-400 font-medium">окупится на 1-ой сделке</div>
+            </div>
+            <div class="flex items-baseline gap-3 mb-4">
+              <div id="roi-tariff" class="text-xl font-semibold text-white">Basic</div>
+              <div id="roi-tariff-price" class="text-sm text-gray-400">2 990 ₽/мес</div>
+            </div>
+            <a id="roi-cta" href="/register" class="block text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Попробовать Basic бесплатно 7 дней</a>
+          </div>
+          <p class="text-[11px] text-gray-600 mt-5 leading-relaxed">Расчёт ориентировочный. Реальные показатели зависят от качества базы, текста рассылки, ниши и сезона. Ставка закрытия сделок взята консервативно — 20%.</p>
         </div>
       </div>
     </div>
@@ -692,6 +771,80 @@
       });
     }, {threshold: 0.3});
     document.querySelectorAll('#metrics .metric').forEach(el=>mObs.observe(el));
+
+    // ROI calculator
+    (function(){
+      const $ = id => document.getElementById(id);
+      const elNiche = $('roi-niche'), elBase = $('roi-base'), elConv = $('roi-conv'), elCheck = $('roi-check');
+      if(!elNiche || !elBase || !elConv || !elCheck) return;
+      const elBaseLabel = $('roi-base-label'), elConvLabel = $('roi-conv-label');
+      const elAnswers = $('roi-answers'), elDeals = $('roi-deals'), elRevenue = $('roi-revenue');
+      const elTariff = $('roi-tariff'), elTariffPrice = $('roi-tariff-price'), elPayback = $('roi-payback'), elCta = $('roi-cta');
+      const NICHE = {
+        construction: {check: 25000, conv: 3},
+        medicine:     {check: 3500,  conv: 5},
+        restaurants:  {check: 1500,  conv: 8},
+        realty:       {check: 50000, conv: 2},
+        fitness:      {check: 5000,  conv: 6},
+        law:          {check: 10000, conv: 3},
+        other:        {check: 5000,  conv: 5},
+      };
+      const TARIFFS = [
+        {key:'trial', name:'Trial',  price:0,    maxBase:500,   cta:'Попробовать бесплатно 7 дней'},
+        {key:'start', name:'Start',  price:1490, maxBase:2000,  cta:'Попробовать Start бесплатно 7 дней'},
+        {key:'basic', name:'Basic',  price:2990, maxBase:10000, cta:'Попробовать Basic бесплатно 7 дней'},
+        {key:'pro',   name:'Pro',    price:4990, maxBase:999999,cta:'Попробовать Pro бесплатно 7 дней'},
+      ];
+      const fmt = new Intl.NumberFormat('ru-RU');
+      const fmtRub = n => fmt.format(Math.round(n)) + ' ₽';
+      const CLOSING_RATE = 0.20;
+
+      function pickTariff(base){
+        for(const t of TARIFFS){ if(base <= t.maxBase) return t; }
+        return TARIFFS[TARIFFS.length-1];
+      }
+      function calc(){
+        const base = parseInt(elBase.value,10);
+        const conv = parseInt(elConv.value,10);
+        const check = Math.max(0, parseInt(elCheck.value,10) || 0);
+        const answers = Math.round(base * conv / 100);
+        const deals = Math.round(answers * CLOSING_RATE);
+        const revenue = deals * check;
+        elBaseLabel.textContent = fmt.format(base);
+        elConvLabel.textContent = conv + '%';
+        elAnswers.textContent = fmt.format(answers);
+        elDeals.textContent = fmt.format(deals);
+        elRevenue.textContent = fmtRub(revenue);
+        const tariff = pickTariff(base);
+        elTariff.textContent = tariff.name;
+        elTariffPrice.textContent = tariff.price === 0 ? 'бесплатно' : fmt.format(tariff.price) + ' ₽/мес';
+        elCta.textContent = tariff.cta;
+        // Payback text
+        if(check > 0 && tariff.price > 0){
+          const dealsForPayback = Math.max(1, Math.ceil(tariff.price / check));
+          elPayback.textContent = dealsForPayback === 1 ? 'окупается уже на 1-ой сделке' : 'окупается на ' + dealsForPayback + '-й сделке';
+          elPayback.classList.remove('text-gray-500'); elPayback.classList.add('text-emerald-400');
+        } else if(tariff.price === 0){
+          elPayback.textContent = 'тариф бесплатный';
+          elPayback.classList.remove('text-emerald-400'); elPayback.classList.add('text-gray-500');
+        } else {
+          elPayback.textContent = 'введите средний чек';
+          elPayback.classList.remove('text-emerald-400'); elPayback.classList.add('text-gray-500');
+        }
+      }
+      elNiche.addEventListener('change', () => {
+        const n = NICHE[elNiche.value] || NICHE.other;
+        elCheck.value = n.check;
+        elConv.value = n.conv;
+        calc();
+      });
+      ['input','change'].forEach(ev => {
+        elBase.addEventListener(ev, calc);
+        elConv.addEventListener(ev, calc);
+        elCheck.addEventListener(ev, calc);
+      });
+      calc();
+    })();
 
     // Telegram support widget
     (function(){
