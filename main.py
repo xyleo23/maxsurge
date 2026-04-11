@@ -53,6 +53,7 @@ from web.routes.neurochat_r import router as neurochat_router
 from web.routes.bots_r import router as bots_router
 from web.routes.guard_r import router as guard_router
 from web.routes.api_ingest_r import router as api_ingest_router
+from web.routes.logs_r import router as logs_router
 from web.routes.admin_r import router as admin_router
 
 settings = get_settings()
@@ -106,7 +107,7 @@ for r in [dashboard_router, leads_router, accounts_router, templates_router,
           sender_router, scraper_router, parser_router, checker_router,
           warming_router, profile_router, catalog_router, analytics_router,
           autoresponder_router, inviter_router, forwarder_router,
-          tasks_router, files_router, admin_router, settings_router, billing_router, referral_router, twofa_router, neurochat_router, bots_router, guard_router]:
+          tasks_router, files_router, admin_router, settings_router, billing_router, referral_router, twofa_router, neurochat_router, bots_router, guard_router, logs_router]:
     app.include_router(r, prefix="/app")
 
 

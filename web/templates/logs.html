@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %} — Логи{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Системные логи</h1>
+  <p style="color:var(--text-muted)" class="text-sm mt-1">Единая лента активности по всем модулям вашего аккаунта.</p>
+</div>
+
+<div class="card mb-4">
+  <div class="flex flex-wrap gap-2 p-3">
+    {% set tabs = [
+      ("broadcast", "📤 Рассылка"),
+      ("tasks", "📋 Задачи"),
+      ("leads", "👥 Лиды"),
+      ("guard", "🛡 Страж"),
+      ("neurochat", "🤖 Нейрочат"),
+      ("bots", "🎯 Боты")
+    ] %}
+    {% for v, l in tabs %}
+    <a href="/app/logs/?tab={{ v }}" class="px-3 py-1.5 rounded text-sm {% if tab == v %}bg-indigo-600 text-white{% else %}btn-ghost{% endif %}">{{ l }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">{{ items|length }} записей</div>
+  {% if items %}
+  <div class="overflow-x-auto">
+  <table class="w-full text-sm">
+    {% if tab == "broadcast" %}
+    <thead><tr style="color:var(--text-muted)"><th class="text-left py-2">Время</th><th class="text-left">Аккаунт</th><th class="text-left">Target</th><th class="text-left">Статус</th><th class="text-left">Текст</th></tr></thead>
+    <tbody>
+    {% for i in items %}
+    <tr style="border-top:1px solid var(--border)">
+      <td class="py-2 text-xs whitespace-nowrap">{{ i.sent_at.strftime("%m-%d %H:%M") }}</td>
+      <td class="text-xs">#{{ i.account_id }}</td>
+      <td class="text-xs">{{ i.target_type or "—" }}</td>
+      <td class="text-xs">{% if i.status == "sent" %}<span style="color:#10b981">✓ {{ i.status }}</span>{% else %}<span style="color:#ef4444">✗ {{ i.status }}</span>{% endif %}</td>
+      <td class="text-xs" style="color:var(--text-muted)">{{ (i.outgoing_text or "")[:80] }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+
+    {% elif tab == "tasks" %}
+    <thead><tr style="color:var(--text-muted)"><th class="text-left py-2">Время</th><th class="text-left">Название</th><th class="text-left">Тип</th><th class="text-left">Статус</th></tr></thead>
+    <tbody>
+    {% for i in items %}
+    <tr style="border-top:1px solid var(--border)">
+      <td class="py-2 text-xs whitespace-nowrap">{{ i.created_at.strftime("%m-%d %H:%M") }}</td>
+      <td class="text-sm" style="color:var(--text-primary)">{{ i.name }}</td>
+      <td class="text-xs">{{ i.task_type.value }}</td>
+      <td class="text-xs">{{ i.status.value }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+
+    {% elif tab == "leads" %}
+    <thead><tr style="color:var(--text-muted)"><th class="text-left py-2">Создан</th><th class="text-left">Название</th><th class="text-left">Телефон</th><th class="text-left">Город</th><th class="text-left">Статус</th></tr></thead>
+    <tbody>
+    {% for i in items %}
+    <tr style="border-top:1px solid var(--border)">
+      <td class="py-2 text-xs whitespace-nowrap">{{ i.created_at.strftime("%m-%d %H:%M") }}</td>
+      <td class="text-sm">{{ i.name }}</td>
+      <td class="text-xs">{{ i.phone or "—" }}</td>
+      <td class="text-xs">{{ i.city or "—" }}</td>
+      <td class="text-xs">{{ i.status.value }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+
+    {% elif tab == "guard" %}
+    <thead><tr style="color:var(--text-muted)"><th class="text-left py-2">Время</th><th class="text-left">Guard</th><th class="text-left">User</th><th class="text-left">Действие</th><th class="text-left">Причина</th></tr></thead>
+    <tbody>
+    {% for i in items %}
+    <tr style="border-top:1px solid var(--border)">
+      <td class="py-2 text-xs whitespace-nowrap">{{ i.created_at.strftime("%m-%d %H:%M") }}</td>
+      <td class="text-xs">#{{ i.guard_id }}</td>
+      <td class="text-xs">{{ i.max_user_id }}</td>
+      <td class="text-xs">{% if i.action.value == "ban" %}<span style="color:#ef4444">BAN</span>{% elif i.action.value == "warn" %}<span style="color:#f59e0b">WARN</span>{% else %}DEL{% endif %}</td>
+      <td class="text-xs" style="color:var(--text-muted)">{{ i.reason }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+
+    {% elif tab == "neurochat" %}
+    <thead><tr style="color:var(--text-muted)"><th class="text-left py-2">Время</th><th class="text-left">Campaign</th><th class="text-left">Chat</th><th class="text-left">Триггер</th><th class="text-left">Ответ</th></tr></thead>
+    <tbody>
+    {% for i in items %}
+    <tr style="border-top:1px solid var(--border)">
+      <td class="py-2 text-xs whitespace-nowrap">{{ i.created_at.strftime("%m-%d %H:%M") }}</td>
+      <td class="text-xs">#{{ i.campaign_id }}</td>
+      <td class="text-xs">{{ i.chat_id }}</td>
+      <td class="text-xs" style="color:var(--text-muted)">{{ (i.trigger_message or "")[:60] }}</td>
+      <td class="text-xs">{{ (i.reply_sent or "")[:100] }}{% if i.mentioned_product %} <span style="color:#10b981">💰</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+
+    {% elif tab == "bots" %}
+    <thead><tr style="color:var(--text-muted)"><th class="text-left py-2">Время</th><th class="text-left">Bot</th><th class="text-left">User</th><th class="text-left">Данные</th><th class="text-left">Готов</th></tr></thead>
+    <tbody>
+    {% for i in items %}
+    <tr style="border-top:1px solid var(--border)">
+      <td class="py-2 text-xs whitespace-nowrap">{{ i.created_at.strftime("%m-%d %H:%M") }}</td>
+      <td class="text-xs">#{{ i.bot_id }}</td>
+      <td class="text-xs">{{ i.max_user_id }}</td>
+      <td class="text-xs font-mono" style="color:var(--text-muted)">{{ (i.data or "")[:100] }}</td>
+      <td class="text-xs">{% if i.completed %}<span style="color:#10b981">✓</span>{% else %}шаг {{ i.dialog_step }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    {% endif %}
+  </table>
+  </div>
+  {% else %}
+  <p style="color:var(--text-muted)" class="p-4">Пусто.</p>
+  {% endif %}
+</div>
+{% endblock %}
