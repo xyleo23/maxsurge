@@ -25,6 +25,7 @@ from sqlalchemy import select
 from web.routes.auth_r import router as auth_router, get_current_user
 from web.routes.legal_r import router as legal_router
 from web.routes.blog_r import router as blog_router
+from web.routes.changelog_r import router as changelog_router
 
 # Panel routes
 from web.routes.dashboard import router as dashboard_router
@@ -51,6 +52,7 @@ from web.routes.twofa_r import router as twofa_router
 from web.routes.neurochat_r import router as neurochat_router
 from web.routes.bots_r import router as bots_router
 from web.routes.guard_r import router as guard_router
+from web.routes.api_ingest_r import router as api_ingest_router
 from web.routes.admin_r import router as admin_router
 
 settings = get_settings()
@@ -96,6 +98,8 @@ app.add_middleware(ErrorMonitoringMiddleware)
 app.include_router(auth_router)
 app.include_router(legal_router)
 app.include_router(blog_router)
+app.include_router(api_ingest_router)
+app.include_router(changelog_router)
 
 # ── Protected panel routes under /app ──────────────────
 for r in [dashboard_router, leads_router, accounts_router, templates_router,

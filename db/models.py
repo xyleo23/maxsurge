@@ -267,6 +267,7 @@ class SiteUser(Base):
     ai_api_url: Mapped[str | None] = mapped_column(String(256), nullable=True)
     ai_api_key: Mapped[str | None] = mapped_column(String(256), nullable=True)
     ai_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    api_key: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
     tg_chat_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
 

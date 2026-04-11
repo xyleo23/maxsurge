@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %} — Расширение{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Расширение для 2GIS</h1>
+  <p style="color:var(--text-muted)" class="text-sm mt-1">Userscript для Tampermonkey / Violentmonkey. Парсит 2GIS у вас в браузере и шлёт лиды прямо в MaxSurge. Обходит блокировку серверного IP — работает с вашего компьютера от вашего имени.</p>
+</div>
+
+{% if msg %}<div class="card mb-4" style="border-left:3px solid #10b981">{{ msg }}</div>{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="card">
+    <div class="card-header">Ваш API ключ</div>
+    <div class="p-4">
+      <p style="color:var(--text-muted)" class="text-xs mb-2">Используется в userscript и любых других интеграциях. Не делитесь с кем-попало — любой с этим ключом сможет писать лиды в ваш аккаунт.</p>
+      <div class="flex items-center gap-2 mb-4">
+        <input type="text" id="api-key" value="{{ user.api_key }}" readonly class="input flex-1 font-mono text-xs">
+        <button onclick="navigator.clipboard.writeText(document.getElementById('api-key').value); this.innerText='✓'" class="btn-ghost">Копировать</button>
+      </div>
+      <form method="post" action="/app/extension/regenerate" onsubmit="return confirm('Старый ключ перестанет работать. Продолжить?')">
+        <button type="submit" class="btn-ghost text-xs" style="color:#ef4444">Сгенерировать новый</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Скачать userscript</div>
+    <div class="p-4">
+      <ol class="text-sm space-y-3" style="color:var(--text-primary)">
+        <li>
+          <b>1.</b> Установите Tampermonkey:
+          <div class="mt-1 text-xs" style="color:var(--text-muted)">
+            <a href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" class="text-indigo-400 hover:text-indigo-300">Chrome</a> ·
+            <a href="https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/" target="_blank" class="text-indigo-400 hover:text-indigo-300">Firefox</a> ·
+            <a href="https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd" target="_blank" class="text-indigo-400 hover:text-indigo-300">Edge</a>
+          </div>
+        </li>
+        <li>
+          <b>2.</b> Нажмите кнопку ниже — Tampermonkey попросит установить скрипт.
+          <div class="mt-2">
+            <a href="/app/extension/userscript.user.js" class="btn-primary inline-block">📥 Скачать maxsurge-2gis.user.js</a>
+          </div>
+        </li>
+        <li>
+          <b>3.</b> Откройте <a href="https://2gis.ru/" target="_blank" class="text-indigo-400 hover:text-indigo-300">2gis.ru</a>, найдите нужные компании.
+        </li>
+        <li>
+          <b>4.</b> Нажмите фиолетовую кнопку <span style="background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:2px 8px;border-radius:6px;font-size:11px">⚡ В MaxSurge</span> внизу справа.
+        </li>
+        <li>
+          <b>5.</b> Лиды появятся в <a href="/app/leads/" class="text-indigo-400 hover:text-indigo-300">разделе Лиды</a>.
+        </li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-6">
+  <div class="card-header">REST API (для собственных интеграций)</div>
+  <div class="p-4 text-sm" style="color:var(--text-primary)">
+    <p class="mb-2" style="color:var(--text-muted)">Используйте Bearer-токен в заголовке <code class="text-xs bg-black/30 px-1 rounded">Authorization: Bearer &lt;api_key&gt;</code></p>
+
+    <div class="mb-4">
+      <div class="text-xs font-mono mb-1" style="color:var(--text-muted)">GET /api/v1/ingest/ping</div>
+      <pre class="text-xs font-mono p-3 rounded" style="background:var(--bg-card-alt);color:var(--text-muted)">curl https://maxsurge.ru/api/v1/ingest/ping \
+  -H "Authorization: Bearer {{ user.api_key }}"</pre>
+    </div>
+
+    <div>
+      <div class="text-xs font-mono mb-1" style="color:var(--text-muted)">POST /api/v1/ingest/leads</div>
+      <pre class="text-xs font-mono p-3 rounded whitespace-pre" style="background:var(--bg-card-alt);color:var(--text-muted)">curl -X POST https://maxsurge.ru/api/v1/ingest/leads \
+  -H "Authorization: Bearer {{ user.api_key }}" \
+  -H "Content-Type: application/json" \
+  -d '{"leads":[{"name":"ООО Ромашка","phone":"+79991234567","city":"Москва"}]}'</pre>
+    </div>
+  </div>
+</div>
+{% endblock %}
