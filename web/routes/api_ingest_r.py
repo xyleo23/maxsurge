@@ -274,3 +274,117 @@ async def userscript(request: Request):
             "Content-Disposition": 'attachment; filename="maxsurge-2gis.user.js"',
         },
     )
+
+
+
+AVITO_USERSCRIPT = r"""// ==UserScript==
+// @name         MaxSurge Avito Collector
+// @namespace    https://maxsurge.ru
+// @version      1.0.0
+// @description  Собирает лиды из Avito и отправляет в MaxSurge
+// @match        https://www.avito.ru/*
+// @match        https://avito.ru/*
+// @grant        GM_xmlhttpRequest
+// @run-at       document-idle
+// @connect      maxsurge.ru
+// ==/UserScript==
+
+(function () {
+  'use strict';
+  const API_URL = 'https://maxsurge.ru/api/v1/ingest/leads';
+  const API_KEY = '__API_KEY__';
+
+  function parseCards() {
+    const items = [];
+    const seen = new Set();
+    document.querySelectorAll('[data-marker="item"]').forEach(el => {
+      const titleEl = el.querySelector('[itemprop="name"], [data-marker="item-title"] h3, h3');
+      const priceEl = el.querySelector('[itemprop="price"], [data-marker="item-price"]');
+      const addrEl = el.querySelector('[data-marker="item-address"], [class*="geo-"]');
+      const linkEl = el.querySelector('a[href*="/avito.ru/"], a[itemprop="url"], a');
+      if (!titleEl) return;
+      const name = (titleEl.innerText || '').trim();
+      if (!name || seen.has(name)) return;
+      seen.add(name);
+      const href = linkEl ? linkEl.href : '';
+      const city = (location.pathname.split('/')[1] || '').replace(/_/g, ' ');
+      const query = new URLSearchParams(location.search).get('q') || '';
+      items.push({
+        name,
+        address: addrEl ? addrEl.innerText.trim() : null,
+        city,
+        website: href || null,
+        categories: priceEl ? priceEl.innerText.trim() : null,
+        source_query: query ? 'avito: ' + query : 'avito',
+        dgis_id: 'avito_' + btoa(unescape(encodeURIComponent(href || name))).slice(0, 40),
+      });
+    });
+    return items;
+  }
+
+  function send(items) {
+    return new Promise((resolve, reject) => {
+      GM_xmlhttpRequest({
+        method: 'POST',
+        url: API_URL,
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + API_KEY},
+        data: JSON.stringify({ leads: items }),
+        onload: r => { try { resolve(JSON.parse(r.responseText)); } catch { resolve({ok:false}); } },
+        onerror: e => reject(e),
+      });
+    });
+  }
+
+  function createButton() {
+    if (document.getElementById('maxsurge-avito-btn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'maxsurge-avito-btn';
+    btn.innerText = '⚡ В MaxSurge';
+    Object.assign(btn.style, {
+      position: 'fixed', bottom: '24px', right: '24px', zIndex: 99999,
+      padding: '12px 20px',
+      background: 'linear-gradient(135deg,#97cf26,#6366f1)',
+      color: '#fff', border: 'none', borderRadius: '12px', fontSize: '14px',
+      fontWeight: '600', cursor: 'pointer',
+      boxShadow: '0 10px 30px rgba(99,102,241,0.4)', fontFamily: 'sans-serif',
+    });
+    btn.onclick = async () => {
+      btn.innerText = '⏳ Парсим...';
+      const items = parseCards();
+      if (!items.length) { btn.innerText = '❌ Ничего'; setTimeout(() => btn.innerText = '⚡ В MaxSurge', 2000); return; }
+      btn.innerText = '📤 ' + items.length + '...';
+      try {
+        const res = await send(items);
+        btn.innerText = res.ok ? ('✅ +' + res.added + (res.skipped ? ' (дубли: ' + res.skipped + ')' : '')) : '❌ ' + (res.error || 'err');
+      } catch (e) { btn.innerText = '❌ Нет связи'; }
+      setTimeout(() => btn.innerText = '⚡ В MaxSurge', 4000);
+    };
+    document.body.appendChild(btn);
+  }
+
+  new MutationObserver(() => createButton()).observe(document.body, { childList: true, subtree: true });
+  createButton();
+})();
+"""
+
+
+@router.get("/app/extension/avito.user.js", response_class=PlainTextResponse)
+async def avito_userscript(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        return PlainTextResponse("// Требуется вход", status_code=401)
+    if not user.api_key:
+        import secrets as _s
+        async with async_session_factory() as sess:
+            u = await sess.get(SiteUser, user.id)
+            u.api_key = _s.token_urlsafe(32)
+            await sess.commit()
+            user = u
+    script = AVITO_USERSCRIPT.replace("__API_KEY__", user.api_key)
+    return PlainTextResponse(
+        script,
+        headers={
+            "Content-Type": "application/javascript; charset=utf-8",
+            "Content-Disposition": 'attachment; filename="maxsurge-avito.user.js"',
+        },
+    )
