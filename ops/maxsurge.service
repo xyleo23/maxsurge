@@ -1,0 +1,22 @@
+[Unit]
+Description=MaxSurge FastAPI app
+Documentation=https://github.com/xyleo23/maxsurge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/max_leadfinder
+ExecStart=/root/max_leadfinder/venv/bin/python main.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+KillMode=mixed
+TimeoutStopSec=15
+# Give the process a clean environment except for PATH
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
