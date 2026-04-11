@@ -86,6 +86,25 @@
     .tag-b2b{background:linear-gradient(135deg,rgba(34,211,238,.18),rgba(59,130,246,.14));color:#22d3ee;border:1px solid rgba(34,211,238,.35)}
     .tag-b2c{background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(16,185,129,.14));color:#4ade80;border:1px solid rgba(34,197,94,.35)}
     .tag-hot{background:linear-gradient(135deg,rgba(244,63,94,.2),rgba(251,146,60,.16));color:#fb7185;border:1px solid rgba(244,63,94,.4)}
+    .shot-tab{background:rgba(255,255,255,.02);border:1px solid #1e293b;color:#94a3b8;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+    .shot-tab:hover{color:#e5e7eb;border-color:#334155}
+    .shot-tab.active{background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(168,85,247,.14));color:#fff;border-color:#6366f1;box-shadow:0 0 20px rgba(99,102,241,.2)}
+    .shot-panel{display:none;animation:fade .4s ease-out}
+    .shot-panel.active{display:block}
+    @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .shot-frame{background:#0a0e1a;border:1px solid #1e293b;border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 1px rgba(99,102,241,.08);cursor:zoom-in;position:relative}
+    .shot-frame::before{content:"";display:block;background:linear-gradient(180deg,#1a1f2e 0%,#12172a 100%);padding:10px 14px;border-bottom:1px solid #1e293b}
+    .shot-chrome{display:flex;align-items:center;gap:6px;padding:10px 14px;background:linear-gradient(180deg,#1a1f2e 0%,#12172a 100%);border-bottom:1px solid #1e293b}
+    .shot-dot{width:10px;height:10px;border-radius:999px}
+    .shot-dot.r{background:#ef4444}
+    .shot-dot.y{background:#eab308}
+    .shot-dot.g{background:#22c55e}
+    .shot-url{margin-left:16px;font-size:11px;color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .shot-img{width:100%;height:auto;display:block}
+    #lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out;backdrop-filter:blur(8px)}
+    #lightbox.open{display:flex}
+    #lightbox img{max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+    #lightbox-close{position:absolute;top:24px;right:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;backdrop-filter:blur(4px)}
     .compare-table td,.compare-table th{padding:14px 16px;border-bottom:1px solid #1e293b}
     .compare-table tr:last-child td{border-bottom:none}
     .compare-our{background:linear-gradient(180deg,rgba(99,102,241,.08),rgba(168,85,247,.04));border-left:2px solid #6366f1;border-right:2px solid #6366f1}
@@ -115,6 +134,7 @@
       </div>
       <div class="hidden md:flex items-center gap-7 text-sm text-gray-400">
         <a href="#features" class="hover:text-white transition">Возможности</a>
+        <a href="#screenshots" class="hover:text-white transition">Скрины</a>
         <a href="#niches" class="hover:text-white transition">Ниши</a>
         <a href="#compare" class="hover:text-white transition">Сравнение</a>
         <a href="#roi" class="hover:text-white transition">Калькулятор</a>
@@ -314,6 +334,80 @@
       </div>
     </div>
   </section>
+
+  <!-- Screenshots -->
+  <section id="screenshots" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Посмотрите, как это выглядит внутри</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Веб-панель MaxSurge работает из любого браузера. Никакой установки, никаких скачиваний. Полный доступ к инструментам в один клик.</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex flex-wrap justify-center gap-2 mb-8">
+        <button class="shot-tab active" data-tab="dashboard">📊 Главная</button>
+        <button class="shot-tab" data-tab="sender">✉️ Рассылка</button>
+        <button class="shot-tab" data-tab="scraper">🎯 Парсинг карт</button>
+        <button class="shot-tab" data-tab="parser">👥 Парсинг чатов</button>
+        <button class="shot-tab" data-tab="autoresponder">💬 AI автоответчик</button>
+        <button class="shot-tab" data-tab="analytics">📈 Аналитика</button>
+      </div>
+
+      <!-- Panels -->
+      <div class="max-w-5xl mx-auto">
+        <div class="shot-panel active" data-panel="dashboard">
+          <div class="shot-frame" data-full="/static/screenshots/dashboard.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/</span></div>
+            <img class="shot-img" src="/static/screenshots/dashboard.webp" alt="Главная панель MaxSurge — дашборд с метриками" loading="eager"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Метрики, быстрые действия, статусы лидов — всё на одном экране.</p>
+        </div>
+        <div class="shot-panel" data-panel="sender">
+          <div class="shot-frame" data-full="/static/screenshots/sender.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/sender</span></div>
+            <img class="shot-img" src="/static/screenshots/sender.webp" alt="Создание рассылки в MaxSurge" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Выбираете шаблон, базу лидов, аккаунты — и запускаете массовую рассылку с контролем лимитов.</p>
+        </div>
+        <div class="shot-panel" data-panel="scraper">
+          <div class="shot-frame" data-full="/static/screenshots/scraper.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/scraper</span></div>
+            <img class="shot-img" src="/static/screenshots/scraper.webp" alt="Сбор B2B-лидов из 2GIS" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Указываете города и ниши — MaxSurge собирает публичные контакты организаций и привязывает их к MAX ID.</p>
+        </div>
+        <div class="shot-panel" data-panel="parser">
+          <div class="shot-frame" data-full="/static/screenshots/parser.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/parser</span></div>
+            <img class="shot-img" src="/static/screenshots/parser.webp" alt="Парсинг участников чатов MAX" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Собираете user_id из тематических чатов MAX — готовая B2C-аудитория для рассылок и инвайтинга.</p>
+        </div>
+        <div class="shot-panel" data-panel="autoresponder">
+          <div class="shot-frame" data-full="/static/screenshots/autoresponder.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/autoresponder</span></div>
+            <img class="shot-img" src="/static/screenshots/autoresponder.webp" alt="Настройка AI автоответчика" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Настраиваете триггеры или передаёте разговор LLM — бот сам отвечает клиентам в рабочее и нерабочее время.</p>
+        </div>
+        <div class="shot-panel" data-panel="analytics">
+          <div class="shot-frame" data-full="/static/screenshots/analytics.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/analytics</span></div>
+            <img class="shot-img" src="/static/screenshots/analytics.webp" alt="Аналитика MaxSurge" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Воронка, конверсии, статистика по аккаунтам и кампаниям — видите, что работает.</p>
+        </div>
+      </div>
+
+      <p class="text-center text-xs text-gray-600 mt-8">Нажмите на скрин, чтобы увеличить</p>
+    </div>
+  </section>
+
+  <!-- Lightbox -->
+  <div id="lightbox" role="dialog" aria-label="Полноразмерный скриншот">
+    <button id="lightbox-close" aria-label="Закрыть">×</button>
+    <img id="lightbox-img" src="" alt=""/>
+  </div>
 
   <!-- Niches -->
   <section id="niches" class="py-20 px-6">
@@ -780,6 +874,36 @@
       });
     }, {threshold: 0.3});
     document.querySelectorAll('#metrics .metric').forEach(el=>mObs.observe(el));
+
+    // Screenshot tabs + lightbox
+    (function(){
+      const tabs = document.querySelectorAll('.shot-tab');
+      const panels = document.querySelectorAll('.shot-panel');
+      if(!tabs.length) return;
+      tabs.forEach(t => t.addEventListener('click', () => {
+        const key = t.dataset.tab;
+        tabs.forEach(x => x.classList.toggle('active', x === t));
+        panels.forEach(p => p.classList.toggle('active', p.dataset.panel === key));
+      }));
+      // Lightbox
+      const lb = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lightbox-img');
+      const lbClose = document.getElementById('lightbox-close');
+      if(!lb || !lbImg) return;
+      document.querySelectorAll('.shot-frame').forEach(f => {
+        f.addEventListener('click', () => {
+          const src = f.dataset.full;
+          if(!src) return;
+          lbImg.src = src;
+          lb.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+      const closeLb = () => { lb.classList.remove('open'); document.body.style.overflow = ''; };
+      lbClose.addEventListener('click', closeLb);
+      lb.addEventListener('click', (e) => { if(e.target === lb) closeLb(); });
+      document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeLb(); });
+    })();
 
     // ROI calculator
     (function(){

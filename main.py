@@ -4,6 +4,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -69,6 +70,10 @@ logger.add(sys.stderr, level="INFO", format="<green>{time:HH:mm:ss}</green> | <l
 logger.add("logs/maxsurge.log", rotation="10 MB", retention="7 days", level="DEBUG")
 
 app = FastAPI(title="MaxSurge v3.0", docs_url="/api/docs")
+from pathlib import Path as _P
+_static_dir = _P(__file__).parent / "web" / "static"
+_static_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
 
 
