@@ -181,7 +181,18 @@ async def webhook(request: Request):
                 else:
                     # Если подписка активна — продлеваем, иначе от сегодня
                     base = user.plan_expires_at if (user.plan_expires_at and user.plan_expires_at > datetime.utcnow()) else datetime.utcnow()
-                    user.plan_expires_at = base + timedelta(days=period)
+                    # P9: Бонусные дни за крупные платежи
+                    bonus_days = 0
+                    if payment.amount >= 10000:
+                        bonus_days = 30       # +1 месяц
+                    elif payment.amount >= 5000:
+                        bonus_days = 14       # +2 недели
+                    elif payment.amount >= 3000:
+                        bonus_days = 7        # +1 неделя
+                    total_days = period + bonus_days
+                    user.plan_expires_at = base + timedelta(days=total_days)
+                    if bonus_days:
+                        logger.info("P9: Бонусные дни +{} для user={}", bonus_days, user.id)
                 logger.info("Тариф {} активирован для user={} до {}", payment.plan.value, user.id, user.plan_expires_at)
                 on_payment_success(user.email, payment.plan.value, payment.amount)
 
