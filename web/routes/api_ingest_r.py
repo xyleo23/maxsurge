@@ -16,6 +16,7 @@ from sqlalchemy import select
 from db.models import SiteUser, Lead, LeadStatus, async_session_factory
 from db.plan_limits import check_limit
 from web.routes.auth_r import get_current_user
+from web.routes._rate_limit import rate_limit
 
 router = APIRouter()
 templates_obj = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
@@ -55,6 +56,14 @@ async def _user_by_api_key(request: Request) -> SiteUser:
 @router.post("/api/v1/ingest/leads")
 async def ingest_leads(batch: IngestBatch, request: Request):
     user = await _user_by_api_key(request)
+    # Per-user rate limit: 1000 leads/hour, 50 POSTs/min
+    ok, reset = rate_limit(f"ingest_batch:{user.id}", max_requests=50, window_sec=60)
+    if not ok:
+        return JSONResponse({"ok": False, "error": f"rate_limit: try in {reset}s"}, status_code=429)
+    # Also count individual leads to avoid abuse of large batches
+    ok2, reset2 = rate_limit(f"ingest_leads:{user.id}", max_requests=1000, window_sec=3600)
+    if not ok2:
+        return JSONResponse({"ok": False, "error": f"hourly lead cap reached, try in {reset2}s"}, status_code=429)
     added = 0
     skipped = 0
     async with async_session_factory() as s:

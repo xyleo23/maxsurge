@@ -206,6 +206,20 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
         if db_user:
             db_user.last_login = datetime.utcnow()
             await s.commit()
+        is_super = getattr(user, "is_superadmin", False)
+
+    # OOO5: alert on superadmin login
+    if is_super:
+        try:
+            from max_client.tg_notifier import notify_async
+            notify_async("\U0001f510 <b>Admin login</b>\n\n" + user.email + "\nIP: " + ip + "\nUA: " + request.headers.get("user-agent", "?")[:100])
+        except Exception:
+            pass
+        try:
+            from max_client.audit import log_audit
+            await log_audit(user, "admin_login", "user", user.id, ip=ip, details=request.headers.get("user-agent", "")[:200])
+        except Exception:
+            pass
 
     token = _create_session_token(user.id, user.email)
     response = RedirectResponse("/app/", status_code=303)

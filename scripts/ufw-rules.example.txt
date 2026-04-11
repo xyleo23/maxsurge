@@ -1,0 +1,13 @@
+Status: active
+
+To                         Action      From
+--                         ------      ----
+22/tcp                     ALLOW       Anywhere                   # SSH
+80/tcp                     ALLOW       Anywhere                   # HTTP
+443/tcp                    ALLOW       Anywhere                   # HTTPS
+8090                       ALLOW       172.17.0.0/16              # docker→maxsurge
+8090                       ALLOW       172.18.0.0/16              # traefik→maxsurge
+22/tcp (v6)                ALLOW       Anywhere (v6)              # SSH
+80/tcp (v6)                ALLOW       Anywhere (v6)              # HTTP
+443/tcp (v6)               ALLOW       Anywhere (v6)              # HTTPS
+

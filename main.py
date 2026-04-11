@@ -419,5 +419,94 @@ async def health():
     }
 
 
+
+
+@app.get("/metrics")
+async def metrics():
+    """Prometheus text format. Scrape-safe, no auth (only counts, no PII)."""
+    import shutil as _sh, os as _os
+    from fastapi.responses import PlainTextResponse
+    from sqlalchemy import select as _sel, func as _fn
+    from db.models import (
+        SiteUser, Lead, SendLog, MaxAccount, AccountStatus, Task, TaskStatus,
+        Payment, PaymentStatus, async_session_factory as _asf,
+    )
+
+    lines = []
+    def m(name, value, help_txt, mtype="gauge"):
+        lines.append(f"# HELP {name} {help_txt}")
+        lines.append(f"# TYPE {name} {mtype}")
+        lines.append(f"{name} {value}")
+
+    try:
+        async with _asf() as _s:
+            users = (await _s.execute(_sel(_fn.count(SiteUser.id)))).scalar() or 0
+            leads = (await _s.execute(_sel(_fn.count(Lead.id)))).scalar() or 0
+            sent_total = (await _s.execute(
+                _sel(_fn.count(SendLog.id)).where(SendLog.status == "sent")
+            )).scalar() or 0
+            sent_failed = (await _s.execute(
+                _sel(_fn.count(SendLog.id)).where(SendLog.status == "failed")
+            )).scalar() or 0
+            acc_active = (await _s.execute(
+                _sel(_fn.count(MaxAccount.id)).where(MaxAccount.status == AccountStatus.ACTIVE)
+            )).scalar() or 0
+            acc_blocked = (await _s.execute(
+                _sel(_fn.count(MaxAccount.id)).where(MaxAccount.status == AccountStatus.BLOCKED)
+            )).scalar() or 0
+            tasks_running = (await _s.execute(
+                _sel(_fn.count(Task.id)).where(Task.status == TaskStatus.RUNNING)
+            )).scalar() or 0
+            payments_ok = (await _s.execute(
+                _sel(_fn.count(Payment.id)).where(Payment.status == PaymentStatus.SUCCEEDED)
+            )).scalar() or 0
+            revenue = (await _s.execute(
+                _sel(_fn.coalesce(_fn.sum(Payment.amount), 0)).where(Payment.status == PaymentStatus.SUCCEEDED)
+            )).scalar() or 0.0
+
+        m("maxsurge_users_total", users, "Total registered users")
+        m("maxsurge_leads_total", leads, "Total leads across all users")
+        m("maxsurge_messages_sent_total", sent_total, "Successful sendlog entries", "counter")
+        m("maxsurge_messages_failed_total", sent_failed, "Failed sendlog entries", "counter")
+        m("maxsurge_accounts_active", acc_active, "MAX accounts in ACTIVE state")
+        m("maxsurge_accounts_blocked", acc_blocked, "MAX accounts in BLOCKED state")
+        m("maxsurge_tasks_running", tasks_running, "Tasks in RUNNING state")
+        m("maxsurge_payments_succeeded_total", payments_ok, "Successful payment count", "counter")
+        m("maxsurge_revenue_rub_total", float(revenue), "Total revenue RUB", "counter")
+    except Exception as e:
+        lines.append(f"# maxsurge_db_error 1 ({e})")
+
+    # Workers
+    try:
+        from max_client.bot_runner import get_running_ids as _bi
+        from max_client.neurochat import get_running_ids as _ni
+        from max_client.guard import get_running_ids as _gi
+        m("maxsurge_bots_running", len(_bi()), "Running MAX bot API pollers")
+        m("maxsurge_neurochat_running", len(_ni()), "Running neurochat campaigns")
+        m("maxsurge_guards_running", len(_gi()), "Running chat guards")
+    except Exception:
+        pass
+
+    # System
+    try:
+        du = _sh.disk_usage("/")
+        m("maxsurge_disk_used_pct", round(du.used / du.total * 100, 2), "Disk usage percent")
+        m("maxsurge_disk_free_bytes", du.free, "Free disk bytes")
+        if _os.path.exists("max_leadfinder.db"):
+            m("maxsurge_db_size_bytes", _os.path.getsize("max_leadfinder.db"), "DB file size")
+    except Exception:
+        pass
+
+    # Error rate & bans
+    try:
+        m("maxsurge_error_counter", _error_counter.get("count", 0), "Errors in current 5min window", "counter")
+        m("maxsurge_banned_ips", len(_banned_ips), "Currently banned IPs")
+    except Exception:
+        pass
+
+    body = "\n".join(lines) + "\n"
+    return PlainTextResponse(body, media_type="text/plain; version=0.0.4; charset=utf-8")
+
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host=settings.WEB_HOST, port=settings.WEB_PORT, reload=False)
