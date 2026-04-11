@@ -7,8 +7,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from passlib.hash import bcrypt
 from sqlalchemy import select, func, delete, update
+from max_client.audit import log_audit
 
 from db.models import (
+    AuditLog,
     SiteUser, UserPlan, Lead, MaxAccount, AccountStatus, SendLog,
     ParsedUser, ChatCatalog, Task, TaskStatus, UserFile, WarmingLog,
     Payment, PaymentStatus, async_session_factory,
@@ -143,7 +145,7 @@ async def admin_users(request: Request, msg: str = ""):
 
 
 @router.post("/users/{user_id}/plan")
-async def change_plan(user_id: int, plan: str = Form(...)):
+async def change_plan(user_id: int, plan: str = Form(...), request: Request = None):
     async with async_session_factory() as s:
         u = await s.get(SiteUser, user_id)
         if u:
@@ -209,3 +211,20 @@ async def cleanup_logs():
         await s.execute(delete(WarmingLog).where(WarmingLog.created_at < cutoff))
         await s.commit()
     return RedirectResponse("/app/admin/?msg=Логи+очищены", status_code=303)
+
+
+@router.get("/audit", response_class=HTMLResponse)
+async def audit_page(request: Request):
+    user = await _require_admin(request)
+    if not user or not user.is_superadmin:
+        return RedirectResponse("/app/", status_code=303)
+    async with async_session_factory() as s:
+        res = await s.execute(
+            select(AuditLog).order_by(AuditLog.created_at.desc()).limit(500)
+        )
+        entries = res.scalars().all()
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_audit.html",
+        context={"entries": entries},
+    )

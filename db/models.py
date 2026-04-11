@@ -545,3 +545,18 @@ class GuardEvent(Base):
     reason: Mapped[str] = mapped_column(String(512))
     message_preview: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
+# ── Audit log (для superadmin действий) ──────────────
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    actor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    actor_email: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    action: Mapped[str] = mapped_column(String(64))
+    target_type: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    target_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    details: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)

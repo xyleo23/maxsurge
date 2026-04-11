@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %} — Audit Log{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Audit Log</h1>
+  <p style="color:var(--text-muted)" class="text-sm mt-1">Последние 500 действий суперадмина.</p>
+</div>
+
+<div class="card">
+  {% if entries %}
+  <table class="w-full text-sm">
+    <thead><tr style="color:var(--text-muted)">
+      <th class="text-left py-2">Время</th>
+      <th class="text-left">Actor</th>
+      <th class="text-left">Action</th>
+      <th class="text-left">Target</th>
+      <th class="text-left">Details</th>
+      <th class="text-left">IP</th>
+    </tr></thead>
+    <tbody>
+      {% for e in entries %}
+      <tr style="border-top:1px solid var(--border)">
+        <td class="py-2 text-xs whitespace-nowrap">{{ e.created_at.strftime("%m-%d %H:%M") }}</td>
+        <td class="text-xs">{{ e.actor_email or "—" }}</td>
+        <td class="text-xs"><span style="color:#6366f1;font-weight:600">{{ e.action }}</span></td>
+        <td class="text-xs">{{ e.target_type or "—" }}{% if e.target_id %} #{{ e.target_id }}{% endif %}</td>
+        <td class="text-xs" style="color:var(--text-muted)">{{ (e.details or "")[:150] }}</td>
+        <td class="text-xs font-mono" style="color:var(--text-muted)">{{ e.ip or "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:var(--text-muted)" class="p-4">Пока нет записей.</p>
+  {% endif %}
+</div>
+{% endblock %}
