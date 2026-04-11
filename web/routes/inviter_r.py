@@ -28,6 +28,10 @@ async def page(request: Request, msg: str = ""):
 @router.post("/start")
 async def start(chat_link: str = Form(...), user_ids_text: str = Form(""),
                 batch_size: int = Form(50), delay_sec: float = Form(15),
+                delay_jitter: float = Form(5.0),
+                micropause_every: int = Form(0),
+                micropause_sec: float = Form(120.0),
+                max_per_account_per_hour: int = Form(0),
                 account_ids: list[int] = Form([])):
     ids = []
     for line in user_ids_text.strip().splitlines():
@@ -36,7 +40,13 @@ async def start(chat_link: str = Form(...), user_ids_text: str = Form(""),
             ids.append(int(line))
     if not ids:
         return RedirectResponse("/app/inviter/?msg=Введите+ID+пользователей", status_code=303)
-    asyncio.create_task(run_inviting(chat_link, ids, account_ids or None, batch_size, delay_sec))
+    asyncio.create_task(run_inviting(
+        chat_link, ids, account_ids or None, batch_size, delay_sec,
+        delay_jitter=delay_jitter,
+        micropause_every=micropause_every,
+        micropause_sec=micropause_sec,
+        max_per_account_per_hour=max_per_account_per_hour,
+    ))
     return RedirectResponse(f"/app/inviter/?msg=Инвайтинг+запущен+({len(ids)}+чел.)", status_code=303)
 
 @router.post("/pause")

@@ -1,5 +1,7 @@
 """Инвайтинг — приглашение пользователей в чаты по ID списку."""
 import asyncio
+import random
+import time
 from datetime import datetime
 
 from loguru import logger
@@ -22,6 +24,10 @@ async def run_inviting(
     account_ids: list[int] | None = None,
     batch_size: int = 50,
     delay_sec: float = 15,
+    delay_jitter: float = 5.0,
+    micropause_every: int = 0,
+    micropause_sec: float = 120.0,
+    max_per_account_per_hour: int = 0,
 ):
     """Инвайтинг пользователей в чат по ID. Поддержка пачек и паузы."""
     global _invite_status
@@ -47,6 +53,7 @@ async def run_inviting(
             return
 
         _invite_status["log"].append(f"Чат: {chat_link} (id={chat_id})")
+        acc_history = {a.id: [] for a, _ in pairs}  # id -> [timestamps]
 
         # Разбиваем на пачки
         batches = [user_ids[i:i+batch_size] for i in range(0, len(user_ids), batch_size)]
@@ -78,7 +85,28 @@ async def run_inviting(
                     acc_idx += 1
                     _invite_status["log"].append(f"Смена аккаунта → #{acc_idx % len(pairs) + 1}")
 
-            await asyncio.sleep(delay_sec)
+            # Account throttle: skip if max_per_account_per_hour reached
+            if max_per_account_per_hour > 0:
+                now = time.monotonic()
+                acc_history[acc.id] = [t for t in acc_history[acc.id] if now - t < 3600]
+                acc_history[acc.id].append(now)
+                if len(acc_history[acc.id]) >= max_per_account_per_hour:
+                    _invite_status["log"].append(f"[THROTTLE] {acc.phone}: лимит {max_per_account_per_hour}/ч")
+                    acc_idx += 1
+
+            # Основная пауза с jitter
+            actual_delay = delay_sec + random.uniform(-delay_jitter, delay_jitter) if delay_jitter else delay_sec
+            actual_delay = max(0.5, actual_delay)
+            await asyncio.sleep(actual_delay)
+
+            # Микропауза каждые N пачек
+            if micropause_every > 0 and (batch_num + 1) % micropause_every == 0:
+                pause_s = micropause_sec + random.uniform(0, micropause_sec * 0.2)
+                _invite_status["log"].append(f"[PAUSE] Микропауза {int(pause_s)}с после {batch_num + 1} пачек")
+                for _ in range(int(pause_s)):
+                    if not _invite_status["running"]:
+                        break
+                    await asyncio.sleep(1)
 
     except Exception as e:
         _invite_status["log"].append(f"ОШИБКА: {e}")

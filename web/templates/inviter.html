@@ -14,7 +14,14 @@
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div><label class="text-gray-400 text-xs mb-1 block">Размер пачки</label><input name="batch_size" type="number" value="50" class="form-input"/></div>
         <div><label class="text-gray-400 text-xs mb-1 block">Задержка (сек)</label><input name="delay_sec" type="number" value="15" class="form-input"/></div>
+        <div><label class="text-gray-400 text-xs mb-1 block">Разброс задержки ±сек</label><input name="delay_jitter" type="number" step="0.5" value="5" class="form-input"/></div>
+        <div><label class="text-gray-400 text-xs mb-1 block">Макс инвайтов/час на аккаунт</label><input name="max_per_account_per_hour" type="number" value="0" class="form-input" title="0 = без лимита"/></div>
       </div>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div><label class="text-gray-400 text-xs mb-1 block">Микропауза каждые N пачек</label><input name="micropause_every" type="number" value="0" class="form-input" title="0 = выкл"/></div>
+        <div><label class="text-gray-400 text-xs mb-1 block">Длина микропаузы (сек)</label><input name="micropause_sec" type="number" value="120" class="form-input"/></div>
+      </div>
+      <p class="text-xs mb-3" style="color:var(--text-muted)"><b>NEW:</b> рандомный разброс задержки + микропауза каждые N пачек + лимит инвайтов/час на аккаунт. Защищает от шадобана.</p>
       <label class="text-gray-400 text-xs mb-1 block">Аккаунты</label>
       <div class="bg-[var(--bg-card-alt)] border border-[var(--border)] rounded-lg p-3 mb-3 space-y-2 max-h-32 overflow-y-auto">
         {% for a in accounts %}<label class="flex items-center gap-2"><input type="checkbox" name="account_ids" value="{{ a.id }}" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">{{ a.phone }}</span></label>{% endfor %}
