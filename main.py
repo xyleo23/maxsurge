@@ -26,6 +26,7 @@ from web.routes.auth_r import router as auth_router, get_current_user
 from web.routes.legal_r import router as legal_router
 from web.routes.blog_r import router as blog_router
 from web.routes.changelog_r import router as changelog_router
+from web.routes.help_r import router as help_router
 
 # Panel routes
 from web.routes.dashboard import router as dashboard_router
@@ -104,6 +105,7 @@ app.include_router(legal_router)
 app.include_router(blog_router)
 app.include_router(api_ingest_router)
 app.include_router(changelog_router)
+app.include_router(help_router)
 
 # ── Protected panel routes under /app ──────────────────
 for r in [dashboard_router, leads_router, accounts_router, templates_router,
@@ -155,7 +157,67 @@ async def startup():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "3.0"}
+    """Deep health check: db ping, disk, accounts, uptime."""
+    import shutil as _sh
+    import os as _os
+    import time as _time
+    from sqlalchemy import text as _text, select as _sel, func as _func
+    from db.models import MaxAccount, AccountStatus, SiteUser, async_session_factory as _asf
+
+    status = "ok"
+    checks = {}
+
+    # DB ping
+    try:
+        async with _asf() as _s:
+            await _s.execute(_text("SELECT 1"))
+            users_count = (await _s.execute(_sel(_func.count(SiteUser.id)))).scalar() or 0
+            active_accounts = (await _s.execute(
+                _sel(_func.count(MaxAccount.id)).where(MaxAccount.status == AccountStatus.ACTIVE)
+            )).scalar() or 0
+        checks["db"] = {"ok": True, "users": users_count, "active_accounts": active_accounts}
+    except Exception as e:
+        status = "degraded"
+        checks["db"] = {"ok": False, "error": str(e)[:200]}
+
+    # Disk
+    try:
+        du = _sh.disk_usage("/")
+        pct = round(du.used / du.total * 100, 1)
+        checks["disk"] = {"ok": pct < 95, "used_pct": pct, "free_gb": round(du.free / 1e9, 1)}
+        if pct >= 95:
+            status = "degraded"
+    except Exception as e:
+        checks["disk"] = {"ok": False, "error": str(e)[:100]}
+
+    # DB size
+    try:
+        db_path = "max_leadfinder.db"
+        if _os.path.exists(db_path):
+            db_mb = round(_os.path.getsize(db_path) / 1024 / 1024, 2)
+            checks["db_file"] = {"ok": True, "size_mb": db_mb}
+    except Exception as e:
+        checks["db_file"] = {"ok": False, "error": str(e)[:100]}
+
+    # Background tasks alive
+    try:
+        from max_client.bot_runner import get_running_ids as _bot_ids
+        from max_client.neurochat import get_running_ids as _neuro_ids
+        from max_client.guard import get_running_ids as _guard_ids
+        checks["workers"] = {
+            "bots_running": len(_bot_ids()),
+            "neurochat_running": len(_neuro_ids()),
+            "guards_running": len(_guard_ids()),
+        }
+    except Exception as e:
+        checks["workers"] = {"error": str(e)[:100]}
+
+    return {
+        "status": status,
+        "version": "3.0",
+        "timestamp": int(_time.time()),
+        "checks": checks,
+    }
 
 
 if __name__ == "__main__":
