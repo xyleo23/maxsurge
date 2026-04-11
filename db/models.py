@@ -291,3 +291,87 @@ class RefCommission(Base):
     amount: Mapped[float] = mapped_column(Float)
     percent: Mapped[float] = mapped_column(Float, default=20.0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Нейрочаттинг ─────────────────────────────────────
+class NeuroCampaignStatus(str, Enum):
+    DRAFT = "draft"
+    RUNNING = "running"
+    PAUSED = "paused"
+    STOPPED = "stopped"
+
+
+class NeuroMode(str, Enum):
+    KEYWORDS = "keywords"           # реагируем на ключевые фразы
+    RESPOND_ALL = "respond_all"     # отвечаем на все сообщения
+    SCRIPTED = "scripted"           # сценарный диалог (2 бота переписываются)
+
+
+class NeuroStyle(str, Enum):
+    CONVERSATIONAL = "conversational"
+    BUSINESS = "business"
+    FRIENDLY = "friendly"
+    EXPERT = "expert"
+
+
+class NeuroCampaign(Base):
+    __tablename__ = "neuro_campaigns"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(256))
+    mode: Mapped[NeuroMode] = mapped_column(SQLEnum(NeuroMode), default=NeuroMode.KEYWORDS)
+    status: Mapped[NeuroCampaignStatus] = mapped_column(SQLEnum(NeuroCampaignStatus), default=NeuroCampaignStatus.DRAFT)
+
+    # Аккаунт-бот
+    account_id: Mapped[int] = mapped_column(Integer, ForeignKey("max_accounts.id"), index=True)
+
+    # Где работает — JSON-массив chat_id или "all"
+    chat_ids: Mapped[str] = mapped_column(Text, default="[]")  # JSON list of int
+
+    # Триггеры (для режима KEYWORDS)
+    keywords: Mapped[str] = mapped_column(Text, default="")  # comma-separated
+
+    # Поддерживать диалог?
+    support_replies: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Что продвигаем
+    product_description: Mapped[str] = mapped_column(Text, default="")
+
+    # Стиль общения
+    style: Mapped[NeuroStyle] = mapped_column(SQLEnum(NeuroStyle), default=NeuroStyle.CONVERSATIONAL)
+
+    # Частота упоминания товара (каждое N-ое сообщение)
+    mention_frequency: Mapped[int] = mapped_column(Integer, default=30)
+
+    # AI модель
+    ai_model: Mapped[str] = mapped_column(String(128), default="gpt-4o-mini")
+    system_prompt: Mapped[str] = mapped_column(Text, default="")
+
+    # Задержки
+    delay_min_sec: Mapped[int] = mapped_column(Integer, default=30)
+    delay_max_sec: Mapped[int] = mapped_column(Integer, default=120)
+    daily_limit: Mapped[int] = mapped_column(Integer, default=50)
+
+    # Счётчики
+    messages_sent: Mapped[int] = mapped_column(Integer, default=0)
+    messages_today: Mapped[int] = mapped_column(Integer, default=0)
+    last_reset_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Owner
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class NeuroChatMessage(Base):
+    """История отправленных ботом сообщений (для анализа и избежания повторов)."""
+    __tablename__ = "neuro_chat_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    campaign_id: Mapped[int] = mapped_column(Integer, ForeignKey("neuro_campaigns.id"), index=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    trigger_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reply_sent: Mapped[str] = mapped_column(Text)
+    mentioned_product: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)

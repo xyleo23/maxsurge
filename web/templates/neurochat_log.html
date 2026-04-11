@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %} — Лог кампании{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">{{ campaign.name }}</h1>
+    <p style="color:var(--text-muted)" class="text-sm">Отправлено: {{ campaign.messages_sent }} • Сегодня: {{ campaign.messages_today }}/{{ campaign.daily_limit }}</p>
+  </div>
+  <a href="/app/neurochat/" class="btn-ghost">← Назад</a>
+</div>
+
+<div class="card">
+  <div class="card-header">История ответов (последние 200)</div>
+  {% if messages %}
+  <div class="space-y-3">
+    {% for m in messages %}
+    <div style="border-bottom:1px solid var(--border);padding-bottom:10px">
+      <div class="text-xs" style="color:var(--text-muted)">
+        {{ m.created_at.strftime("%Y-%m-%d %H:%M") }} • chat {{ m.chat_id }}
+        {% if m.mentioned_product %}<span style="color:#10b981">• упомянут продукт</span>{% endif %}
+      </div>
+      {% if m.trigger_message %}
+      <div class="text-sm mt-1" style="color:var(--text-muted)">→ {{ m.trigger_message }}</div>
+      {% endif %}
+      <div class="text-sm mt-1" style="color:var(--text-primary)">💬 {{ m.reply_sent }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color:var(--text-muted)">Пока ничего не отправлено.</p>
+  {% endif %}
+</div>
+{% endblock %}

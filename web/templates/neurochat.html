@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %} — Нейрочаттинг{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Нейрочаттинг</h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">AI-кампании партизанского маркетинга в чатах MAX. Бот участвует в обсуждениях и мягко продвигает ваш продукт.</p>
+  </div>
+  <button @click="$refs.modal.classList.remove('hidden')" class="btn-primary">+ Новая кампания</button>
+</div>
+
+{% if msg %}<div class="card mb-4" style="border-left:3px solid #10b981">{{ msg }}</div>{% endif %}
+{% if err %}<div class="card mb-4" style="border-left:3px solid #ef4444">{{ err }}</div>{% endif %}
+
+<div class="card">
+  <div class="card-header">Кампании</div>
+  {% if campaigns %}
+  <table class="w-full text-sm">
+    <thead>
+      <tr style="color:var(--text-muted)">
+        <th class="text-left py-2">Название</th>
+        <th class="text-left">Режим</th>
+        <th class="text-left">Статус</th>
+        <th class="text-right">Отправлено</th>
+        <th class="text-right">Сегодня</th>
+        <th class="text-right">Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in campaigns %}
+      <tr style="border-top:1px solid var(--border)">
+        <td class="py-3">
+          <div style="color:var(--text-primary);font-weight:600">{{ c.name }}</div>
+          {% if c.product_description %}<div class="text-xs" style="color:var(--text-muted)">{{ c.product_description[:80] }}</div>{% endif %}
+        </td>
+        <td>{{ c.mode.value }}</td>
+        <td>
+          {% if c.id in running_ids %}
+            <span style="color:#10b981">● RUNNING</span>
+          {% elif c.status.value == "paused" %}
+            <span style="color:#f59e0b">● PAUSED</span>
+          {% else %}
+            <span style="color:var(--text-muted)">● {{ c.status.value }}</span>
+          {% endif %}
+        </td>
+        <td class="text-right">{{ c.messages_sent }}</td>
+        <td class="text-right">{{ c.messages_today }} / {{ c.daily_limit }}</td>
+        <td class="text-right">
+          {% if c.id in running_ids %}
+          <form method="post" action="/app/neurochat/{{ c.id }}/stop" class="inline">
+            <button class="btn-ghost text-xs">Стоп</button>
+          </form>
+          {% else %}
+          <form method="post" action="/app/neurochat/{{ c.id }}/start" class="inline">
+            <button class="btn-primary text-xs">Старт</button>
+          </form>
+          {% endif %}
+          <a href="/app/neurochat/{{ c.id }}/log" class="btn-ghost text-xs">Лог</a>
+          <form method="post" action="/app/neurochat/{{ c.id }}/delete" class="inline" onsubmit="return confirm('Удалить?')">
+            <button class="btn-ghost text-xs" style="color:#ef4444">×</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:var(--text-muted)">Пока нет кампаний. Создайте первую.</p>
+  {% endif %}
+</div>
+
+<!-- Modal -->
+<div x-ref="modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+  <div class="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="card-header flex items-center justify-between">
+      Новая кампания
+      <button @click="$refs.modal.classList.add('hidden')" class="btn-ghost">×</button>
+    </div>
+    <form method="post" action="/app/neurochat/create" class="space-y-3">
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Название</label>
+        <input type="text" name="name" required class="input w-full" placeholder="Огурцы из Адыгеи">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs" style="color:var(--text-muted)">Аккаунт-бот</label>
+          <select name="account_id" required class="input w-full">
+            {% for a in accounts %}<option value="{{ a.id }}">{{ a.phone }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="text-xs" style="color:var(--text-muted)">Режим</label>
+          <select name="mode" class="input w-full">
+            {% for v, l in modes %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Chat IDs (через запятую, пусто = все чаты аккаунта)</label>
+        <input type="text" name="chat_ids" class="input w-full" placeholder="-1001234,-1005678">
+      </div>
+
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Ключевые слова (через запятую)</label>
+        <input type="text" name="keywords" class="input w-full" placeholder="где купить, огурцы, свежие овощи">
+      </div>
+
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Описание продукта (что продвигаем)</label>
+        <textarea name="product_description" rows="2" class="input w-full" placeholder="Свежие огурцы напрямую с фермы в Адыгее, доставка по всей РФ от 5 кг"></textarea>
+      </div>
+
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">System prompt (персона бота)</label>
+        <textarea name="system_prompt" rows="3" class="input w-full" placeholder="Ты — Дмитрий, 32 года, живёшь в Москве, увлекаешься готовкой и здоровым питанием. Пишешь как обычный участник чата, без формальностей."></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-xs" style="color:var(--text-muted)">Стиль</label>
+          <select name="style" class="input w-full">
+            {% for v, l in styles %}<option value="{{ v }}">{{ l }}</option>{% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="text-xs" style="color:var(--text-muted)">Упоминать продукт раз в N сообщений</label>
+          <input type="number" name="mention_frequency" value="30" min="1" class="input w-full">
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">AI модель</label>
+        <input type="text" name="ai_model" value="gpt-4o-mini" class="input w-full">
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label class="text-xs" style="color:var(--text-muted)">Задержка мин (сек)</label>
+          <input type="number" name="delay_min_sec" value="30" min="5" class="input w-full">
+        </div>
+        <div>
+          <label class="text-xs" style="color:var(--text-muted)">Задержка макс</label>
+          <input type="number" name="delay_max_sec" value="120" min="10" class="input w-full">
+        </div>
+        <div>
+          <label class="text-xs" style="color:var(--text-muted)">Лимит в сутки</label>
+          <input type="number" name="daily_limit" value="50" min="1" class="input w-full">
+        </div>
+      </div>
+
+      <label class="flex items-center gap-2">
+        <input type="checkbox" name="support_replies" value="true" checked>
+        <span class="text-sm" style="color:var(--text-muted)">Поддерживать диалог, если ответят</span>
+      </label>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" @click="$refs.modal.classList.add('hidden')" class="btn-ghost">Отмена</button>
+        <button type="submit" class="btn-primary">Создать</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
