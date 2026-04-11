@@ -271,6 +271,10 @@ class SiteUser(Base):
     ai_api_key: Mapped[str | None] = mapped_column(String(256), nullable=True)
     ai_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
     api_key: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)
+    user_tg_bot_token: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    notify_on_lead: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_on_payment: Mapped[bool] = mapped_column(Boolean, default=True)
+    notify_on_task_done: Mapped[bool] = mapped_column(Boolean, default=True)
     tg_chat_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
 

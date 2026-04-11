@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %} — Уведомления{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Telegram уведомления</h1>
+  <p style="color:var(--text-muted)" class="text-sm mt-1">Создайте персонального бота и получайте сообщения о событиях в личный Telegram.</p>
+</div>
+
+{% if msg %}<div class="card mb-4" style="border-left:3px solid #10b981">{{ msg }}</div>{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="card">
+    <div class="card-header">Шаг 1: Создайте бота</div>
+    <div class="p-4 text-sm" style="color:var(--text-primary)">
+      <ol class="space-y-2">
+        <li><b>1.</b> Откройте <a href="https://t.me/BotFather" target="_blank" class="text-indigo-400">@BotFather</a> в Telegram</li>
+        <li><b>2.</b> Отправьте <code class="text-xs bg-black/30 px-1 rounded">/newbot</code></li>
+        <li><b>3.</b> Придумайте имя и username (заканчивается на <code class="text-xs">bot</code>)</li>
+        <li><b>4.</b> Скопируйте токен вида <code class="text-xs">123456:ABC...</code></li>
+      </ol>
+      <form method="post" action="/app/notifications/save-token" class="mt-4">
+        <label class="text-xs" style="color:var(--text-muted)">Токен бота</label>
+        <input type="text" name="token" value="{{ user.user_tg_bot_token or '' }}" placeholder="123456:ABCdefGhi..." required class="input w-full font-mono text-xs mb-3">
+        <button type="submit" class="btn-primary w-full">Сохранить токен</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Шаг 2: Подключите чат</div>
+    <div class="p-4 text-sm" style="color:var(--text-primary)" x-data="{status:'idle', err:''}">
+      {% if not user.user_tg_bot_token %}
+        <p style="color:var(--text-muted)">Сначала сохраните токен бота.</p>
+      {% else %}
+        {% if bot_info %}
+        <div class="mb-3 p-3 rounded" style="background:var(--bg-card-alt)">
+          <div class="text-xs" style="color:var(--text-muted)">Ваш бот:</div>
+          <div style="color:var(--text-primary)"><b>@{{ bot_info.username }}</b> — {{ bot_info.first_name }}</div>
+        </div>
+        {% endif %}
+
+        {% if user.tg_chat_id %}
+        <div class="mb-3 p-3 rounded" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3)">
+          <div style="color:#10b981">✅ Чат подключён (ID: <code>{{ user.tg_chat_id }}</code>)</div>
+        </div>
+        <form method="post" action="/app/notifications/test" class="mb-2">
+          <button type="submit" class="btn-primary w-full">📨 Отправить тестовое сообщение</button>
+        </form>
+        <form method="post" action="/app/notifications/disconnect">
+          <button type="submit" class="btn-ghost w-full text-xs" style="color:#ef4444">Отключить</button>
+        </form>
+        {% else %}
+        <ol class="space-y-2 mb-3">
+          <li><b>1.</b> Откройте своего бота в Telegram</li>
+          <li><b>2.</b> Напишите ему <code class="text-xs bg-black/30 px-1 rounded">/start</code></li>
+          <li><b>3.</b> Нажмите кнопку ниже — мы автоматически определим ваш чат</li>
+        </ol>
+        <button
+          @click="status='waiting'; err='';
+                  fetch('/app/notifications/detect-chat', {method:'POST'})
+                    .then(r=>r.json())
+                    .then(d=>{
+                      if(d.ok){ status='ok'; setTimeout(()=>location.reload(), 1500); }
+                      else { status='err'; err=d.error; }
+                    })"
+          :disabled="status==='waiting'"
+          class="btn-primary w-full"
+        >
+          <span x-show="status==='idle'">🔍 Определить чат</span>
+          <span x-show="status==='waiting'">⏳ Жду сообщение (20с)...</span>
+          <span x-show="status==='ok'" style="color:#10b981">✅ Найдено!</span>
+          <span x-show="status==='err'">❌ Повторить</span>
+        </button>
+        <p x-show="status==='err'" x-text="err" class="text-xs mt-2" style="color:#ef4444"></p>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if user.tg_chat_id %}
+<div class="card mt-6">
+  <div class="card-header">Какие события слать</div>
+  <form method="post" action="/app/notifications/preferences" class="p-4 space-y-3">
+    <label class="flex items-center gap-2">
+      <input type="checkbox" name="notify_on_lead" value="true" {% if user.notify_on_lead %}checked{% endif %}>
+      <span style="color:var(--text-primary)">🆕 Новые лиды</span>
+      <span class="text-xs" style="color:var(--text-muted)">— каждый раз, когда бот собирает лид</span>
+    </label>
+    <label class="flex items-center gap-2">
+      <input type="checkbox" name="notify_on_payment" value="true" {% if user.notify_on_payment %}checked{% endif %}>
+      <span style="color:var(--text-primary)">💰 Платежи</span>
+      <span class="text-xs" style="color:var(--text-muted)">— успешные оплаты по моим сайтам/ботам</span>
+    </label>
+    <label class="flex items-center gap-2">
+      <input type="checkbox" name="notify_on_task_done" value="true" {% if user.notify_on_task_done %}checked{% endif %}>
+      <span style="color:var(--text-primary)">✅ Завершение задач</span>
+      <span class="text-xs" style="color:var(--text-muted)">— окончание рассылки/парсинга/инвайтинга</span>
+    </label>
+    <button type="submit" class="btn-primary">Сохранить</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

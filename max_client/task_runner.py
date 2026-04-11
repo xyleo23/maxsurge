@@ -83,6 +83,15 @@ async def run_task(task_id: int):
 
         await _update_task(task_id, status=TaskStatus.COMPLETED, finished_at=datetime.utcnow())
         await _append_log(task_id, "[DONE] Задача завершена")
+        # E3: TG уведомление владельцу
+        try:
+            from max_client.tg_notifier import notify_user_async
+            async with async_session_factory() as _s:
+                _t = await _s.get(Task, task_id)
+                if _t and _t.owner_id:
+                    notify_user_async(_t.owner_id, "✅ <b>" + _t.name + "</b> завершена (" + _t.task_type.value + ")", pref_field="notify_on_task_done")
+        except Exception:
+            pass
     except asyncio.CancelledError:
         await _update_task(task_id, status=TaskStatus.PAUSED)
         await _append_log(task_id, "[STOP] Задача остановлена")

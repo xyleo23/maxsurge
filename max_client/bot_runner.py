@@ -63,13 +63,10 @@ def _extract_contact(text: str) -> dict:
 async def _notify_owner(bot: MaxBot, text: str):
     if not bot.notify_owner_tg:
         return
-    async with async_session_factory() as s:
-        user = await s.get(SiteUser, bot.owner_id)
-        if not user:
-            return
-        tg_chat_id = getattr(user, "tg_chat_id", None)
-    if tg_chat_id:
-        await _tg_send_to_user(int(tg_chat_id), text)
+    from max_client.tg_notifier import notify_user_async
+    # Использует персональный бот пользователя если подключён,
+    # а notify_user_async проверит префс notify_on_lead
+    notify_user_async(bot.owner_id, text, pref_field="notify_on_lead")
 
 
 # ── Обработчики типов ────────────────────

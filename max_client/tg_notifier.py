@@ -85,3 +85,40 @@ def on_error(context: str, error: str):
         f"📍 <b>{context}</b>\n"
         f"<pre>{str(error)[:500]}</pre>"
     )
+
+
+# ── Персональные уведомления пользователей ──────────
+async def send_to_user(user_id: int, text: str) -> bool:
+    """Отправить уведомление конкретному пользователю через ЕГО бота."""
+    from db.models import SiteUser, async_session_factory
+    async with async_session_factory() as s:
+        u = await s.get(SiteUser, user_id)
+    if not u or not u.user_tg_bot_token or not u.tg_chat_id:
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.post(
+                f"https://api.telegram.org/bot{u.user_tg_bot_token}/sendMessage",
+                json={"chat_id": u.tg_chat_id, "text": text, "parse_mode": "HTML", "disable_web_page_preview": True},
+            )
+            return r.status_code == 200
+    except Exception as e:
+        logger.warning("user tg notify failed: {}", e)
+        return False
+
+
+def notify_user_async(user_id: int, text: str, pref_field: str | None = None):
+    """Fire-and-forget обёртка с проверкой предпочтений юзера."""
+    async def _run():
+        from db.models import SiteUser, async_session_factory
+        async with async_session_factory() as s:
+            u = await s.get(SiteUser, user_id)
+        if not u:
+            return
+        if pref_field and not getattr(u, pref_field, True):
+            return
+        await send_to_user(user_id, text)
+    try:
+        asyncio.create_task(_run())
+    except Exception:
+        pass
