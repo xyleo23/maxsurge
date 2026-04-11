@@ -76,6 +76,14 @@ class MaxAccount(Base):
 
 
 # ── Шаблоны ────────────────────────────────────────────
+class TemplateStatus(str, Enum):
+    PENDING = "pending"          # ждёт AI-проверку
+    AI_REVIEWED = "ai_reviewed"  # AI проверил, ждёт ручное подтверждение если флаг
+    APPROVED = "approved"        # готово к рассылке
+    REJECTED = "rejected"        # запрещено
+    DRAFT = "draft"              # черновик, не отправлялся
+
+
 class MessageTemplate(Base):
     __tablename__ = "templates"
 
@@ -87,6 +95,11 @@ class MessageTemplate(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    status: Mapped[TemplateStatus] = mapped_column(SQLEnum(TemplateStatus), default=TemplateStatus.PENDING)
+    ai_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ai_feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
+    admin_feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 # ── Лог отправок ────────────────────────────────────────

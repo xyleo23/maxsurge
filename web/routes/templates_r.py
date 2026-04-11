@@ -6,7 +6,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 
-from db.models import MessageTemplate, async_session_factory
+import asyncio
+from db.models import MessageTemplate, TemplateStatus, async_session_factory
+from max_client.template_moderation import ai_review_template, admin_approve, admin_reject
 from db.plan_limits import check_limit
 from web.routes._scope import get_request_user, scope_query
 
@@ -49,7 +51,10 @@ async def create_template(
         )
         s.add(tmpl)
         await s.commit()
-    return RedirectResponse("/app/templates/?msg=Шаблон+создан", status_code=303)
+        await s.refresh(tmpl)
+        tmpl_id = tmpl.id
+    asyncio.create_task(ai_review_template(tmpl_id))
+    return RedirectResponse("/app/templates/?msg=Шаблон+создан+и+отправлен+на+AI-проверку", status_code=303)
 
 
 async def _get_tmpl_if_owned(session, tmpl_id: int, user):
@@ -78,8 +83,10 @@ async def update_template(
             tmpl.name = name
             tmpl.body = body
             tmpl.attachment_url = attachment_url.strip() or None
+            tmpl.status = TemplateStatus.PENDING
             await s.commit()
-    return RedirectResponse("/app/templates/?msg=Шаблон+обновлён", status_code=303)
+    asyncio.create_task(ai_review_template(tmpl_id))
+    return RedirectResponse("/app/templates/?msg=Шаблон+обновлён+и+отправлен+на+AI-проверку", status_code=303)
 
 
 @router.post("/{tmpl_id}/delete")
@@ -91,3 +98,32 @@ async def delete_template(request: Request, tmpl_id: int):
             await s.delete(tmpl)
             await s.commit()
     return RedirectResponse("/app/templates/", status_code=303)
+
+
+@router.post("/{tmpl_id}/recheck")
+async def recheck(request: Request, tmpl_id: int):
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        tmpl = await _get_tmpl_if_owned(s, tmpl_id, user)
+        if not tmpl:
+            return RedirectResponse("/app/templates/?msg=Нет+доступа", status_code=303)
+    result = await ai_review_template(tmpl_id)
+    return RedirectResponse(f"/app/templates/?msg=AI+оценил:+{result.get('status','?')}", status_code=303)
+
+
+@router.post("/{tmpl_id}/admin-approve")
+async def do_admin_approve(request: Request, tmpl_id: int, note: str = Form("")):
+    user = await get_request_user(request)
+    if not user or not getattr(user, "is_superadmin", False):
+        return RedirectResponse("/app/templates/?msg=Только+для+админа", status_code=303)
+    await admin_approve(tmpl_id, note)
+    return RedirectResponse("/app/templates/?msg=Шаблон+одобрен", status_code=303)
+
+
+@router.post("/{tmpl_id}/admin-reject")
+async def do_admin_reject(request: Request, tmpl_id: int, note: str = Form("")):
+    user = await get_request_user(request)
+    if not user or not getattr(user, "is_superadmin", False):
+        return RedirectResponse("/app/templates/?msg=Только+для+админа", status_code=303)
+    await admin_reject(tmpl_id, note)
+    return RedirectResponse("/app/templates/?msg=Шаблон+отклонён", status_code=303)

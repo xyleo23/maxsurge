@@ -6,7 +6,7 @@ from datetime import datetime
 from loguru import logger
 from sqlalchemy import select, update
 
-from db.models import Lead, LeadStatus, MaxAccount, MessageTemplate, SendLog, ChatCatalog, async_session_factory, AccountStatus
+from db.models import Lead, LeadStatus, MaxAccount, MessageTemplate, TemplateStatus, SendLog, ChatCatalog, async_session_factory, AccountStatus
 from max_client.account import account_manager
 from max_client.spintax import render_template_with_spintax
 from vkmax.functions.messages import send_message
@@ -55,6 +55,12 @@ async def run_broadcast(
             tmpl = await session.get(MessageTemplate, template_id)
         if not tmpl:
             _broadcast_status["log"].append(f"Шаблон {template_id} не найден")
+            return
+        if tmpl.status and tmpl.status != TemplateStatus.APPROVED:
+            _broadcast_status["log"].append(
+                f"🛑 Шаблон #{template_id} не одобрен (статус: {tmpl.status.value}). "
+                f"Пройдите модерацию. AI: {tmpl.ai_feedback or '—'}"
+            )
             return
 
         # Загружаем цели
