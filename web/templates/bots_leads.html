@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %} — Данные бота{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">{{ bot.name }}</h1>
+    <p style="color:var(--text-muted)" class="text-sm">@{{ bot.bot_username or "—" }} • {{ bot.bot_type.value }}</p>
+  </div>
+  <a href="/app/bots/" class="btn-ghost">← Назад</a>
+</div>
+
+<div class="card">
+  <div class="card-header">{% if is_bonus %}Выданные бонусы{% else %}Собранные лиды{% endif %}</div>
+  {% if items %}
+  <table class="w-full text-sm">
+    <thead><tr style="color:var(--text-muted)">
+      <th class="text-left py-2">Дата</th>
+      <th class="text-left">User ID</th>
+      <th class="text-left">Username</th>
+      <th class="text-left">Данные</th>
+      {% if not is_bonus %}<th class="text-left">Статус</th>{% endif %}
+    </tr></thead>
+    <tbody>
+      {% for i in items %}
+      <tr style="border-top:1px solid var(--border)">
+        <td class="py-2">{{ i.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td>{{ i.max_user_id }}</td>
+        <td>@{{ i.username or "—" }}</td>
+        {% if is_bonus %}
+        <td><code>{{ i.bonus_code_given }}</code></td>
+        {% else %}
+        <td class="font-mono text-xs">{{ i.data }}</td>
+        <td>{% if i.completed %}<span style="color:#10b981">✓ завершён</span>{% else %}шаг {{ i.dialog_step }}{% endif %}</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:var(--text-muted)">Пока пусто.</p>
+  {% endif %}
+</div>
+{% endblock %}

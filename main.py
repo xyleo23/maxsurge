@@ -49,6 +49,7 @@ from web.routes.billing_r import router as billing_router
 from web.routes.referral_r import router as referral_router
 from web.routes.twofa_r import router as twofa_router
 from web.routes.neurochat_r import router as neurochat_router
+from web.routes.bots_r import router as bots_router
 from web.routes.admin_r import router as admin_router
 
 settings = get_settings()
@@ -100,7 +101,7 @@ for r in [dashboard_router, leads_router, accounts_router, templates_router,
           sender_router, scraper_router, parser_router, checker_router,
           warming_router, profile_router, catalog_router, analytics_router,
           autoresponder_router, inviter_router, forwarder_router,
-          tasks_router, files_router, admin_router, settings_router, billing_router, referral_router, twofa_router, neurochat_router]:
+          tasks_router, files_router, admin_router, settings_router, billing_router, referral_router, twofa_router, neurochat_router, bots_router]:
     app.include_router(r, prefix="/app")
 
 
@@ -110,7 +111,9 @@ async def startup():
     try:
         await account_manager.restore_all()
         from max_client.neurochat import restore_running as restore_neurochat
+        from max_client.bot_runner import restore_running as restore_bots
         asyncio.create_task(restore_neurochat())
+        asyncio.create_task(restore_bots())
     except Exception as e:
         logger.warning("Сессии: {}", e)
     # Auto-create superadmin from .env
