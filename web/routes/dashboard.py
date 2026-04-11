@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select, func
 
-from db.models import Lead, LeadStatus, MaxAccount, AccountStatus, SendLog, Task, TaskStatus, MessageTemplate, async_session_factory
+from db.models import NeuroCampaign, MaxBot, ChatGuard, Lead, LeadStatus, MaxAccount, AccountStatus, SendLog, Task, TaskStatus, MessageTemplate, async_session_factory
 from db.plan_limits import get_limits
 from web.routes._scope import get_request_user, scope_query
 
@@ -71,13 +71,24 @@ async def dashboard(request: Request):
         "tasks": {"current": tasks_total, "limit": limits.get("max_tasks", 0)},
     }
 
-    # Onboarding шаги
+    # P10: расширенный онбординг — 9 шагов
+    async with async_session_factory() as s2:
+        neuro_count = (await s2.execute(scope_query(select(func.count(NeuroCampaign.id)), NeuroCampaign, user))).scalar() or 0
+        bots_count = (await s2.execute(scope_query(select(func.count(MaxBot.id)), MaxBot, user))).scalar() or 0
+        guards_count = (await s2.execute(scope_query(select(func.count(ChatGuard.id)), ChatGuard, user))).scalar() or 0
+    has_ai_key = bool(user and user.ai_api_key)
+    has_paid_plan = user and user.plan.value in ("start", "basic", "pro", "lifetime")
+
     onboarding = [
-        {"key": "account", "title": "Добавить MAX аккаунт", "done": accounts_total > 0, "url": "/app/accounts/"},
-        {"key": "lead", "title": "Собрать лиды из 2GIS", "done": leads_total > 0, "url": "/app/scraper/"},
+        {"key": "account", "title": "Подключить MAX аккаунт", "done": accounts_total > 0, "url": "/app/accounts/"},
         {"key": "template", "title": "Создать шаблон сообщения", "done": templates_total > 0, "url": "/app/templates/"},
-        {"key": "task", "title": "Запустить первую задачу", "done": tasks_total > 0, "url": "/app/tasks/"},
+        {"key": "lead", "title": "Собрать лиды (2GIS или расширение)", "done": leads_total > 0, "url": "/app/extension/"},
         {"key": "send", "title": "Отправить первое сообщение", "done": sent_week > 0, "url": "/app/sender/"},
+        {"key": "ai", "title": "Подключить AI ключ", "done": has_ai_key, "url": "/app/profile/"},
+        {"key": "bot", "title": "Создать MAX бот (лид/бонус)", "done": bots_count > 0, "url": "/app/bots/"},
+        {"key": "guard", "title": "Настроить стража чата", "done": guards_count > 0, "url": "/app/guard/"},
+        {"key": "neurochat", "title": "Запустить нейрочаттинг", "done": neuro_count > 0, "url": "/app/neurochat/"},
+        {"key": "pay", "title": "Оплатить тариф", "done": has_paid_plan, "url": "/app/billing/"},
     ]
     onboarding_done = sum(1 for o in onboarding if o["done"])
     show_onboarding = onboarding_done < len(onboarding) and not getattr(user, "is_superadmin", False)
