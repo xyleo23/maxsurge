@@ -254,6 +254,7 @@ class SiteUser(Base):
     ai_api_url: Mapped[str | None] = mapped_column(String(256), nullable=True)
     ai_api_key: Mapped[str | None] = mapped_column(String(256), nullable=True)
     ai_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    tg_chat_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
 
 # ── Платежи ──────────────────────────────────────────
@@ -290,4 +291,168 @@ class RefCommission(Base):
     payment_id: Mapped[int] = mapped_column(Integer, ForeignKey("payments.id"), index=True)
     amount: Mapped[float] = mapped_column(Float)
     percent: Mapped[float] = mapped_column(Float, default=20.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Нейрочаттинг ─────────────────────────────────────
+class NeuroCampaignStatus(str, Enum):
+    DRAFT = "draft"
+    RUNNING = "running"
+    PAUSED = "paused"
+    STOPPED = "stopped"
+
+
+class NeuroMode(str, Enum):
+    KEYWORDS = "keywords"           # реагируем на ключевые фразы
+    RESPOND_ALL = "respond_all"     # отвечаем на все сообщения
+    SCRIPTED = "scripted"           # сценарный диалог (2 бота переписываются)
+
+
+class NeuroStyle(str, Enum):
+    CONVERSATIONAL = "conversational"
+    BUSINESS = "business"
+    FRIENDLY = "friendly"
+    EXPERT = "expert"
+
+
+class NeuroCampaign(Base):
+    __tablename__ = "neuro_campaigns"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(256))
+    mode: Mapped[NeuroMode] = mapped_column(SQLEnum(NeuroMode), default=NeuroMode.KEYWORDS)
+    status: Mapped[NeuroCampaignStatus] = mapped_column(SQLEnum(NeuroCampaignStatus), default=NeuroCampaignStatus.DRAFT)
+
+    # Аккаунт-бот
+    account_id: Mapped[int] = mapped_column(Integer, ForeignKey("max_accounts.id"), index=True)
+
+    # Где работает — JSON-массив chat_id или "all"
+    chat_ids: Mapped[str] = mapped_column(Text, default="[]")  # JSON list of int
+
+    # Триггеры (для режима KEYWORDS)
+    keywords: Mapped[str] = mapped_column(Text, default="")  # comma-separated
+
+    # Поддерживать диалог?
+    support_replies: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Что продвигаем
+    product_description: Mapped[str] = mapped_column(Text, default="")
+
+    # Стиль общения
+    style: Mapped[NeuroStyle] = mapped_column(SQLEnum(NeuroStyle), default=NeuroStyle.CONVERSATIONAL)
+
+    # Частота упоминания товара (каждое N-ое сообщение)
+    mention_frequency: Mapped[int] = mapped_column(Integer, default=30)
+
+    # AI модель
+    ai_model: Mapped[str] = mapped_column(String(128), default="gpt-4o-mini")
+    system_prompt: Mapped[str] = mapped_column(Text, default="")
+
+    # Задержки
+    delay_min_sec: Mapped[int] = mapped_column(Integer, default=30)
+    delay_max_sec: Mapped[int] = mapped_column(Integer, default=120)
+    daily_limit: Mapped[int] = mapped_column(Integer, default=50)
+
+    # Счётчики
+    messages_sent: Mapped[int] = mapped_column(Integer, default=0)
+    messages_today: Mapped[int] = mapped_column(Integer, default=0)
+    last_reset_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Owner
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class NeuroChatMessage(Base):
+    """История отправленных ботом сообщений (для анализа и избежания повторов)."""
+    __tablename__ = "neuro_chat_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    campaign_id: Mapped[int] = mapped_column(Integer, ForeignKey("neuro_campaigns.id"), index=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    trigger_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    reply_sent: Mapped[str] = mapped_column(Text)
+    mentioned_product: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
+# ── MAX Bot API (Лид-боты и Бонус-боты) ──────────────
+class MaxBotType(str, Enum):
+    LEAD = "lead"      # собирает лиды (имя, телефон, email)
+    BONUS = "bonus"    # раздаёт бонусы/промокоды
+    SUPPORT = "support" # чат-поддержка с AI
+
+
+class MaxBot(Base):
+    __tablename__ = "max_bots"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(256))
+    bot_type: Mapped[MaxBotType] = mapped_column(SQLEnum(MaxBotType), default=MaxBotType.LEAD)
+
+    # Токен от @MasterBot / @BotFather в MAX
+    token: Mapped[str] = mapped_column(String(512))
+    bot_username: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    bot_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+    # Welcome message, шаги диалога (JSON)
+    welcome_text: Mapped[str] = mapped_column(Text, default="Привет! Оставьте свой номер телефона, мы перезвоним.")
+    # Шаги диалога для LEAD: [{"key":"name","prompt":"Как вас зовут?"},{"key":"phone","prompt":"Ваш телефон?"}]
+    steps: Mapped[str] = mapped_column(Text, default='[]')
+    finish_text: Mapped[str] = mapped_column(Text, default="Спасибо! Мы свяжемся с вами в ближайшее время.")
+
+    # Для BONUS бота
+    bonus_code: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    bonus_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    bonus_limit: Mapped[int] = mapped_column(Integer, default=0)  # 0 = unlimited
+    bonus_issued: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Для SUPPORT бота
+    ai_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    knowledge_base: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Уведомления владельцу о новых лидах
+    notify_owner_tg: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # Состояние
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_update_id: Mapped[int] = mapped_column(BigInteger, default=0)
+
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class MaxBotLead(Base):
+    """Собранные лиды от бота."""
+    __tablename__ = "max_bot_leads"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    bot_id: Mapped[int] = mapped_column(Integer, ForeignKey("max_bots.id"), index=True)
+    max_user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    max_chat_id: Mapped[int] = mapped_column(BigInteger)
+    username: Mapped[str | None] = mapped_column(String(128), nullable=True)
+
+    # Собранные данные (JSON: {"name":"Иван","phone":"+7...","email":"..."})
+    data: Mapped[str] = mapped_column(Text, default="{}")
+
+    # Состояние диалога: индекс текущего шага
+    dialog_step: Mapped[int] = mapped_column(Integer, default=0)
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class MaxBotBonusClaim(Base):
+    """Запросы бонусов — кто получил."""
+    __tablename__ = "max_bot_bonus_claims"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    bot_id: Mapped[int] = mapped_column(Integer, ForeignKey("max_bots.id"), index=True)
+    max_user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    username: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    bonus_code_given: Mapped[str] = mapped_column(String(256))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
