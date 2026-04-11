@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %} — Реферальная программа{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Реферальная программа</h1>
+  <p style="color:var(--text-muted)" class="text-sm mt-0.5">Получайте 20% с каждой оплаты приглашённых пользователей</p>
+</div>
+
+<!-- Статистика -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="stat-card">
+    <div class="text-xs uppercase font-medium mb-2" style="color:var(--text-muted)">Привлечено</div>
+    <div class="text-2xl font-bold text-indigo-400">{{ total_referred }}</div>
+    <div class="text-xs mt-1" style="color:var(--text-muted)">пользователей</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs uppercase font-medium mb-2" style="color:var(--text-muted)">Оплат</div>
+    <div class="text-2xl font-bold text-blue-400">{{ total_commissions_count }}</div>
+    <div class="text-xs mt-1" style="color:var(--text-muted)">от рефералов</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs uppercase font-medium mb-2" style="color:var(--text-muted)">Баланс</div>
+    <div class="text-2xl font-bold text-green-400">{{ "%.0f"|format(balance) }} ₽</div>
+    <div class="text-xs mt-1" style="color:var(--text-muted)">доступно</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs uppercase font-medium mb-2" style="color:var(--text-muted)">Заработано</div>
+    <div class="text-2xl font-bold" style="color:var(--text-primary)">{{ "%.0f"|format(earned_total) }} ₽</div>
+    <div class="text-xs mt-1" style="color:var(--text-muted)">всего</div>
+  </div>
+</div>
+
+<!-- Реферальная ссылка -->
+<div class="card mb-6" x-data="{copied: false}">
+  <div class="card-header">Ваша реферальная ссылка</div>
+  <div class="flex gap-2 mb-3">
+    <input id="ref-link" value="{{ ref_link }}" readonly
+           class="form-input font-mono text-sm flex-1" onclick="this.select()"/>
+    <button @click="navigator.clipboard.writeText(document.getElementById('ref-link').value); copied=true; setTimeout(()=>copied=false, 2000)"
+            class="btn-primary whitespace-nowrap">
+      <span x-show="!copied">Копировать</span>
+      <span x-show="copied" x-cloak>Скопировано ✓</span>
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs mt-4" style="color:var(--text-muted)">
+    <div class="p-3 rounded-lg" style="background:var(--bg-card-alt)">
+      <div class="font-semibold mb-1" style="color:var(--text-primary)">1. Поделитесь ссылкой</div>
+      Отправьте её друзьям, клиентам или разместите в соцсетях
+    </div>
+    <div class="p-3 rounded-lg" style="background:var(--bg-card-alt)">
+      <div class="font-semibold mb-1" style="color:var(--text-primary)">2. Они регистрируются</div>
+      Получают trial 7 дней, вы — приглашённого реферала
+    </div>
+    <div class="p-3 rounded-lg" style="background:var(--bg-card-alt)">
+      <div class="font-semibold mb-1" style="color:var(--text-primary)">3. Вы получаете 20%</div>
+      С каждой их оплаты — постоянно, пока они платят
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Список рефералов -->
+  <div class="card">
+    <div class="card-header">Привлечённые пользователи</div>
+    {% if referred_users %}
+    <table>
+      <thead><tr><th>Email</th><th>Тариф</th><th>Дата</th></tr></thead>
+      <tbody>
+        {% for u in referred_users %}
+        <tr>
+          <td class="text-xs font-mono">{{ u.email[:20] }}...</td>
+          <td>
+            <span class="badge {{ 'badge-green' if u.plan.value != 'trial' else 'badge-yellow' }}">{{ u.plan.value }}</span>
+          </td>
+          <td class="text-xs" style="color:var(--text-muted)">{{ u.created_at.strftime('%d.%m.%Y') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-sm" style="color:var(--text-muted)">Пока нет привлечённых пользователей</p>
+    {% endif %}
+  </div>
+
+  <!-- Комиссии -->
+  <div class="card">
+    <div class="card-header">Начисления</div>
+    {% if commissions %}
+    <table>
+      <thead><tr><th>Дата</th><th>Сумма</th><th>%</th></tr></thead>
+      <tbody>
+        {% for c in commissions %}
+        <tr>
+          <td class="text-xs" style="color:var(--text-muted)">{{ c.created_at.strftime('%d.%m.%Y') }}</td>
+          <td class="font-mono text-green-400">+{{ "%.0f"|format(c.amount) }} ₽</td>
+          <td class="text-xs">{{ "%.0f"|format(c.percent) }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-sm" style="color:var(--text-muted)">Пока нет начислений</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="mt-6 p-4 rounded-lg text-sm" style="background:var(--bg-card-alt);color:var(--text-muted)">
+  <div class="font-medium mb-1" style="color:var(--text-primary)">Условия вывода</div>
+  Минимальная сумма вывода — <strong>1 000 ₽</strong>. Для вывода напишите на
+  <a href="mailto:billing@maxsurge.ru" class="text-indigo-400 hover:text-indigo-300">billing@maxsurge.ru</a>
+</div>
+{% endblock %}

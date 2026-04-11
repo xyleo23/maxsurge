@@ -1,0 +1,20 @@
+services:
+  maxsurge:
+    build: .
+    container_name: maxsurge
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    env_file:
+      - .env
+    volumes:
+      - ./max_leadfinder.db:/app/max_leadfinder.db
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+      - ./sessions:/app/sessions
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.maxsurge.rule=Host(`maxsurge.ru`) || Host(`www.maxsurge.ru`)"
+      - "traefik.http.routers.maxsurge.entrypoints=websecure"
+      - "traefik.http.routers.maxsurge.tls.certresolver=myresolver"
+      - "traefik.http.services.maxsurge.loadbalancer.server.port=8090"

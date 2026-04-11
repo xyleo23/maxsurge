@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %} — Каталог чатов{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Каталог чатов MAX</h1>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+  <!-- Добавить чат -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-3">Добавить чат</h2>
+    <form method="post" action="/app/catalog/add">
+      <input name="name" placeholder="Название чата" class="form-input mb-2"/>
+      <input name="invite_link" placeholder="Ссылка (max.ru/join/...)" class="form-input mb-2"/>
+      <select name="category" class="form-input mb-2">
+        <option value="">Без категории</option>
+        <option value="бизнес">Бизнес</option><option value="технологии">Технологии</option>
+        <option value="новости">Новости</option><option value="развлечения">Развлечения</option>
+        <option value="образование">Образование</option><option value="спорт">Спорт</option>
+        <option value="авто">Авто</option><option value="красота">Красота</option>
+      </select>
+      <input name="members_count" type="number" placeholder="Кол-во участников" class="form-input mb-2"/>
+      <button type="submit" class="btn-primary w-full">Добавить</button>
+    </form>
+  </div>
+  <!-- Фильтры + список -->
+  <div class="lg:col-span-2">
+    <form method="get" class="flex gap-3 mb-4">
+      <input name="search" value="{{ search }}" placeholder="Поиск..." class="form-input w-48"/>
+      <select name="category" class="form-input w-40">
+        <option value="">Все категории</option>
+        {% for c in categories %}<option value="{{ c }}" {% if c == category_filter %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn-primary">Найти</button>
+    </form>
+    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden">
+      <table>
+        <thead><tr><th>Название</th><th>Категория</th><th>Участников</th><th>Спарсено</th><th>Ссылка</th><th></th></tr></thead>
+        <tbody>
+          {% for ch in chats %}
+          <tr>
+            <td class="font-medium text-[color:var(--text-primary)]">{{ ch.name }}</td>
+            <td><span class="px-2 py-0.5 rounded text-xs bg-[var(--bg-card-alt)] text-gray-300">{{ ch.category or "—" }}</span></td>
+            <td>{{ ch.members_count or "?" }}</td>
+            <td>{{ ch.parsed_count }}</td>
+            <td class="text-xs text-indigo-400 truncate max-w-[150px]">{{ ch.invite_link or "—" }}</td>
+            <td>
+              {% if ch.chat_id %}<a href="/parser/?chat_id={{ ch.chat_id }}" class="text-xs text-indigo-400 hover:text-indigo-300">Парсить</a>{% endif %}
+              <form method="post" action="/app/catalog/{{ ch.id }}/delete" class="inline" onsubmit="return confirm('Удалить?')"><button class="text-xs text-red-500 ml-2">x</button></form>
+            </td>
+          </tr>
+          {% else %}<tr><td colspan="6" class="text-center text-gray-500 py-8">Каталог пуст</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

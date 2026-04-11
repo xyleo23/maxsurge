@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %} — Сообщения{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Сообщения в MAX</h1>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Параметры</h2>
+    <form method="post" action="/app/sender/start">
+      <label class="text-gray-400 text-xs mb-1 block">Шаблон</label>
+      <select name="template_id" class="form-input mb-3">{% for t in templates %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}</select>
+
+      <label class="text-gray-400 text-xs mb-1 block">Цель сообщения</label>
+      <select name="target_type" class="form-input mb-3">
+        <option value="users">Лиды с MAX ID ({{ leads_new_count }} новых)</option>
+        <option value="chats">Чаты из каталога ({{ chats_count }})</option>
+      </select>
+
+      <label class="text-gray-400 text-xs mb-1 block">Аккаунты</label>
+      <div class="bg-[var(--bg-card-alt)] border border-[var(--border)] rounded-lg p-3 mb-3 space-y-2 max-h-32 overflow-y-auto">
+        {% for a in accounts %}<label class="flex items-center gap-2"><input type="checkbox" name="account_ids" value="{{ a.id }}" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">{{ a.phone }} ({{ a.sent_today }}/{{ a.sent_total }})</span></label>{% else %}<p class="text-gray-500 text-sm">Нет аккаунтов</p>{% endfor %}
+      </div>
+
+      <label class="text-gray-400 text-xs mb-1 block">Кол-во</label>
+      <input name="limit" type="number" value="50" class="form-input mb-3"/>
+
+      <div class="space-y-2 mb-4">
+        <label class="flex items-center gap-2"><input type="checkbox" name="typing_emulation" value="true" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">Эмуляция набора ("печатает...")</span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" name="dry_run" value="true" class="rounded border-gray-600"/><span class="text-sm text-gray-300">Сухой прогон</span></label>
+      </div>
+
+      {% if status.running %}
+      <div class="flex gap-2">
+        <form method="post" action="/app/sender/pause" class="flex-1"><button class="btn-ghost w-full">{% if status.paused %}Продолжить{% else %}Пауза{% endif %}</button></form>
+        <form method="post" action="/app/sender/stop" class="flex-1"><button class="btn-danger w-full">Стоп</button></form>
+      </div>
+      {% else %}<button type="submit" class="btn-primary w-full text-base py-3">Запустить рассылку</button>{% endif %}
+    </form>
+  </div>
+
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5" x-data="bm()" x-init="init()">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="font-semibold text-[color:var(--text-primary)]">Статус</h2>
+      <div class="flex gap-3 text-sm"><span class="text-green-400" x-text="'OK: '+sent">OK: {{ status.sent }}</span><span class="text-red-400" x-text="'Fail: '+failed">Fail: {{ status.failed }}</span><span class="text-gray-400" x-text="'/ '+total">/ {{ status.total }}</span></div>
+    </div>
+    <div class="h-2 bg-[var(--bg-card-alt)] rounded-full mb-4"><div class="h-2 bg-indigo-600 rounded-full transition-all" :style="'width:'+(total>0?Math.round(sent/total*100):0)+'%'"></div></div>
+    <div class="bg-[var(--log-bg)] rounded-lg p-3 h-64 overflow-y-auto font-mono text-xs" id="log-box">
+      <template x-for="l in log"><div :class="l.startsWith('[OK]')?'text-green-400':l.startsWith('[FAIL]')?'text-red-400':l.startsWith('[DRY]')?'text-yellow-400':'text-gray-300'" x-text="l"></div></template>
+      {% for l in status.log %}<div class="text-gray-300">{{ l }}</div>{% endfor %}
+    </div>
+  </div>
+</div>
+<script>function bm(){return{sent:{{status.sent}},failed:{{status.failed}},total:{{status.total}},log:[],running:{{'true' if status.running else 'false'}},init(){if(this.running)this.poll()},async poll(){const r=await fetch('/app/sender/status');const d=await r.json();this.sent=d.sent;this.failed=d.failed;this.total=d.total;this.log=d.log;this.running=d.running;document.getElementById('log-box').scrollTop=9999;if(this.running)setTimeout(()=>this.poll(),2000)}}}</script>
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %} — Задачи{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Задачи <span style="color:var(--text-muted)" class="text-lg font-normal">({{ total }})</span></h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Работает задач: <span class="text-brand-400 font-medium">{{ running }}</span></p>
+  </div>
+  <button onclick="document.getElementById('create-modal').classList.remove('hidden');document.getElementById('create-modal').classList.add('flex')" class="btn-primary">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+    Новая задача
+  </button>
+</div>
+
+<!-- Filters -->
+<div class="flex gap-3 mb-4">
+  <form method="get" class="flex gap-3">
+    <select name="status" class="form-input w-36" onchange="this.form.submit()">
+      <option value="">Все статусы</option>
+      {% for s in task_statuses %}<option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <select name="task_type" class="form-input w-36" onchange="this.form.submit()">
+      <option value="">Все типы</option>
+      {% for t in task_types %}<option value="{{ t }}" {% if t == type_filter %}selected{% endif %}>{{ t }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+<!-- Tasks table -->
+{% if tasks %}
+<div class="card p-0 overflow-hidden">
+  <table>
+    <thead><tr><th>#</th><th>Название</th><th>Тип</th><th>Статус</th><th>Прогресс</th><th>Ошибки</th><th>Создана</th><th class="text-right">Действия</th></tr></thead>
+    <tbody>
+      {% for task in tasks %}
+      <tr>
+        <td style="color:var(--text-muted)" class="text-xs">{{ task.id }}</td>
+        <td class="font-medium" style="color:var(--text-primary)">
+          {{ task.name }}
+          {% if task.notes %}<div class="text-xs mt-0.5" style="color:var(--text-muted)">{{ task.notes[:50] }}</div>{% endif %}
+        </td>
+        <td><span class="badge {{ 'badge-blue' if task.task_type.value == 'broadcast' else 'badge-green' if task.task_type.value == 'invite' else 'badge-yellow' if task.task_type.value == 'parse' else 'badge-red' if task.task_type.value == 'warm' else 'badge-gray' }}">{{ task.task_type.value }}</span></td>
+        <td>
+          <span class="badge {{ 'badge-green' if task.status.value == 'completed' else 'badge-blue' if task.status.value == 'running' else 'badge-yellow' if task.status.value in ('paused','draft') else 'badge-red' }}">
+            {% if task.status.value == 'running' %}
+            <span class="inline-block w-1.5 h-1.5 bg-green-400 rounded-full mr-1 animate-pulse"></span>
+            {% endif %}
+            {{ task.status.value }}
+          </span>
+        </td>
+        <td class="font-mono text-xs">{{ task.progress_total }}{% if task.target_count %}<span style="color:var(--text-muted)"> / {{ task.target_count }}</span>{% endif %}</td>
+        <td class="text-xs {% if task.error_count > 0 %}text-red-400{% endif %}">{{ task.error_count }}</td>
+        <td class="text-xs" style="color:var(--text-muted)">{{ task.created_at.strftime('%d.%m %H:%M') }}</td>
+        <td class="text-right">
+          <div class="flex gap-1 justify-end">
+            {% if task.status.value in ('draft', 'paused', 'completed', 'failed') %}
+            <form method="post" action="/app/tasks/{{ task.id }}/start"><button class="btn-primary text-xs py-1 px-2" title="Запустить">&#9654;</button></form>
+            {% endif %}
+            {% if task.status.value == 'running' %}
+            <form method="post" action="/app/tasks/{{ task.id }}/pause"><button class="btn-ghost text-xs py-1 px-2" title="Пауза">&#10074;&#10074;</button></form>
+            <form method="post" action="/app/tasks/{{ task.id }}/stop"><button class="btn-danger text-xs py-1 px-2" title="Стоп">&#9632;</button></form>
+            {% endif %}
+            <button onclick="viewLog({{ task.id }})" class="btn-ghost text-xs py-1 px-2" title="Лог">&#128196;</button>
+            <form method="post" action="/app/tasks/{{ task.id }}/delete" onsubmit="return confirm('Удалить задачу?')"><button class="text-red-400 text-xs p-1" title="Удалить">&#10005;</button></form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state py-16">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-12 h-12 mx-auto mb-4" style="color:var(--text-muted)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+    <p class="text-sm" style="color:var(--text-secondary)">Нет задач</p>
+    <p class="text-xs mt-1" style="color:var(--text-muted)">Создайте первую задачу для приглашениеа, сообщения или сбора</p>
+  </div>
+</div>
+{% endif %}
+
+<!-- Create Task Modal -->
+<div id="create-modal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background:rgba(0,0,0,0.6)">
+  <div class="card w-full max-w-2xl max-h-[85vh] overflow-auto mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-lg font-semibold" style="color:var(--text-primary)">Новая задача</h2>
+      <button onclick="document.getElementById('create-modal').classList.add('hidden');document.getElementById('create-modal').classList.remove('flex')" style="color:var(--text-muted)" class="text-xl hover:text-red-400">&times;</button>
+    </div>
+    <form method="post" action="/app/tasks/create" x-data="{taskType:'broadcast'}">
+      <label style="color:var(--text-muted)" class="text-xs mb-1 block">Название задачи</label>
+      <input name="name" class="form-input mb-3" required placeholder="Сообщения стоматологиям Москвы"/>
+
+      <label style="color:var(--text-muted)" class="text-xs mb-1 block">Тип задачи</label>
+      <select name="task_type" class="form-input mb-4" x-model="taskType">
+        <option value="broadcast">Рассылка сообщений</option>
+        <option value="invite">Инвайтинг в чат</option>
+        <option value="parse">Сбор участников</option>
+        <option value="warm">Прогрев аккаунтов</option>
+        <option value="check">Чекер номеров</option>
+      </select>
+
+      <!-- Broadcast params -->
+      <div x-show="taskType==='broadcast'" class="space-y-3">
+        <div><label class="text-xs" style="color:var(--text-muted)">Шаблон</label>
+        <select name="template_id" class="form-input">{% for t in templates %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}</select></div>
+        <div><label class="text-xs" style="color:var(--text-muted)">Цель</label>
+        <select name="target_type" class="form-input"><option value="users">Лиды с MAX ID</option><option value="chats">Чаты из каталога</option></select></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="text-xs" style="color:var(--text-muted)">Лимит</label><input name="limit" type="number" value="50" class="form-input"/></div>
+        </div>
+        <label class="flex items-center gap-2"><input type="checkbox" name="typing_emulation" value="true" checked class="rounded"/><span class="text-sm" style="color:var(--text-secondary)">Эмуляция набора</span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" name="dry_run" value="true" class="rounded"/><span class="text-sm" style="color:var(--text-secondary)">Сухой прогон</span></label>
+      </div>
+
+      <!-- Invite params -->
+      <div x-show="taskType==='invite'" class="space-y-3">
+        <div><label class="text-xs" style="color:var(--text-muted)">Ссылка на чат (куда приглашаем)</label>
+        <input name="chat_link" class="form-input" placeholder="https://max.ru/join/..."/></div>
+        <div><label class="text-xs" style="color:var(--text-muted)">Файл с ID (из хранилища)</label>
+        <select name="file_id" class="form-input"><option value="0">Не выбран</option>{% for f in files %}<option value="{{ f.id }}">{{ f.name }} ({{ f.lines_total }} строк)</option>{% endfor %}</select></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="text-xs" style="color:var(--text-muted)">Размер пачки</label><input name="batch_size" type="number" value="50" class="form-input"/></div>
+          <div><label class="text-xs" style="color:var(--text-muted)">Задержка (сек)</label><input name="delay_sec" type="number" value="15" class="form-input"/></div>
+        </div>
+      </div>
+
+      <!-- Parse params -->
+      <div x-show="taskType==='parse'" class="space-y-3">
+        <div><label class="text-xs" style="color:var(--text-muted)">Ссылки для вступления (по одной на строку)</label>
+        <textarea name="links" rows="3" class="form-input font-mono text-xs" placeholder="https://max.ru/join/..."></textarea></div>
+        <div><label class="text-xs" style="color:var(--text-muted)">Chat ID для сбора (через запятую)</label>
+        <input name="chat_ids" class="form-input" placeholder="12345, 67890"/></div>
+        <div><label class="text-xs" style="color:var(--text-muted)">Или файл со ссылками</label>
+        <select name="file_id" class="form-input"><option value="0">Не выбран</option>{% for f in files if f.file_type.value == 'links' %}<option value="{{ f.id }}">{{ f.name }} ({{ f.lines_total }})</option>{% endfor %}</select></div>
+      </div>
+
+      <!-- Warm params -->
+      <div x-show="taskType==='warm'" class="space-y-3">
+        <div><label class="text-xs" style="color:var(--text-muted)">Действий на аккаунт</label>
+        <input name="actions_per_account" type="number" value="10" class="form-input"/></div>
+        <div><label class="text-xs" style="color:var(--text-muted)">Каналы (через запятую, пусто = стандартные)</label>
+        <input name="channels" class="form-input" placeholder="novostiru, sportmax"/></div>
+      </div>
+
+      <!-- Check params -->
+      <div x-show="taskType==='check'" class="space-y-3">
+        <div><label class="text-xs" style="color:var(--text-muted)">Кол-во номеров</label>
+        <input name="check_limit" type="number" value="10" max="20" class="form-input"/></div>
+        <div class="p-3 rounded-lg" style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.2)">
+          <p class="text-xs" style="color:var(--badge-yellow-text)">Лимит MAX: 10-20 проверок в день!</p>
+        </div>
+      </div>
+
+      <!-- Common -->
+      <div class="mt-4 pt-4 space-y-3" style="border-top:1px solid var(--border)">
+        <div><label class="text-xs" style="color:var(--text-muted)">Аккаунт (телефон, пусто = авто)</label>
+        <select name="phone" class="form-input"><option value="">Авто</option>{% for a in accounts %}<option value="{{ a.phone }}">{{ a.phone }} ({{ a.profile_name or '—' }})</option>{% endfor %}</select></div>
+        <div><label class="text-xs" style="color:var(--text-muted)">Заметки</label>
+        <textarea name="notes" rows="2" class="form-input text-xs" placeholder="Комментарий к задаче..."></textarea></div>
+      </div>
+
+      <button type="submit" class="btn-primary w-full mt-4 py-3">Создать задачу</button>
+    </form>
+  </div>
+</div>
+
+<!-- Log Modal -->
+<div id="log-modal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background:rgba(0,0,0,0.6)">
+  <div class="card w-full max-w-2xl max-h-[80vh] overflow-auto mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-semibold" style="color:var(--text-primary)">Лог задачи <span id="log-task-id"></span></h3>
+      <button onclick="document.getElementById('log-modal').classList.add('hidden');document.getElementById('log-modal').classList.remove('flex')" style="color:var(--text-muted)" class="text-xl hover:text-red-400">&times;</button>
+    </div>
+    <div class="flex gap-4 mb-3 text-sm">
+      <span id="log-status" class="badge badge-blue"></span>
+      <span style="color:var(--text-muted)" id="log-progress"></span>
+    </div>
+    <div id="log-content" class="log-box h-64 overflow-auto"></div>
+  </div>
+</div>
+
+<script>
+async function viewLog(id){
+  const r=await fetch('/app/tasks/'+id+'/log');
+  const d=await r.json();
+  document.getElementById('log-task-id').textContent='#'+id;
+  document.getElementById('log-status').textContent=d.status;
+  document.getElementById('log-progress').textContent='Прогресс: '+d.progress_total+(d.target_count?'/'+d.target_count:'')+' | Ошибки: '+d.error_count;
+  const box=document.getElementById('log-content');
+  box.innerHTML=d.log.map(l=>{
+    let cls='color:var(--text-secondary)';
+    if(l.startsWith('[OK]'))cls='color:#4ade80';
+    else if(l.startsWith('[FAIL]')||l.startsWith('[ERROR]'))cls='color:#f87171';
+    else if(l.startsWith('[START]')||l.startsWith('[DONE]'))cls='color:#60a5fa';
+    return '<div style="'+cls+'">'+l+'</div>';
+  }).join('');
+  box.scrollTop=99999;
+  const m=document.getElementById('log-modal');
+  m.classList.remove('hidden');m.classList.add('flex');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %} — Автоответчик{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Автоответчик</h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Автоматические ответы на входящие сообщения. Поддерживает AI режим.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="card" x-data="{ useAi: false }">
+    <div class="card-header">Настройка</div>
+    <form method="post" action="/app/autoresponder/start">
+
+      <!-- Аккаунт -->
+      <label class="text-xs mb-1 block" style="color:var(--text-muted)">Аккаунт</label>
+      <select name="phone" class="form-input mb-3" required>
+        <option value="">— выберите аккаунт —</option>
+        {% for a in accounts %}
+        <option value="{{ a.phone }}" {% if a.phone in configs %}disabled{% endif %}>
+          {{ a.phone }} ({{ a.profile_name or "—" }})
+          {% if a.phone in configs %}[активен]{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+
+      <!-- Режим -->
+      <div class="mb-4 p-3 rounded-lg" style="background:var(--bg-card-alt);border:1px solid var(--border)">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="use_ai" x-model="useAi" value="true" class="rounded"/>
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+            <span class="text-sm font-medium" style="color:var(--text-primary)">AI режим (умный бот)</span>
+          </div>
+        </label>
+        <p class="text-xs mt-1 ml-6" style="color:var(--text-muted)">Отвечает через LLM на основе базы знаний. Требует AI_API_KEY в настройках.</p>
+      </div>
+
+      <!-- Статичный текст -->
+      <div x-show="!useAi">
+        <label class="text-xs mb-1 block" style="color:var(--text-muted)">Текст ответа (спинтакс: {Привет|Здравствуйте})</label>
+        <textarea name="text" rows="4" class="form-input mb-3 text-xs" placeholder="{Здравствуйте|Привет|Добрый день}! Спасибо за обращение. Менеджер ответит в ближайшее время."></textarea>
+      </div>
+
+      <!-- AI база знаний -->
+      <div x-show="useAi" x-cloak>
+        <label class="text-xs mb-1 block" style="color:var(--text-muted)">База знаний для AI</label>
+        <textarea name="knowledge_base" rows="8" class="form-input mb-3 text-xs" placeholder="Опишите ваш бизнес, услуги, цены, часы работы, FAQ.
+
+Пример:
+Мы — агентство digital-маркетинга MaxSurge.
+Услуги: SMM, таргет, контекст, создание сайтов.
+Часы работы: пн-пт 10:00-19:00.
+Минимальный чек: 50 000 руб.
+Консультация бесплатная, запись через сайт."></textarea>
+        <label class="text-xs mb-1 block" style="color:var(--text-muted)">Fallback текст (если AI недоступен)</label>
+        <input name="text" class="form-input mb-3" placeholder="Здравствуйте! Скоро вам ответит менеджер."/>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="text-xs mb-1 block" style="color:var(--text-muted)">Задержка мин (сек)</label>
+          <input name="delay_min" type="number" value="3" class="form-input"/>
+        </div>
+        <div>
+          <label class="text-xs mb-1 block" style="color:var(--text-muted)">Задержка макс (сек)</label>
+          <input name="delay_max" type="number" value="10" class="form-input"/>
+        </div>
+      </div>
+
+      <label class="text-xs mb-1 block" style="color:var(--text-muted)">Лимит ответов/день</label>
+      <input name="limit_per_day" type="number" value="50" class="form-input mb-3"/>
+
+      <label class="flex items-center gap-2 mb-4 cursor-pointer">
+        <input type="checkbox" name="typing_emulation" value="true" checked class="rounded"/>
+        <span class="text-sm" style="color:var(--text-secondary)">Эмуляция набора ("печатает...")</span>
+      </label>
+
+      <button type="submit" class="btn-primary w-full">Включить автоответчик</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Активные</div>
+    {% if configs %}
+      {% for phone, cfg in configs.items() %}
+      <div class="rounded-lg p-3 mb-3" style="background:var(--bg-card-alt)">
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-sm text-green-400">{{ phone }}</span>
+            {% if cfg.use_ai %}
+            <span class="badge badge-blue">AI</span>
+            {% else %}
+            <span class="badge badge-gray">TXT</span>
+            {% endif %}
+          </div>
+          <form method="post" action="/app/autoresponder/stop">
+            <input type="hidden" name="phone" value="{{ phone }}"/>
+            <button class="btn-danger text-xs py-1 px-2">Выкл</button>
+          </form>
+        </div>
+        <div class="text-xs" style="color:var(--text-muted)">Ответов сегодня: {{ cfg.responded_today or 0 }} / {{ cfg.limit_per_day }}</div>
+        {% if cfg.use_ai %}
+        <div class="text-xs mt-1 truncate" style="color:var(--text-muted)">База: {{ (cfg.knowledge_base or '')[:80] }}...</div>
+        {% else %}
+        <div class="text-xs mt-1 truncate" style="color:var(--text-muted)">{{ (cfg.text or '')[:80] }}...</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+    <p class="text-sm" style="color:var(--text-muted)">Нет активных автоответчиков</p>
+    {% endif %}
+
+    <div class="mt-4">
+      <h3 class="text-sm mb-2" style="color:var(--text-muted)">Лог (последние)</h3>
+      <div class="log-box h-48 overflow-y-auto">
+        {% for l in status.log[-20:] %}
+        <div class="{% if '[AI]' in l %}text-purple-400{% elif '[TXT]' in l %}text-green-400{% elif '[ERR]' in l or '[AI-FAIL]' in l %}text-red-400{% elif '[ON]' in l %}text-indigo-400{% else %}text-gray-300{% endif %}">{{ l }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

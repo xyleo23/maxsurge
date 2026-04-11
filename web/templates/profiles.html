@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %} — Профили{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Управление профилями</h1>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Обновление</h2>
+    <form method="post" action="/app/profiles/update">
+      <label class="text-gray-400 text-xs mb-1 block">Аккаунты</label>
+      <div class="bg-[var(--bg-card-alt)] border border-[var(--border)] rounded-lg p-3 mb-3 space-y-2 max-h-32 overflow-y-auto">
+        {% for a in accounts %}<label class="flex items-center gap-2"><input type="checkbox" name="account_ids" value="{{ a.id }}" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">{{ a.phone }} — {{ a.profile_name or "—" }}</span></label>{% endfor %}
+      </div>
+      <label class="text-gray-400 text-xs mb-1 block">Имена (по одному на строку)</label>
+      <textarea name="first_names" rows="3" class="form-input mb-3 text-xs" placeholder="Алексей&#10;Дмитрий&#10;Сергей"></textarea>
+      <label class="text-gray-400 text-xs mb-1 block">Фамилии (по одной на строку)</label>
+      <textarea name="last_names" rows="3" class="form-input mb-3 text-xs" placeholder="Иванов&#10;Петров&#10;Смирнов"></textarea>
+      <label class="text-gray-400 text-xs mb-1 block">Био (одно для всех)</label>
+      <input name="bio" class="form-input mb-3" placeholder="Специалист по маркетингу"/>
+      <div class="space-y-2 mb-4">
+        <label class="flex items-center gap-2"><input type="checkbox" name="hide_online" value="true" class="rounded border-gray-600"/><span class="text-sm text-gray-300">Скрыть онлайн-статус</span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" name="findable_by_phone" value="true" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">Поиск по номеру телефона</span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" name="allow_invites" value="true" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">Разрешить приглашения в чаты</span></label>
+      </div>
+      <button type="submit" class="btn-primary w-full">Обновить профили</button>
+    </form>
+  </div>
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Текущие профили</h2>
+    <table>
+      <thead><tr><th>Телефон</th><th>Имя</th><th>MAX ID</th><th>Статус</th></tr></thead>
+      <tbody>
+        {% for a in accounts %}<tr>
+          <td class="font-mono text-xs">{{ a.phone }}</td>
+          <td>{{ a.profile_name or "—" }}</td>
+          <td class="text-xs text-gray-500">{{ a.max_user_id or "—" }}</td>
+          <td><span class="px-2 py-0.5 rounded text-xs {{ 'bg-green-900 text-green-300' if a.status.value == 'active' else 'bg-red-900 text-red-300' }}">{{ a.status.value }}</span></td>
+        </tr>{% endfor %}
+      </tbody>
+    </table>
+    {% if status.log %}
+    <div class="mt-4 bg-[var(--log-bg)] rounded-lg p-3 max-h-40 overflow-y-auto font-mono text-xs">
+      {% for l in status.log %}<div class="{% if '[OK]' in l %}text-green-400{% elif '[FAIL]' in l %}text-red-400{% else %}text-gray-300{% endif %}">{{ l }}</div>{% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru" class="bg-[#0a0e1a]">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Блог MaxSurge — статьи о CRM, мессенджере MAX и бизнес-коммуникациях</title>
+  <meta name="description" content="Блог MaxSurge: гайды по мессенджеру MAX, CRM для бизнеса, лидогенерация, AI автоматизация и безопасность аккаунтов."/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://maxsurge.ru/blog/"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>&#x26A1;</text></svg>"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="text-gray-100">
+
+  <nav class="bg-[#0a0e1a]/90 backdrop-blur-xl border-b border-white/5 sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="white"/></svg>
+        </div>
+        <span class="font-bold text-lg text-white">MaxSurge</span>
+      </a>
+      <div class="flex items-center gap-3 text-sm">
+        <a href="/" class="text-gray-400 hover:text-white transition">Главная</a>
+        <a href="/login" class="text-gray-400 hover:text-white transition">Войти</a>
+        <a href="/register" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Начать</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-6 py-16">
+    <div class="mb-12">
+      <h1 class="text-4xl font-bold text-white mb-3">Блог MaxSurge</h1>
+      <p class="text-gray-500 text-lg">Гайды, кейсы и советы по продвижению в мессенджере MAX</p>
+    </div>
+
+    <div class="space-y-6">
+      {% for article in articles %}
+      <a href="/blog/{{ article.slug }}" class="block bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7 hover:border-indigo-500/40 transition-all group">
+        <div class="flex items-center gap-3 mb-3 text-xs">
+          <span class="px-2 py-1 bg-indigo-500/10 text-indigo-400 rounded">{{ article.category }}</span>
+          <span class="text-gray-500">{{ article.date }}</span>
+          <span class="text-gray-500">&middot; {{ article.read_time }}</span>
+        </div>
+        <h2 class="text-2xl font-bold text-white mb-3 group-hover:text-indigo-400 transition-colors">{{ article.title }}</h2>
+        <p class="text-gray-400 leading-relaxed">{{ article.description }}</p>
+        <div class="mt-4 text-indigo-400 text-sm font-medium">Читать &rarr;</div>
+      </a>
+      {% endfor %}
+    </div>
+  </main>
+
+  <footer class="border-t border-[#1e293b] py-8 px-6 mt-16">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
+      <div>&copy; 2026 MaxSurge</div>
+      <div class="flex gap-4">
+        <a href="/" class="hover:text-gray-400">Главная</a>
+        <a href="/terms" class="hover:text-gray-400">Условия</a>
+        <a href="/privacy" class="hover:text-gray-400">Конфиденциальность</a>
+        <a href="/contacts" class="hover:text-gray-400">Контакты</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %} — Тарифы и оплата{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Тарифы и оплата</h1>
+  <p style="color:var(--text-muted)" class="text-sm mt-0.5">
+    Текущий тариф:
+    <span class="badge {{ 'badge-green' if user.plan.value == 'pro' else 'badge-blue' if user.plan.value == 'basic' else 'badge-yellow' }} ml-1">{{ user.plan.value }}</span>
+  </p>
+</div>
+
+<!-- Тарифы -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <!-- Start -->
+  <div class="card relative {% if user.plan.value == 'start' %}ring-2 ring-indigo-500{% endif %}">
+    <div class="text-xs font-medium uppercase mb-2" style="color:var(--text-muted)">Start</div>
+    <div class="flex items-baseline gap-1 mb-1">
+      <span class="text-3xl font-bold" style="color:var(--text-primary)">1 490</span>
+      <span class="text-sm" style="color:var(--text-muted)">₽/мес</span>
+    </div>
+    <div class="text-xs mb-5" style="color:var(--text-muted)">Для старта</div>
+    <ul class="space-y-2 text-sm mb-5" style="color:var(--text-secondary)">
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        5 MAX аккаунтов
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        5 параллельных задач
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        500 отправок в день
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        AI автоответчик
+      </li>
+    </ul>
+    {% if user.plan.value == 'start' %}
+    <button disabled class="w-full py-2.5 rounded-lg text-sm font-medium" style="background:var(--bg-card-alt);color:var(--text-muted)">Активен</button>
+    {% else %}
+    <form method="post" action="/app/billing/create-payment">
+      <input type="hidden" name="plan" value="start"/>
+      <button type="submit" class="btn-ghost w-full">Выбрать Start</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Basic (popular) -->
+  <div class="card relative border-2 {% if user.plan.value == 'basic' %}ring-2 ring-indigo-500{% endif %}" style="border-color:rgba(99,102,241,0.4)">
+    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[0.625rem] font-bold px-3 py-1 rounded-full whitespace-nowrap">Популярный</div>
+    <div class="text-xs font-medium uppercase mb-2 text-indigo-400">Basic</div>
+    <div class="flex items-baseline gap-1 mb-1">
+      <span class="text-3xl font-bold" style="color:var(--text-primary)">2 990</span>
+      <span class="text-sm" style="color:var(--text-muted)">₽/мес</span>
+    </div>
+    <div class="text-xs mb-5" style="color:var(--text-muted)">Оптимальный</div>
+    <ul class="space-y-2 text-sm mb-5" style="color:var(--text-secondary)">
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        15 MAX аккаунтов
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        10 задач параллельно
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        2 000 отправок в день
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        TG → MAX форвардер
+      </li>
+    </ul>
+    {% if user.plan.value == 'basic' %}
+    <button disabled class="w-full py-2.5 rounded-lg text-sm font-medium" style="background:var(--bg-card-alt);color:var(--text-muted)">Активен</button>
+    {% else %}
+    <form method="post" action="/app/billing/create-payment">
+      <input type="hidden" name="plan" value="basic"/>
+      <button type="submit" class="btn-primary w-full">Выбрать Basic</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Pro -->
+  <div class="card {% if user.plan.value == 'pro' %}ring-2 ring-indigo-500{% endif %}">
+    <div class="text-xs font-medium uppercase mb-2" style="color:var(--text-muted)">Pro</div>
+    <div class="flex items-baseline gap-1 mb-1">
+      <span class="text-3xl font-bold" style="color:var(--text-primary)">4 990</span>
+      <span class="text-sm" style="color:var(--text-muted)">₽/мес</span>
+    </div>
+    <div class="text-xs mb-5" style="color:var(--text-muted)">Для команд</div>
+    <ul class="space-y-2 text-sm mb-5" style="color:var(--text-secondary)">
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        50 MAX аккаунтов
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        25 задач параллельно
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        10 000 отправок в день
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Всё включено
+      </li>
+    </ul>
+    {% if user.plan.value == 'pro' %}
+    <button disabled class="w-full py-2.5 rounded-lg text-sm font-medium" style="background:var(--bg-card-alt);color:var(--text-muted)">Активен</button>
+    {% else %}
+    <form method="post" action="/app/billing/create-payment">
+      <input type="hidden" name="plan" value="pro"/>
+      <button type="submit" class="btn-ghost w-full">Выбрать Pro</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Lifetime -->
+  <div class="card relative {% if user.plan.value == 'lifetime' %}ring-2 ring-purple-500{% endif %}" style="background:linear-gradient(135deg,rgba(126,34,206,0.15),rgba(219,39,119,0.1));border-color:rgba(168,85,247,0.3)">
+    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[0.625rem] font-bold px-3 py-1 rounded-full whitespace-nowrap">&#9889; Lifetime</div>
+    <div class="text-xs font-medium uppercase mb-2 text-pink-400">Lifetime</div>
+    <div class="flex items-baseline gap-2 mb-1">
+      <span class="text-3xl font-bold" style="color:var(--text-primary)">49 900</span>
+      <span class="text-xs line-through" style="color:var(--text-muted)">149 000</span>
+    </div>
+    <div class="text-xs mb-5" style="color:var(--text-muted)">Один раз — навсегда</div>
+    <ul class="space-y-2 text-sm mb-5" style="color:var(--text-secondary)">
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Без ограничений
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Все будущие апдейты
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Приоритетная поддержка
+      </li>
+      <li class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        Ранний доступ к фичам
+      </li>
+    </ul>
+    {% if user.plan.value == 'lifetime' %}
+    <button disabled class="w-full py-2.5 rounded-lg text-sm font-medium" style="background:var(--bg-card-alt);color:var(--text-muted)">Активен</button>
+    {% else %}
+    <form method="post" action="/app/billing/create-payment">
+      <input type="hidden" name="plan" value="lifetime"/>
+      <button type="submit" class="w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:shadow-lg" style="background:linear-gradient(135deg,#9333ea,#db2777)">Купить навсегда</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- История платежей -->
+<div class="card">
+  <div class="card-header">История платежей</div>
+  {% if payments %}
+  <table>
+    <thead>
+      <tr><th>Дата</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>ЮKassa ID</th><th class="text-right"></th></tr>
+    </thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td class="text-xs whitespace-nowrap" style="color:var(--text-muted)">{{ p.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td><span class="badge badge-blue">{{ p.plan.value }}</span></td>
+        <td class="font-mono">{{ "%.0f"|format(p.amount) }} ₽</td>
+        <td>
+          <span class="badge {{ 'badge-green' if p.status.value == 'succeeded' else 'badge-yellow' if p.status.value == 'pending' else 'badge-red' }}">
+            {{ p.status.value }}
+          </span>
+        </td>
+        <td class="font-mono text-xs" style="color:var(--text-muted)">{{ p.yk_payment_id[:20] }}...</td>
+        <td class="text-right">
+          {% if p.status.value == 'pending' %}
+            {% if p.confirmation_url %}
+            <a href="{{ p.confirmation_url }}" class="text-xs text-indigo-400 hover:text-indigo-300">Оплатить</a>
+            {% endif %}
+            <form method="post" action="/app/billing/check/{{ p.id }}" class="inline ml-2">
+              <button class="text-xs" style="color:var(--text-muted)" title="Проверить статус">&#8635;</button>
+            </form>
+          {% elif p.status.value == 'succeeded' %}
+            <a href="/app/billing/invoice/{{ p.id }}" class="text-xs text-indigo-400 hover:text-indigo-300" title="Скачать чек">📄 Чек</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-sm" style="color:var(--text-muted)">Платежей ещё не было. Выберите тариф выше.</p>
+  {% endif %}
+</div>
+
+<div class="mt-6 p-4 rounded-lg text-xs" style="background:var(--bg-card-alt);color:var(--text-muted)">
+  <div class="font-medium mb-1" style="color:var(--text-primary)">О тестовом режиме</div>
+  Сейчас ЮKassa работает в <strong>тестовом режиме</strong>. Для тестовых карт используйте номер <code class="text-indigo-400">5555 5555 5555 4444</code>, любую будущую дату и CVC <code class="text-indigo-400">123</code>.
+</div>
+{% endblock %}

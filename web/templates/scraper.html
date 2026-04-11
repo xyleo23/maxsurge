@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %} — Сбор лидов{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Сбор лидов из 2GIS</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Запустить сбор</h2>
+    <form method="post" action="/app/scraper/start">
+      <label class="block text-gray-400 text-xs mb-1">Города (через запятую)</label>
+      <input name="cities" value="{{ cities|join(', ') }}" class="form-input mb-3"/>
+      <label class="block text-gray-400 text-xs mb-1">Запросы (через запятую)</label>
+      <input name="queries" value="{{ queries|join(', ') }}" class="form-input mb-3"/>
+      <label class="text-gray-400 text-xs mb-1 block">Прокси (опционально, рекомендуется для 2GIS)</label>
+      <input name="proxy" placeholder="http://user:pass@host:port" class="form-input mb-3 font-mono text-xs"/>
+      {% if status.running %}
+      <div class="p-3 bg-yellow-900/30 border border-yellow-800/50 rounded-lg mb-3">
+        <p class="text-yellow-300 text-sm">Скрапер работает...</p>
+      </div>
+      {% else %}
+      <button type="submit" class="btn-primary w-full">Запустить скрапер</button>
+      {% endif %}
+    </form>
+  </div>
+
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5" x-data="sm()" x-init="init()">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Статус</h2>
+    <div class="flex gap-6 mb-4 text-sm">
+      <span class="text-green-400" x-text="'Сохранено: '+saved">Сохранено: {{ status.saved }}</span>
+      <span class="text-gray-400" x-text="'Дубли: '+skipped">Дубли: {{ status.skipped }}</span>
+    </div>
+    <div class="bg-[var(--log-bg)] rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs">
+      <template x-for="l in log" :key="l"><div class="text-gray-300" x-text="l"></div></template>
+      {% for line in status.log %}
+      <div class="text-gray-300">{{ line }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+function sm(){return{saved:{{status.saved}},skipped:{{status.skipped}},log:[],running:{{'true' if status.running else 'false'}},init(){if(this.running)this.poll()},async poll(){const r=await fetch('/app/scraper/status');const d=await r.json();this.saved=d.saved;this.skipped=d.skipped;this.log=d.log;this.running=d.running;if(this.running)setTimeout(()=>this.poll(),3000)}}}
+</script>
+{% endblock %}

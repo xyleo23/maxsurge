@@ -1,0 +1,293 @@
+"""Модели SQLAlchemy — v2.0 (полный набор)."""
+from datetime import datetime
+from enum import Enum
+
+from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, Float, Enum as SQLEnum, ForeignKey, JSON
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+from config import get_settings
+
+settings = get_settings()
+engine = create_async_engine(settings.DATABASE_URL, echo=False)
+async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+# ── Enums ──────────────────────────────────────────────
+class LeadStatus(str, Enum):
+    NEW = "new"
+    CONTACTED = "contacted"
+    IN_PROGRESS = "in_progress"
+    WON = "won"
+    LOST = "lost"
+    SKIPPED = "skipped"
+
+
+class AccountStatus(str, Enum):
+    ACTIVE = "active"
+    BLOCKED = "blocked"
+    WARMING = "warming"
+    PENDING_AUTH = "pending_auth"
+
+
+# ── Лиды ──────────────────────────────────────────────
+class Lead(Base):
+    __tablename__ = "leads"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    name: Mapped[str] = mapped_column(String(512))
+    address: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    website: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    categories: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    source_query: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    dgis_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True, unique=True)
+    max_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    max_username: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    status: Mapped[LeadStatus] = mapped_column(SQLEnum(LeadStatus), default=LeadStatus.NEW, index=True)
+    admin_comment: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ── Аккаунты MAX ──────────────────────────────────────
+class MaxAccount(Base):
+    __tablename__ = "max_accounts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    phone: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    login_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sms_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    profile_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    max_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    status: Mapped[AccountStatus] = mapped_column(SQLEnum(AccountStatus), default=AccountStatus.PENDING_AUTH)
+    proxy: Mapped[str | None] = mapped_column(String(256), nullable=True)  # http://user:pass@host:port
+    sent_today: Mapped[int] = mapped_column(Integer, default=0)
+    sent_total: Mapped[int] = mapped_column(Integer, default=0)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Шаблоны ────────────────────────────────────────────
+class MessageTemplate(Base):
+    __tablename__ = "templates"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    name: Mapped[str] = mapped_column(String(128))
+    body: Mapped[str] = mapped_column(Text)   # поддерживает {name}, {city}, спинтакс {A|B|C}
+    attachment_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ── Лог отправок ────────────────────────────────────────
+class SendLog(Base):
+    __tablename__ = "send_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    lead_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("leads.id"), nullable=True, index=True)
+    account_id: Mapped[int] = mapped_column(Integer, ForeignKey("max_accounts.id"), index=True)
+    template_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("templates.id"), nullable=True)
+    target_type: Mapped[str] = mapped_column(String(16), default="user")  # user / chat
+    target_id: Mapped[str | None] = mapped_column(String(64), nullable=True)  # user_id или chat_id
+    outgoing_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="sent")
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sent_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
+# ── Спарсенные пользователи ──────────────────────────────
+class ParsedUser(Base):
+    __tablename__ = "parsed_users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    max_user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    first_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    last_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    username: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    source_chat_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    source_chat_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    parsed_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Каталог чатов MAX ──────────────────────────────────
+class ChatCatalog(Base):
+    __tablename__ = "chat_catalog"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    chat_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    name: Mapped[str] = mapped_column(String(512))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    invite_link: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    category: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    members_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    is_channel: Mapped[bool] = mapped_column(Boolean, default=False)
+    parsed_count: Mapped[int] = mapped_column(Integer, default=0)   # сколько раз парсили
+    last_parsed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Задачи прогрева ──────────────────────────────────────
+class WarmingLog(Base):
+    __tablename__ = "warming_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    account_id: Mapped[int] = mapped_column(Integer, ForeignKey("max_accounts.id"), index=True)
+    action: Mapped[str] = mapped_column(String(64))  # join_chat, send_message, read_channel, change_profile
+    target: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), default="ok")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+async def init_db():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+# ── Задачи (универсальные) ─────────────────────────────
+class TaskStatus(str, Enum):
+    DRAFT = "draft"
+    RUNNING = "running"
+    PAUSED = "paused"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class TaskType(str, Enum):
+    INVITE = "invite"
+    BROADCAST = "broadcast"
+    PARSE = "parse"
+    WARM = "warm"
+    CHECK = "check"
+
+
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    name: Mapped[str] = mapped_column(String(256))
+    task_type: Mapped[TaskType] = mapped_column(SQLEnum(TaskType), index=True)
+    status: Mapped[TaskStatus] = mapped_column(SQLEnum(TaskStatus), default=TaskStatus.DRAFT, index=True)
+    config: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON с параметрами
+    progress_today: Mapped[int] = mapped_column(Integer, default=0)
+    progress_total: Mapped[int] = mapped_column(Integer, default=0)
+    target_count: Mapped[int] = mapped_column(Integer, default=0)  # сколько всего целей
+    error_count: Mapped[int] = mapped_column(Integer, default=0)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    log: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON array лога
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+# ── Хранилище файлов ────────────────────────────────────
+class FileType(str, Enum):
+    IDS = "ids"
+    PHONES = "phones"
+    LINKS = "links"
+    OTHER = "other"
+
+
+class UserFile(Base):
+    __tablename__ = "user_files"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    name: Mapped[str] = mapped_column(String(256))
+    original_filename: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    file_type: Mapped[FileType] = mapped_column(SQLEnum(FileType), default=FileType.OTHER, index=True)
+    content: Mapped[str] = mapped_column(Text, default="")
+    lines_total: Mapped[int] = mapped_column(Integer, default=0)
+    lines_used: Mapped[int] = mapped_column(Integer, default=0)
+    folder: Mapped[str] = mapped_column(String(128), default="default")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Пользователи (авторизация) ────────────────────────
+class UserPlan(str, Enum):
+    TRIAL = "trial"
+    START = "start"
+    BASIC = "basic"
+    PRO = "pro"
+    LIFETIME = "lifetime"
+
+
+class SiteUser(Base):
+    __tablename__ = "site_users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(256), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(256))
+    name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    plan: Mapped[UserPlan] = mapped_column(SQLEnum(UserPlan), default=UserPlan.TRIAL)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_superadmin: Mapped[bool] = mapped_column(Boolean, default=False)
+    trial_days: Mapped[int] = mapped_column(Integer, default=7)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    plan_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    email_verify_token: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    password_reset_token: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    password_reset_expires: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    ref_code: Mapped[str | None] = mapped_column(String(16), nullable=True, unique=True, index=True)
+    referred_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    ref_balance: Mapped[float] = mapped_column(Float, default=0.0)
+    ref_earned_total: Mapped[float] = mapped_column(Float, default=0.0)
+    totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    totp_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    ai_api_url: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    ai_api_key: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    ai_model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+
+
+# ── Платежи ──────────────────────────────────────────
+class PaymentStatus(str, Enum):
+    PENDING = "pending"
+    SUCCEEDED = "succeeded"
+    CANCELED = "canceled"
+    WAITING_FOR_CAPTURE = "waiting_for_capture"
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+    yk_payment_id: Mapped[str] = mapped_column(String(128), unique=True, index=True)
+    plan: Mapped[UserPlan] = mapped_column(SQLEnum(UserPlan))
+    amount: Mapped[float] = mapped_column(Float)
+    currency: Mapped[str] = mapped_column(String(8), default="RUB")
+    status: Mapped[PaymentStatus] = mapped_column(SQLEnum(PaymentStatus), default=PaymentStatus.PENDING)
+    description: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    confirmation_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+# ── Реферальные начисления ─────────────────────────
+class RefCommission(Base):
+    __tablename__ = "ref_commissions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    referrer_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+    referred_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+    payment_id: Mapped[int] = mapped_column(Integer, ForeignKey("payments.id"), index=True)
+    amount: Mapped[float] = mapped_column(Float)
+    percent: Mapped[float] = mapped_column(Float, default=20.0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

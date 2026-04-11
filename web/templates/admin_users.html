@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %} — Пользователи{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Пользователи <span style="color:var(--text-muted)" class="text-lg font-normal">({{ users|length }})</span></h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Управление аккаунтами пользователей</p>
+  </div>
+  <a href="/app/admin/" class="btn-ghost">&larr; Админ-панель</a>
+</div>
+
+{% if msg %}
+<div class="mb-4 px-4 py-3 rounded-lg text-sm" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:var(--text-primary)">{{ msg }}</div>
+{% endif %}
+
+{% if users %}
+<div class="card p-0 overflow-hidden">
+  <table>
+    <thead>
+      <tr><th>#</th><th>Email</th><th>Имя</th><th>План</th><th>Статус</th><th>Роль</th><th>Регистрация</th><th>Последний вход</th><th class="text-right">Действия</th></tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td style="color:var(--text-muted)" class="text-xs">{{ u.id }}</td>
+        <td class="font-mono text-xs" style="color:var(--text-primary)">{{ u.email }}</td>
+        <td>{{ u.name or '—' }}</td>
+        <td>
+          <form method="post" action="/app/admin/users/{{ u.id }}/plan" class="inline">
+            <select name="plan" onchange="this.form.submit()" class="text-xs rounded px-2 py-0.5 border cursor-pointer" style="background:var(--bg-input);border-color:var(--border);color:var(--text-primary)">
+              {% for p in plans %}<option value="{{ p }}" {% if p == u.plan.value %}selected{% endif %}>{{ p }}</option>{% endfor %}
+            </select>
+          </form>
+        </td>
+        <td>
+          <span class="badge {{ 'badge-green' if u.is_active else 'badge-red' }}">{{ 'active' if u.is_active else 'blocked' }}</span>
+        </td>
+        <td>
+          {% if u.is_superadmin %}<span class="badge badge-red">superadmin</span>{% else %}<span class="badge badge-gray">user</span>{% endif %}
+        </td>
+        <td class="text-xs" style="color:var(--text-muted)">{{ u.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+        <td class="text-xs" style="color:var(--text-muted)">{{ u.last_login.strftime('%d.%m %H:%M') if u.last_login else '—' }}</td>
+        <td class="text-right">
+          <div class="flex gap-1 justify-end items-center" x-data="{open:false}">
+            <button @click="open=!open" class="btn-ghost text-xs py-1 px-2">...</button>
+            <div x-show="open" @click.away="open=false" x-cloak class="absolute right-6 mt-40 w-56 rounded-xl shadow-xl z-20 p-2 space-y-1" style="background:var(--bg-card);border:1px solid var(--border)">
+              <!-- Toggle active -->
+              {% if not u.is_superadmin %}
+              <form method="post" action="/app/admin/users/{{ u.id }}/toggle-active">
+                <button class="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-indigo-500/10 transition" style="color:var(--text-secondary)">
+                  {% if u.is_active %}Заблокировать{% else %}Разблокировать{% endif %}
+                </button>
+              </form>
+              {% endif %}
+              <!-- Toggle admin -->
+              <form method="post" action="/app/admin/users/{{ u.id }}/toggle-admin">
+                <button class="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-indigo-500/10 transition" style="color:var(--text-secondary)">
+                  {% if u.is_superadmin %}Снять админа{% else %}Сделать админом{% endif %}
+                </button>
+              </form>
+              <!-- Reset password -->
+              <form method="post" action="/app/admin/users/{{ u.id }}/reset-password" class="flex gap-1 px-3 py-1">
+                <input name="new_password" type="password" placeholder="Новый пароль" class="form-input text-xs py-1 flex-1" minlength="6"/>
+                <button class="text-xs text-indigo-400 hover:text-indigo-300 whitespace-nowrap">Сброс</button>
+              </form>
+              <!-- Delete -->
+              {% if not u.is_superadmin %}
+              <form method="post" action="/app/admin/users/{{ u.id }}/delete" onsubmit="return confirm('Удалить пользователя {{ u.email }}?')">
+                <button class="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-red-500/10 text-red-400 transition">Удалить</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state py-12">
+    <p class="text-sm" style="color:var(--text-secondary)">Пользователей пока нет</p>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %} — TG → MAX{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">TG → MAX Forwarder</h1>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Добавить правило пересылки</h2>
+    <form method="post" action="/app/forwarder/add-rule">
+      <label class="text-gray-400 text-xs mb-1 block">Telegram Channel ID (числовой, например -1001234567890)</label>
+      <input name="tg_channel_id" type="number" class="form-input mb-3" placeholder="-1001234567890"/>
+      <label class="text-gray-400 text-xs mb-1 block">MAX Chat IDs (через запятую)</label>
+      <input name="max_chat_ids" class="form-input mb-3" placeholder="12345, 67890"/>
+      <div class="space-y-2 mb-3">
+        <label class="flex items-center gap-2"><input type="checkbox" name="strip_links" value="true" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">Удалять ссылки</span></label>
+        <label class="flex items-center gap-2"><input type="checkbox" name="strip_mentions" value="true" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">Удалять @упоминания</span></label>
+      </div>
+      <label class="text-gray-400 text-xs mb-1 block">Стоп-слова (через запятую)</label>
+      <input name="stop_words" class="form-input mb-3" placeholder="реклама, спонсор"/>
+      <label class="text-gray-400 text-xs mb-1 block">MAX аккаунт</label>
+      <select name="phone" class="form-input mb-3">
+        <option value="">Авто</option>
+        {% for a in accounts %}<option value="{{ a.phone }}">{{ a.phone }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn-primary w-full">Добавить правило</button>
+    </form>
+
+    <div class="mt-6">
+      <h3 class="font-semibold text-[color:var(--text-primary)] mb-3">Запуск Telegram Listener</h3>
+      <form method="post" action="/app/forwarder/start" class="space-y-2">
+        <input name="tg_api_id" placeholder="TG API ID" value="{{ tg_api_id }}" class="form-input"/>
+        <input name="tg_api_hash" placeholder="TG API Hash" value="{{ tg_api_hash }}" class="form-input"/>
+        {% if status.running %}
+        <form method="post" action="/app/forwarder/stop"><button class="btn-danger w-full">Остановить</button></form>
+        {% else %}
+        <button type="submit" class="btn-primary w-full">Запустить Listener</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+      <h2 class="font-semibold text-[color:var(--text-primary)] mb-3">Активные правила ({{ rules|length }})</h2>
+      {% for rule in rules %}
+      <div class="bg-[var(--bg-card-alt)] rounded-lg p-3 mb-2 flex justify-between items-center">
+        <div>
+          <div class="text-sm text-[color:var(--text-primary)]">TG: <span class="font-mono text-indigo-400">{{ rule.tg_channel_id }}</span> → MAX: <span class="font-mono text-green-400">{{ rule.max_chat_ids|join(', ') }}</span></div>
+          <div class="text-xs text-gray-500 mt-1">
+            {% if rule.strip_links %}ссылки{% endif %} {% if rule.strip_mentions %}@{% endif %}
+            {% if rule.stop_words %}стоп: {{ rule.stop_words|join(', ') }}{% endif %}
+          </div>
+        </div>
+        <form method="post" action="/app/forwarder/remove-rule"><input type="hidden" name="index" value="{{ loop.index0 }}"/><button class="text-red-500 text-xs">x</button></form>
+      </div>
+      {% else %}<p class="text-gray-500 text-sm">Нет правил</p>{% endfor %}
+    </div>
+
+    <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+      <div class="flex justify-between mb-3">
+        <h2 class="font-semibold text-[color:var(--text-primary)]">Лог</h2>
+        <span class="text-sm text-green-400">Переслано: {{ status.forwarded }}</span>
+      </div>
+      <div class="bg-[var(--log-bg)] rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs">
+        {% for l in status.log[-30:] %}
+        <div class="{% if '[FWD]' in l %}text-green-400{% elif '[ERR]' in l %}text-red-400{% elif '[RULE]' in l %}text-indigo-400{% else %}text-gray-300{% endif %}">{{ l }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

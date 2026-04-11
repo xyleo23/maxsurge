@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %} — Лиды{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold text-[color:var(--text-primary)]">Лиды <span class="text-[color:var(--text-muted)] text-lg font-normal">({{ total }})</span></h1>
+    <p class="text-[color:var(--text-muted)] text-sm mt-0.5">База потенциальных клиентов</p>
+  </div>
+  <a href="/leads/export" class="btn-ghost">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    CSV
+  </a>
+</div>
+
+<!-- Filters -->
+<div class="card mb-6">
+  <form method="get" class="flex flex-wrap items-center gap-3">
+    <input name="search" value="{{ search }}" placeholder="Поиск по имени/телефону..." class="form-input w-64"/>
+    <select name="status" class="form-input w-40">
+      <option value="">Все статусы</option>
+      {% for s in statuses %}<option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+    <select name="city" class="form-input w-40">
+      <option value="">Все города</option>
+      {% for c in cities %}<option value="{{ c }}" {% if c == city_filter %}selected{% endif %}>{{ c }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn-primary">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      Найти
+    </button>
+    {% if search or status_filter or city_filter %}
+    <a href="/leads/" class="btn-ghost text-xs">Сбросить</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Table -->
+{% if leads %}
+<div class="card p-0 overflow-hidden">
+  <table>
+    <thead>
+      <tr>
+        <th>Название</th>
+        <th>Город</th>
+        <th>Телефон</th>
+        <th>Категория</th>
+        <th>MAX ID</th>
+        <th>Статус</th>
+        <th class="text-right">Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for lead in leads %}
+      <tr>
+        <td class="font-medium text-[color:var(--text-primary)] max-w-[200px] truncate">{{ lead.name }}</td>
+        <td class="text-xs">{{ lead.city or '—' }}</td>
+        <td class="font-mono text-xs">{{ lead.phone or '—' }}</td>
+        <td class="text-xs"><span class="badge badge-blue">{{ lead.categories or '—' }}</span></td>
+        <td class="font-mono text-xs">
+          {% if lead.max_user_id %}
+          <span class="badge badge-green">{{ lead.max_user_id }}</span>
+          {% else %}
+          <span class="text-[color:var(--text-muted)]">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="badge {{ 'badge-blue' if lead.status.value == 'new' else 'badge-green' if lead.status.value == 'contacted' else 'badge-yellow' if lead.status.value == 'in_progress' else 'badge-green' if lead.status.value == 'won' else 'badge-gray' }}">{{ lead.status.value }}</span>
+        </td>
+        <td class="text-right">
+          <div class="flex items-center justify-end gap-1" x-data="{open:false}">
+            <button @click="open=!open" class="text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)] p-1 rounded transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+            </button>
+            <div x-show="open" @click.away="open=false" x-cloak class="absolute right-0 mt-24 w-48 bg-[color:var(--bg-card)] border border-[var(--border)] rounded-lg shadow-xl z-10 py-1">
+              <form method="post" action="/app/leads/{{ lead.id }}/status" class="px-2 py-1">
+                <select name="status" onchange="this.form.submit()" class="form-input text-xs py-1">
+                  {% for s in statuses %}<option value="{{ s }}" {% if s == lead.status.value %}selected{% endif %}>{{ s }}</option>{% endfor %}
+                </select>
+              </form>
+              <form method="post" action="/app/leads/{{ lead.id }}/set-max-id" class="px-2 py-1 flex gap-1">
+                <input name="max_user_id" type="number" placeholder="MAX ID" class="form-input text-xs py-1 w-24"/>
+                <button class="text-xs text-brand-400 hover:text-[color:var(--text-primary)]">OK</button>
+              </form>
+              <form method="post" action="/app/leads/{{ lead.id }}/delete" class="px-2 py-1" onsubmit="return confirm('Удалить лида?')">
+                <button class="text-xs text-red-400 hover:text-red-300 w-full text-left">Удалить</button>
+              </form>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if pages > 1 %}
+<div class="flex items-center justify-center gap-2 mt-6">
+  {% if page > 1 %}
+  <a href="?page={{ page-1 }}&status={{ status_filter }}&city={{ city_filter }}&search={{ search }}" class="btn-ghost text-xs py-1 px-3">&larr;</a>
+  {% endif %}
+  <span class="text-sm text-[color:var(--text-muted)]">{{ page }} / {{ pages }}</span>
+  {% if page < pages %}
+  <a href="?page={{ page+1 }}&status={{ status_filter }}&city={{ city_filter }}&search={{ search }}" class="btn-ghost text-xs py-1 px-3">&rarr;</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<!-- Empty state -->
+<div class="card">
+  <div class="empty-state py-16">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-12 h-12 mx-auto mb-4 text-[color:var(--text-muted)]"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <p class="text-lg text-[color:var(--text-secondary)] font-medium mb-2">Лиды не найдены</p>
+    <p class="text-sm text-[color:var(--text-muted)] mb-6">Запустите сбор из 2GIS или измените фильтры</p>
+    <a href="/scraper/" class="btn-primary">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      Собрать лиды
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

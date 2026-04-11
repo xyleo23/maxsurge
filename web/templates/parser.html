@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %} — Сбор участников{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Сбор участников MAX</h1>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Спарсено юзеров</div><div class="text-2xl font-bold text-indigo-400">{{ parsed_total }}</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Чатов в каталоге</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ chats_in_catalog }}</div></div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Вступление в чаты -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Вступление в чаты</h2>
+    <form method="post" action="/app/parser/join">
+      <label class="text-gray-400 text-xs mb-1 block">Ссылки (по одной на строку)</label>
+      <textarea name="links" rows="5" class="form-input mb-3 font-mono text-xs" placeholder="https://max.ru/join/XXXX&#10;https://max.ru/chatname"></textarea>
+      <label class="text-gray-400 text-xs mb-1 block">Аккаунт (телефон, пусто = первый активный)</label>
+      <select name="phone" class="form-input mb-3">
+        <option value="">Авто</option>
+        {% for a in accounts %}<option value="{{ a.phone }}">{{ a.phone }} ({{ a.profile_name or "—" }})</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn-primary w-full">Вступить в чаты</button>
+    </form>
+  </div>
+  <!-- Сбор участников -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Сбор участников чата</h2>
+    <form method="post" action="/app/parser/parse">
+      <label class="text-gray-400 text-xs mb-1 block">Chat ID (числовой)</label>
+      <input name="chat_id" type="number" class="form-input mb-3" placeholder="12345678"/>
+      <label class="text-gray-400 text-xs mb-1 block">Название (для отображения)</label>
+      <input name="chat_name" class="form-input mb-3" placeholder="Мой чат"/>
+      <select name="phone" class="form-input mb-3">
+        <option value="">Авто</option>
+        {% for a in accounts %}<option value="{{ a.phone }}">{{ a.phone }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn-primary w-full">Спарсить участников</button>
+    </form>
+  </div>
+</div>
+<!-- Лог -->
+<div class="mt-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5" x-data="pm()" x-init="init()">
+  <div class="flex justify-between items-center mb-3">
+    <h2 class="font-semibold text-[color:var(--text-primary)]">Лог</h2>
+    <form method="post" action="/app/parser/stop"><button class="btn-ghost text-xs">Стоп</button></form>
+  </div>
+  <div class="bg-[var(--log-bg)] rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs">
+    <template x-for="l in log"><div :class="l.startsWith('[OK]')?'text-green-400':l.startsWith('[FAIL]')?'text-red-400':l.startsWith('[PARSE]')?'text-indigo-400':'text-gray-300'" x-text="l"></div></template>
+    {% for l in status.log %}<div class="text-gray-300">{{ l }}</div>{% endfor %}
+  </div>
+</div>
+<script>function pm(){return{log:[],running:{{ 'true' if status.running else 'false' }},init(){if(this.running)this.poll()},async poll(){const r=await fetch('/app/parser/status');const d=await r.json();this.log=d.log;this.running=d.running;if(this.running)setTimeout(()=>this.poll(),2000)}}}</script>
+{% endblock %}

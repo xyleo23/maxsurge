@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %} — Админ-панель{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Админ-панель</h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Управление сервисом MaxSurge</p>
+  </div>
+  <div class="flex gap-2">
+    <a href="/app/admin/users" class="btn-ghost">Пользователи</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="stat-card">
+    <div class="flex items-center justify-between mb-2">
+      <span style="color:var(--text-muted)" class="text-xs font-medium uppercase">Пользователей</span>
+      <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center"><svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+    </div>
+    <div class="text-2xl font-bold" style="color:var(--text-primary)">{{ users_total }}</div>
+    <div class="text-xs mt-1" style="color:var(--text-muted)">Сегодня: {{ users_today }} | Активных: {{ users_active }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">MAX аккаунтов</div>
+    <div class="text-2xl font-bold text-green-400 mt-2">{{ accounts_active }}</div>
+    <div class="text-xs mt-1" style="color:var(--text-muted)">Всего: {{ accounts_total }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Отправлено</div>
+    <div class="text-2xl font-bold text-blue-400 mt-2">{{ sent_total }}</div>
+    <div class="text-xs mt-1" style="color:var(--text-muted)">Сегодня: {{ sent_today }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Задачи</div>
+    <div class="text-2xl font-bold" style="color:var(--text-primary)">{{ tasks_total }}</div>
+    <div class="text-xs mt-1" style="color:var(--text-muted)">Работает: {{ tasks_running }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Лидов</div>
+    <div class="text-2xl font-bold text-amber-400 mt-2">{{ leads_total }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Спарсено юзеров</div>
+    <div class="text-2xl font-bold text-purple-400 mt-2">{{ parsed_total }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Файлов / Чатов</div>
+    <div class="text-2xl font-bold" style="color:var(--text-primary)">{{ files_total }} / {{ chats_total }}</div>
+  </div>
+</div>
+
+<!-- Revenue summary -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase mb-1" style="color:var(--text-muted)">Доход всего</div>
+    <div class="text-2xl font-bold text-green-400">{{ "%.0f"|format(total_revenue) }} ₽</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase mb-1" style="color:var(--text-muted)">За месяц</div>
+    <div class="text-2xl font-bold text-indigo-400">{{ "%.0f"|format(month_revenue) }} ₽</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-xs font-medium uppercase mb-1" style="color:var(--text-muted)">Распределение планов</div>
+    <div class="flex flex-wrap gap-1 mt-2">
+      {% for plan, count in plans_distribution.items() %}
+      <span class="badge {{ 'badge-green' if plan == 'pro' or plan == 'lifetime' else 'badge-blue' if plan == 'basic' else 'badge-yellow' if plan == 'trial' else 'badge-gray' }}">{{ plan }}: {{ count }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <!-- Signups -->
+  <div class="card">
+    <div class="card-header">Регистрации за 30 дней</div>
+    <div class="flex items-end gap-1 h-40">
+      {% set max_s = chart_signups|max if chart_signups else 1 %}
+      {% for value in chart_signups %}
+      <div class="flex-1 bg-indigo-500 rounded-t hover:bg-indigo-400 transition-all relative group"
+           style="height: {{ (value / max_s * 100)|round|int if max_s > 0 else 0 }}%; min-height: 2px">
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style="color:var(--text-primary)">{{ chart_dates[loop.index0] }}: {{ value }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="flex justify-between mt-2 text-xs" style="color:var(--text-muted)">
+      <span>{{ chart_dates[0] }}</span>
+      <span>{{ chart_dates[-1] }}</span>
+    </div>
+  </div>
+
+  <!-- Payments revenue -->
+  <div class="card">
+    <div class="card-header">Доход за 30 дней (₽)</div>
+    <div class="flex items-end gap-1 h-40">
+      {% set max_p = chart_payments_sum|max if chart_payments_sum else 1 %}
+      {% for value in chart_payments_sum %}
+      <div class="flex-1 bg-green-500 rounded-t hover:bg-green-400 transition-all relative group"
+           style="height: {{ (value / max_p * 100)|round|int if max_p > 0 else 0 }}%; min-height: 2px">
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style="color:var(--text-primary)">{{ chart_dates[loop.index0] }}: {{ "%.0f"|format(value) }} ₽</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="flex justify-between mt-2 text-xs" style="color:var(--text-muted)">
+      <span>{{ chart_dates[0] }}</span>
+      <span>{{ chart_dates[-1] }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Actions + Recent users -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="card">
+    <div class="card-header">Системные действия</div>
+    <div class="space-y-3">
+      <form method="post" action="/app/admin/reset-counters" onsubmit="return confirm('Сбросить дневные счётчики всех аккаунтов?')">
+        <button class="btn-ghost w-full justify-start">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          Сбросить дневные счётчики аккаунтов
+        </button>
+      </form>
+      <form method="post" action="/app/admin/cleanup-logs" onsubmit="return confirm('Удалить логи старше 30 дней?')">
+        <button class="btn-ghost w-full justify-start">
+          <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          Очистить логи старше 30 дней
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">Последние регистрации</div>
+    {% if recent_users %}
+    <div class="space-y-2">
+      {% for u in recent_users %}
+      <div class="flex items-center justify-between p-2 rounded-lg" style="background:var(--bg-card-alt)">
+        <div>
+          <div class="text-sm font-medium" style="color:var(--text-primary)">{{ u.name or u.email }}</div>
+          <div class="text-xs" style="color:var(--text-muted)">{{ u.email }} | {{ u.created_at.strftime('%d.%m %H:%M') }}</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="badge {{ 'badge-green' if u.plan.value == 'pro' else 'badge-blue' if u.plan.value == 'basic' else 'badge-yellow' if u.plan.value == 'trial' else 'badge-gray' }}">{{ u.plan.value }}</span>
+          {% if u.is_superadmin %}<span class="badge badge-red">admin</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm" style="color:var(--text-muted)">Пользователей пока нет</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

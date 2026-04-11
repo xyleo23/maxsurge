@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %} — Файлы{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Мои файлы <span style="color:var(--text-muted)" class="text-lg font-normal">({{ total_files }})</span></h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Хранилище txt-файлов: ID, телефоны, ссылки. Доступны во всех задачах.</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- Upload -->
+  <div class="card">
+    <div class="card-header">Загрузить файл</div>
+    <form method="post" action="/app/files/upload" enctype="multipart/form-data">
+      <label class="block w-full cursor-pointer mb-3">
+        <div class="border-2 border-dashed rounded-lg p-6 text-center transition-colors" style="border-color:var(--border)" id="drop-zone">
+          <svg class="w-8 h-8 mx-auto mb-2" style="color:var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+          <p class="text-sm" style="color:var(--text-secondary)">Перетащите .txt файл или нажмите</p>
+          <p class="text-xs mt-1" style="color:var(--text-muted)">ID, телефоны или ссылки — по одному на строку</p>
+        </div>
+        <input type="file" name="file" accept=".txt,.csv" class="hidden" required/>
+      </label>
+      <input name="name" placeholder="Название (опционально)" class="form-input mb-2"/>
+      <select name="folder" class="form-input mb-3">
+        <option value="default">Главный список</option>
+        {% for f in folders %}<option value="{{ f }}">{{ f }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn-primary w-full">Загрузить</button>
+    </form>
+
+    <div class="mt-4 pt-4" style="border-top:1px solid var(--border)">
+      <div class="card-header">Или вставить текст</div>
+      <form method="post" action="/app/files/create">
+        <input name="name" placeholder="Название" class="form-input mb-2" required/>
+        <textarea name="content" rows="4" class="form-input mb-2 font-mono text-xs" placeholder="123456789&#10;987654321&#10;+79001234567"></textarea>
+        <input name="folder" placeholder="Папка" value="default" class="form-input mb-2"/>
+        <button type="submit" class="btn-ghost w-full">Создать файл</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- File list -->
+  <div class="lg:col-span-2">
+    <form method="get" class="flex gap-3 mb-4">
+      <input name="search" value="{{ search }}" placeholder="Поиск по имени..." class="form-input w-48"/>
+      <select name="folder" class="form-input w-40">
+        <option value="">Все папки</option>
+        {% for f in folders %}<option value="{{ f }}" {% if f == folder_filter %}selected{% endif %}>{{ f }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn-primary">Найти</button>
+    </form>
+
+    {% if files %}
+    <div class="card p-0 overflow-hidden">
+      <table>
+        <thead><tr><th>Название</th><th>Тип</th><th>Строк</th><th>Использовано</th><th>Папка</th><th>Дата</th><th></th></tr></thead>
+        <tbody>
+          {% for f in files %}
+          <tr>
+            <td class="font-medium" style="color:var(--text-primary)">{{ f.name }}</td>
+            <td><span class="badge {{ 'badge-blue' if f.file_type.value == 'ids' else 'badge-green' if f.file_type.value == 'phones' else 'badge-yellow' if f.file_type.value == 'links' else 'badge-gray' }}">{{ f.file_type.value }}</span></td>
+            <td>{{ f.lines_total }}</td>
+            <td>{{ f.lines_used }}</td>
+            <td class="text-xs" style="color:var(--text-muted)">{{ f.folder }}</td>
+            <td class="text-xs" style="color:var(--text-muted)">{{ f.created_at.strftime('%d.%m %H:%M') }}</td>
+            <td class="text-right">
+              <div class="flex gap-1 justify-end">
+                <button onclick="viewFile({{ f.id }})" class="text-xs text-brand-400 hover:text-brand-300">Просмотр</button>
+                <form method="post" action="/app/files/{{ f.id }}/delete" onsubmit="return confirm('Удалить?')"><button class="text-xs text-red-400 ml-2">x</button></form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="empty-state py-12">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-12 h-12 mx-auto mb-4" style="color:var(--text-muted)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+        <p class="text-sm" style="color:var(--text-secondary)">Нет загруженных файлов</p>
+        <p class="text-xs mt-1" style="color:var(--text-muted)">Загрузите txt-файл с ID или телефонами</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Preview modal -->
+<div id="file-modal" class="fixed inset-0 z-50 hidden items-center justify-center" style="background:rgba(0,0,0,0.6)">
+  <div class="card w-full max-w-2xl max-h-[80vh] overflow-auto mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="font-semibold" style="color:var(--text-primary)" id="modal-title">Файл</h3>
+      <button onclick="closeModal()" style="color:var(--text-muted)" class="hover:text-red-400">&times;</button>
+    </div>
+    <div class="flex gap-4 mb-3 text-sm">
+      <span id="modal-type" class="badge badge-blue"></span>
+      <span style="color:var(--text-muted)" id="modal-lines"></span>
+    </div>
+    <pre id="modal-content" class="log-box h-64 overflow-auto"></pre>
+  </div>
+</div>
+
+<script>
+async function viewFile(id){
+  const r=await fetch('/files/'+id);
+  const d=await r.json();
+  document.getElementById('modal-title').textContent=d.name;
+  document.getElementById('modal-type').textContent=d.file_type;
+  document.getElementById('modal-lines').textContent=d.lines_total+' строк (использовано: '+d.lines_used+')';
+  document.getElementById('modal-content').textContent=d.preview.join('\n');
+  const m=document.getElementById('file-modal');
+  m.classList.remove('hidden');m.classList.add('flex');
+}
+function closeModal(){
+  const m=document.getElementById('file-modal');
+  m.classList.add('hidden');m.classList.remove('flex');
+}
+</script>
+{% endblock %}

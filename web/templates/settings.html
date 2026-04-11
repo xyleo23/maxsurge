@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %} — Настройки{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Настройки</h1>
+  <p style="color:var(--text-muted)" class="text-sm mt-0.5">Профиль, пароль, AI интеграция</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Профиль -->
+  <div class="card">
+    <div class="card-header">Профиль</div>
+    <form method="post" action="/app/settings/profile">
+      <label class="text-xs mb-1 block" style="color:var(--text-muted)">Email</label>
+      <input value="{{ user.email }}" disabled class="form-input mb-3" style="opacity:0.6"/>
+
+      <label class="text-xs mb-1 block" style="color:var(--text-muted)">Имя</label>
+      <input name="name" value="{{ user.name or '' }}" placeholder="Ваше имя" class="form-input mb-3"/>
+
+      <label class="text-xs mb-1 block" style="color:var(--text-muted)">Тариф</label>
+      <div class="mb-4">
+        <span class="badge {{ 'badge-green' if user.plan.value == 'pro' else 'badge-blue' if user.plan.value == 'basic' else 'badge-yellow' }}">{{ user.plan.value }}</span>
+      </div>
+
+      <button type="submit" class="btn-primary">Сохранить профиль</button>
+    </form>
+  </div>
+
+  <!-- Пароль -->
+  <div class="card">
+    <div class="card-header">Смена пароля</div>
+    <form method="post" action="/app/settings/password">
+      <label class="text-xs mb-1 block" style="color:var(--text-muted)">Текущий пароль</label>
+      <input name="current_password" type="password" required class="form-input mb-3"/>
+
+      <label class="text-xs mb-1 block" style="color:var(--text-muted)">Новый пароль (минимум 6 символов)</label>
+      <input name="new_password" type="password" required minlength="6" class="form-input mb-3"/>
+
+      <button type="submit" class="btn-primary">Изменить пароль</button>
+    </form>
+  </div>
+
+  {% if not is_admin and limits %}
+  <!-- Plan Usage -->
+  <div class="card lg:col-span-2">
+    <div class="card-header flex items-center gap-2">
+      <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Использование тарифа <span class="badge {{ badge-green if user.plan.value == pro else badge-blue if user.plan.value == basic else badge-yellow }} ml-2">{{ user.plan.value }}</span>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div>
+        <div class="text-xs mb-1" style="color:var(--text-muted)">MAX аккаунты</div>
+        <div class="flex items-baseline gap-1 mb-2">
+          <span class="text-xl font-bold" style="color:var(--text-primary)">{{ usage.accounts }}</span>
+          <span class="text-xs" style="color:var(--text-muted)">/ {{ limits.max_accounts }}</span>
+        </div>
+        <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--bg-card-alt)">
+          <div class="h-full bg-indigo-500 rounded-full transition-all" style="width: {{ ((usage.accounts / limits.max_accounts * 100)|round|int if limits.max_accounts > 0 else 0) }}%"></div>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs mb-1" style="color:var(--text-muted)">Лиды</div>
+        <div class="flex items-baseline gap-1 mb-2">
+          <span class="text-xl font-bold" style="color:var(--text-primary)">{{ usage.leads }}</span>
+          <span class="text-xs" style="color:var(--text-muted)">/ {{ limits.max_leads }}</span>
+        </div>
+        <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--bg-card-alt)">
+          <div class="h-full bg-green-500 rounded-full transition-all" style="width: {{ ((usage.leads / limits.max_leads * 100)|round|int if limits.max_leads > 0 else 0) }}%"></div>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs mb-1" style="color:var(--text-muted)">Задачи</div>
+        <div class="flex items-baseline gap-1 mb-2">
+          <span class="text-xl font-bold" style="color:var(--text-primary)">{{ usage.tasks }}</span>
+          <span class="text-xs" style="color:var(--text-muted)">/ {{ limits.max_tasks }}</span>
+        </div>
+        <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--bg-card-alt)">
+          <div class="h-full bg-blue-500 rounded-full transition-all" style="width: {{ ((usage.tasks / limits.max_tasks * 100)|round|int if limits.max_tasks > 0 else 0) }}%"></div>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs mb-1" style="color:var(--text-muted)">Шаблоны</div>
+        <div class="flex items-baseline gap-1 mb-2">
+          <span class="text-xl font-bold" style="color:var(--text-primary)">{{ usage.templates }}</span>
+          <span class="text-xs" style="color:var(--text-muted)">/ {{ limits.max_templates }}</span>
+        </div>
+        <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--bg-card-alt)">
+          <div class="h-full bg-amber-500 rounded-full transition-all" style="width: {{ ((usage.templates / limits.max_templates * 100)|round|int if limits.max_templates > 0 else 0) }}%"></div>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs mb-1" style="color:var(--text-muted)">Файлы</div>
+        <div class="flex items-baseline gap-1 mb-2">
+          <span class="text-xl font-bold" style="color:var(--text-primary)">{{ usage.files }}</span>
+          <span class="text-xs" style="color:var(--text-muted)">/ {{ limits.max_files }}</span>
+        </div>
+        <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--bg-card-alt)">
+          <div class="h-full bg-purple-500 rounded-full transition-all" style="width: {{ ((usage.files / limits.max_files * 100)|round|int if limits.max_files > 0 else 0) }}%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mt-4 pt-4 text-xs" style="border-top:1px solid var(--border);color:var(--text-muted)">
+      <div class="flex flex-wrap gap-3">
+        <span>&#9989; Сбор</span>
+        {% if limits.ai_enabled %}<span>&#9989; AI</span>{% else %}<span>&#10060; AI</span>{% endif %}
+        {% if limits.forwarder_enabled %}<span>&#9989; TG&rarr;MAX</span>{% else %}<span>&#10060; TG&rarr;MAX (Basic+)</span>{% endif %}
+        <span>До {{ limits.broadcasts_per_day }} отправок в день</span>
+      </div>
+    </div>
+  </div>
+  {% elif is_admin %}
+  <div class="card lg:col-span-2">
+    <div class="card-header flex items-center gap-2">
+      <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      Режим суперадмина
+    </div>
+    <p class="text-sm" style="color:var(--text-muted)">Вы — суперадмин. Нет лимитов, доступ ко всем данным всех пользователей.</p>
+  </div>
+  {% endif %}
+
+  <!-- AI Settings -->
+  <div class="card lg:col-span-2">
+    <div class="card-header flex items-center gap-2">
+      <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+      </svg>
+      AI интеграция (для AI автоответчика)
+    </div>
+    <p class="text-xs mb-4" style="color:var(--text-muted)">
+      Подключите свой API-ключ для использования AI чат-бота. Поддерживается любой OpenAI-совместимый API.
+      Если не указан — будет использован общий ключ сервиса (если настроен).
+    </p>
+
+    <form method="post" action="/app/settings/ai">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label class="text-xs mb-1 block" style="color:var(--text-muted)">API URL</label>
+          <input name="ai_api_url" value="{{ user.ai_api_url or '' }}" placeholder="https://api.openai.com/v1" class="form-input"/>
+        </div>
+        <div>
+          <label class="text-xs mb-1 block" style="color:var(--text-muted)">Модель</label>
+          <input name="ai_model" value="{{ user.ai_model or '' }}" placeholder="gpt-4o-mini" class="form-input"/>
+        </div>
+      </div>
+
+      <label class="text-xs mb-1 block" style="color:var(--text-muted)">
+        API ключ
+        {% if user.ai_api_key %}<span class="text-green-400 ml-1">&#9679; сохранён</span>{% endif %}
+      </label>
+      <input name="ai_api_key" type="password" value="{% if user.ai_api_key %}********{% endif %}" placeholder="sk-..." class="form-input mb-4"/>
+
+      <button type="submit" class="btn-primary">Сохранить настройки AI</button>
+    </form>
+
+    <div class="mt-6 pt-6" style="border-top:1px solid var(--border)">
+      <h3 class="font-semibold mb-3" style="color:var(--text-primary)">Популярные провайдеры</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+        <div class="p-3 rounded-lg" style="background:var(--bg-card-alt)">
+          <div class="font-medium mb-1" style="color:var(--text-primary)">OpenAI</div>
+          <div style="color:var(--text-muted)">URL: <code>https://api.openai.com/v1</code></div>
+          <div style="color:var(--text-muted)">Модель: <code>gpt-4o-mini</code></div>
+          <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" class="text-indigo-400 hover:text-indigo-300 mt-2 inline-block">Получить ключ →</a>
+        </div>
+        <div class="p-3 rounded-lg" style="background:var(--bg-card-alt)">
+          <div class="font-medium mb-1" style="color:var(--text-primary)">DeepSeek <span class="badge badge-green ml-1">дешевле</span></div>
+          <div style="color:var(--text-muted)">URL: <code>https://api.deepseek.com/v1</code></div>
+          <div style="color:var(--text-muted)">Модель: <code>deepseek-chat</code></div>
+          <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener" class="text-indigo-400 hover:text-indigo-300 mt-2 inline-block">Получить ключ →</a>
+        </div>
+        <div class="p-3 rounded-lg" style="background:var(--bg-card-alt)">
+          <div class="font-medium mb-1" style="color:var(--text-primary)">OpenRouter <span class="badge badge-blue ml-1">многие модели</span></div>
+          <div style="color:var(--text-muted)">URL: <code>https://openrouter.ai/api/v1</code></div>
+          <div style="color:var(--text-muted)">Модель: <code>anthropic/claude-3.5-sonnet</code></div>
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="text-indigo-400 hover:text-indigo-300 mt-2 inline-block">Получить ключ →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

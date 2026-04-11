@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %} — Аккаунты MAX{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Аккаунты MAX</h1>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+  <!-- Добавить аккаунт -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5" x-data="{ mode: 'sms', step: '{{ 'sms' if pending_phones else 'phone' }}', phone: '{{ pending_phones[0] if pending_phones else '' }}' }">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Добавить аккаунт</h2>
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-4 p-1 rounded-lg" style="background:var(--bg-input)">
+      <button @click="mode='sms'" :class="mode==='sms' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">Через SMS</button>
+      <button @click="mode='token'" :class="mode==='token' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">По токену</button>
+    </div>
+
+    <!-- SMS mode -->
+    <div x-show="mode === 'sms'">
+      <!-- Шаг 1: телефон -->
+      <div x-show="step === 'phone'">
+        <form method="post" action="/app/accounts/request-sms">
+          <label class="block text-gray-400 text-xs mb-1">Номер телефона</label>
+          <input name="phone" placeholder="+79001234567" class="form-input mb-3"/>
+          <button type="submit" class="btn-primary w-full">Получить SMS-код</button>
+        </form>
+        {% if pending_phones %}
+        <button @click="step='sms'" class="mt-3 text-indigo-400 hover:text-indigo-300 text-sm w-full text-center">
+          Уже жду код для {{ pending_phones[0] }} →
+        </button>
+        {% endif %}
+      </div>
+
+      <!-- Шаг 2: SMS-код -->
+      <div x-show="step === 'sms'" x-cloak>
+        <form method="post" action="/app/accounts/verify-sms">
+          <label class="block text-gray-400 text-xs mb-1">Телефон</label>
+          <input name="phone" x-model="phone" placeholder="+79001234567" class="form-input mb-3"/>
+          <label class="block text-gray-400 text-xs mb-1">Код из SMS</label>
+          <input name="code" placeholder="123456" class="form-input mb-3" autofocus/>
+          <button type="submit" class="btn-primary w-full">Подтвердить</button>
+        </form>
+        <button @click="step='phone'" class="mt-3 text-gray-500 hover:text-gray-300 text-sm w-full text-center">
+          ← Изменить номер
+        </button>
+      </div>
+    </div>
+
+    <!-- Token mode -->
+    <div x-show="mode === 'token'" x-cloak>
+      <form method="post" action="/app/accounts/add-by-token">
+        <label class="block text-gray-400 text-xs mb-1">Login Token</label>
+        <textarea name="login_token" rows="3" placeholder="Вставьте login_token сохранённой сессии MAX" class="form-input mb-3 font-mono text-xs" required></textarea>
+        <label class="block text-gray-400 text-xs mb-1">Телефон (опционально, если нет в профиле)</label>
+        <input name="phone" placeholder="+79001234567" class="form-input mb-3"/>
+        <button type="submit" class="btn-primary w-full">Импортировать аккаунт</button>
+      </form>
+      <p class="mt-3 text-xs text-gray-500">Подходит если у вас уже есть сохранённый токен авторизации MAX. SMS не требуется.</p>
+    </div>
+  </div>
+
+  <!-- Инструкция -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Как добавить аккаунт</h2>
+    <ol class="space-y-2 text-sm text-gray-400">
+      <li class="flex gap-3"><span class="text-indigo-400 font-bold">1.</span> Введите номер телефона от аккаунта MAX</li>
+      <li class="flex gap-3"><span class="text-indigo-400 font-bold">2.</span> MAX пришлёт SMS с кодом</li>
+      <li class="flex gap-3"><span class="text-indigo-400 font-bold">3.</span> Введите код — сессия сохранится в БД</li>
+      <li class="flex gap-3"><span class="text-indigo-400 font-bold">4.</span> Лимит сообщения: настраивается в config</li>
+    </ol>
+    <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
+      <p class="text-yellow-300 text-xs">⚠ Не превышайте 30-50 сообщений в день на аккаунт. Используйте несколько аккаунтов для масштабирования.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Список аккаунтов -->
+<div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden">
+  <div class="px-5 py-4 border-b border-[var(--border)]">
+    <h2 class="font-semibold text-[color:var(--text-primary)]">Аккаунты ({{ accounts|length }})</h2>
+  </div>
+  <table>
+    <thead><tr>
+      <th>Телефон</th><th>Имя</th><th>MAX ID</th><th>Статус</th><th>Отправлено сегодня</th><th>Всего</th><th>Последняя активность</th><th></th>
+    </tr></thead>
+    <tbody>
+      {% for acc in accounts %}
+      <tr>
+        <td class="font-mono text-sm">{{ acc.phone }}</td>
+        <td>{{ acc.profile_name or "—" }}</td>
+        <td class="font-mono text-xs text-gray-400">{{ acc.max_user_id or "—" }}</td>
+        <td>
+          <span class="px-2 py-0.5 rounded text-xs
+            {{ 'bg-green-900 text-green-300' if acc.status.value == 'active' else
+               'bg-red-900 text-red-300' if acc.status.value == 'blocked' else
+               'bg-yellow-900 text-yellow-300' }}">
+            {{ acc.status.value }}
+          </span>
+        </td>
+        <td>{{ acc.sent_today }}</td>
+        <td>{{ acc.sent_total }}</td>
+        <td class="text-gray-500 text-xs">{{ acc.last_used_at.strftime('%d.%m %H:%M') if acc.last_used_at else "—" }}</td>
+        <td class="flex gap-2">
+          <form method="post" action="/app/accounts/{{ acc.id }}/reset-counter">
+            <button class="text-xs text-gray-500 hover:text-gray-300">↺</button>
+          </form>
+          <form method="post" action="/app/accounts/{{ acc.id }}/delete" onsubmit="return confirm('Удалить аккаунт?')">
+            <button class="text-xs text-red-500 hover:text-red-400">✕</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" class="text-center text-gray-500 py-10">Аккаунты не добавлены</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

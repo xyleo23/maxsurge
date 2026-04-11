@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %} — Аналитика{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Аналитика</h1>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Лидов всего</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ leads_total }}</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Привязано к MAX</div><div class="text-2xl font-bold text-green-400">{{ leads_with_max }}</div><div class="text-xs text-gray-500 mt-1">{{ conversion_rate }}% конверсия</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Отправлено всего</div><div class="text-2xl font-bold text-indigo-400">{{ sent_total }}</div><div class="text-xs text-gray-500 mt-1">{{ success_rate }}% успех</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Сегодня / Неделя</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ sent_today }} / {{ sent_week }}</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Спарсено юзеров</div><div class="text-2xl font-bold text-blue-400">{{ parsed_users }}</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Чатов в каталоге</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ chats_catalog }}</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Ошибок отправки</div><div class="text-2xl font-bold text-red-400">{{ failed_total }}</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Действий прогрева</div><div class="text-2xl font-bold text-yellow-400">{{ warming_total }}</div></div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- График отправок -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Отправки за 30 дней</h2>
+    <div class="flex items-end gap-1 h-40">
+      {% set max_val = daily_sends|map(attribute=1)|max if daily_sends else 1 %}
+      {% for date, count in daily_sends %}
+      <div class="flex-1 bg-indigo-600 rounded-t hover:bg-indigo-500 transition-colors relative group"
+           style="height: {{ (count / (max_val if max_val > 0 else 1) * 100)|int }}%">
+        <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-gray-400 opacity-0 group-hover:opacity-100">{{ count }}</div>
+      </div>
+      {% endfor %}
+      {% if not daily_sends %}<div class="text-gray-500 text-sm w-full text-center py-16">Нет данных</div>{% endif %}
+    </div>
+  </div>
+  <!-- Статусы лидов -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Воронка лидов</h2>
+    <div class="space-y-3">
+      {% for status_name, count in status_stats.items() %}
+      {% set pct = (count / leads_total * 100)|round(1) if leads_total > 0 else 0 %}
+      <div>
+        <div class="flex justify-between text-sm mb-1"><span class="text-gray-300">{{ status_name }}</span><span class="text-gray-400">{{ count }} ({{ pct }}%)</span></div>
+        <div class="h-2 bg-[var(--bg-card-alt)] rounded-full"><div class="h-2 rounded-full {{ 'bg-blue-500' if status_name == 'new' else 'bg-green-500' if status_name == 'contacted' else 'bg-yellow-500' if status_name == 'in_progress' else 'bg-emerald-500' if status_name == 'won' else 'bg-gray-600' }}" style="width: {{ pct }}%"></div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

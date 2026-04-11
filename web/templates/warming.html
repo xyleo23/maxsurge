@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %} — Прогрев{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Прогрев аккаунтов</h1>
+<div class="stat-card mb-6 inline-block"><div class="text-gray-400 text-xs uppercase mb-1">Всего действий прогрева</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ total_actions }}</div></div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Настройки прогрева</h2>
+    <form method="post" action="/app/warming/start">
+      <label class="text-gray-400 text-xs mb-1 block">Аккаунты</label>
+      <div class="bg-[var(--bg-card-alt)] border border-[var(--border)] rounded-lg p-3 mb-3 space-y-2 max-h-40 overflow-y-auto">
+        {% for a in accounts %}<label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" name="account_ids" value="{{ a.id }}" checked class="rounded border-gray-600"/><span class="text-sm text-gray-300">{{ a.phone }} ({{ a.profile_name or "—" }})</span></label>{% endfor %}
+        {% if not accounts %}<p class="text-gray-500 text-sm">Нет аккаунтов</p>{% endif %}
+      </div>
+      <label class="text-gray-400 text-xs mb-1 block">Действий на аккаунт</label>
+      <input name="actions_per_account" type="number" value="10" min="1" max="50" class="form-input mb-3"/>
+      <label class="text-gray-400 text-xs mb-1 block">Каналы для вступления (через запятую, пусто = стандартные)</label>
+      <input name="channels" class="form-input mb-3" placeholder="novostiru, sportmax"/>
+      {% if status.running %}
+      <form method="post" action="/app/warming/stop"><button class="btn-danger w-full">Остановить</button></form>
+      {% else %}<button type="submit" class="btn-primary w-full">Запустить прогрев</button>{% endif %}
+    </form>
+  </div>
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5" x-data="wm()" x-init="init()">
+    <div class="flex justify-between mb-3"><h2 class="font-semibold text-[color:var(--text-primary)]">Лог</h2><span class="text-sm text-gray-400" x-text="done+'/'+total">{{ status.actions_done }}/{{ status.total_actions }}</span></div>
+    <div class="h-2 bg-[var(--bg-card-alt)] rounded-full mb-3"><div class="h-2 bg-indigo-600 rounded-full transition-all" :style="'width:'+(total>0?Math.round(done/total*100):0)+'%'"></div></div>
+    <div class="bg-[var(--log-bg)] rounded-lg p-3 h-52 overflow-y-auto font-mono text-xs">
+      <template x-for="l in log"><div :class="l.includes('ОШИБКА')?'text-red-400':l.includes('Вступил')?'text-blue-400':l.includes('Отправил')?'text-green-400':l.includes('Сменил')?'text-yellow-400':'text-gray-300'" x-text="l"></div></template>
+      {% for l in status.log %}<div class="text-gray-300">{{ l }}</div>{% endfor %}
+    </div>
+  </div>
+</div>
+<script>function wm(){return{done:{{status.actions_done}},total:{{status.total_actions}},log:[],running:{{'true' if status.running else 'false'}},init(){if(this.running)this.poll()},async poll(){const r=await fetch('/app/warming/status');const d=await r.json();this.done=d.actions_done;this.total=d.total_actions;this.log=d.log;this.running=d.running;if(this.running)setTimeout(()=>this.poll(),2000)}}}</script>
+{% endblock %}
