@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from config import get_settings
 from db.models import init_db
+import db.models_onboarding  # noqa: F401 — register tables
 import asyncio
 import traceback
 from max_client.account import account_manager
@@ -27,6 +28,7 @@ from web.routes.legal_r import router as legal_router
 from web.routes.blog_r import router as blog_router
 from web.routes.changelog_r import router as changelog_router
 from web.routes.help_r import router as help_router
+from web.routes.email_r import router as email_router
 
 # Panel routes
 from web.routes.dashboard import router as dashboard_router
@@ -69,6 +71,61 @@ logger.add("logs/maxsurge.log", rotation="10 MB", retention="7 days", level="DEB
 app = FastAPI(title="MaxSurge v3.0", docs_url="/api/docs")
 
 
+
+
+
+
+# ── CSRF (double-submit cookie) ──────────────────
+import secrets as _csrf_secrets
+
+CSRF_COOKIE = "csrf_token"
+CSRF_EXEMPT_PREFIXES = (
+    "/api/v1/",           # Bearer-auth API
+    "/billing/webhook",   # ЮKassa signed webhook
+    "/auth/login",        # first request has no cookie yet
+    "/auth/register",
+    "/auth/verify",
+    "/forgot-password",
+    "/reset-password",
+)
+
+
+class CSRFMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Issue cookie on any safe GET
+        method = request.method.upper()
+        incoming = request.cookies.get(CSRF_COOKIE)
+
+        if method in ("POST", "PUT", "PATCH", "DELETE"):
+            path = request.url.path
+            if not any(path.startswith(p) for p in CSRF_EXEMPT_PREFIXES):
+                token_header = request.headers.get("x-csrf-token", "")
+                # Try form field without consuming body — peek at form if content-type matches
+                token_form = ""
+                ctype = request.headers.get("content-type", "")
+                if "application/x-www-form-urlencoded" in ctype or "multipart/form-data" in ctype:
+                    try:
+                        form = await request.form()
+                        token_form = form.get("_csrf", "")
+                    except Exception:
+                        token_form = ""
+                provided = token_header or token_form
+                if not incoming or not provided or not _csrf_secrets.compare_digest(str(incoming), str(provided)):
+                    from fastapi.responses import JSONResponse
+                    return JSONResponse({"error": "csrf_invalid"}, status_code=403)
+
+        response = await call_next(request)
+        if not incoming:
+            new_token = _csrf_secrets.token_urlsafe(32)
+            response.set_cookie(
+                CSRF_COOKIE,
+                new_token,
+                httponly=False,  # JS should read and inject
+                samesite="lax",
+                secure=True,
+                max_age=7 * 86400,
+            )
+        return response
 
 
 # ── Security headers middleware ──────────────────
@@ -181,6 +238,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CSRFMiddleware)
 app.add_middleware(AuthMiddleware)
 app.add_middleware(IPBanMiddleware)
 app.add_middleware(ErrorMonitoringMiddleware)
@@ -192,6 +250,7 @@ app.include_router(blog_router)
 app.include_router(api_ingest_router)
 app.include_router(changelog_router)
 app.include_router(help_router)
+app.include_router(email_router)
 
 # ── Protected panel routes under /app ──────────────────
 for r in [dashboard_router, leads_router, accounts_router, templates_router,
@@ -235,10 +294,64 @@ async def startup():
                 await s.commit()
                 logger.info("Суперадмин обновлён: {}", settings.ADMIN_EMAIL)
     asyncio.create_task(run_periodic_check(3600))
+    from max_client.onboarding import run_onboarding_loop
+    asyncio.create_task(run_onboarding_loop())
     from max_client.health_digest import run_periodic_digest, check_health
     asyncio.create_task(run_periodic_digest())
     asyncio.create_task(check_health())
+
+    # systemd watchdog notifier
+    try:
+        import sdnotify, os
+        wd_usec = int(os.environ.get("WATCHDOG_USEC", "0"))
+        if wd_usec > 0:
+            _notifier = sdnotify.SystemdNotifier()
+            _notifier.notify("READY=1")
+            interval = wd_usec / 2 / 1_000_000  # seconds
+            async def _wd_loop():
+                while True:
+                    try:
+                        _notifier.notify("WATCHDOG=1")
+                    except Exception:
+                        pass
+                    await asyncio.sleep(interval)
+            asyncio.create_task(_wd_loop())
+            logger.info("[watchdog] started interval={}s", interval)
+    except Exception as e:
+        logger.warning("[watchdog] init failed: {}", e)
+
     logger.info("MaxSurge v3.0 на {}:{}", settings.WEB_HOST, settings.WEB_PORT)
+
+
+@app.on_event("shutdown")
+async def graceful_shutdown():
+    """Drain background workers on SIGTERM."""
+    logger.info("[shutdown] draining workers...")
+    import asyncio as _a
+    try:
+        from max_client.bot_runner import get_running_ids as _b, stop_bot as _sb
+        for bid in list(_b()):
+            await _sb(bid)
+    except Exception as e:
+        logger.warning("shutdown bots err: {}", e)
+    try:
+        from max_client.neurochat import get_running_ids as _n, stop_campaign as _sn
+        for cid in list(_n()):
+            await _sn(cid)
+    except Exception as e:
+        logger.warning("shutdown neuro err: {}", e)
+    try:
+        from max_client.guard import get_running_ids as _g, stop_guard as _sg
+        for gid in list(_g()):
+            await _sg(gid)
+    except Exception as e:
+        logger.warning("shutdown guard err: {}", e)
+    try:
+        from max_client.account import account_manager
+        await account_manager.disconnect_all()
+    except Exception:
+        pass
+    logger.info("[shutdown] done")
 
 
 @app.get("/health")

@@ -1,0 +1,25 @@
+/root/max_leadfinder/backups/backup.log
+/root/max_leadfinder/backups/verify.log
+/root/max_leadfinder/backups/ssl.log
+/root/max_leadfinder/backups/db_maint.log
+/root/max_leadfinder/backups/heartbeat.log
+{
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}
+
+/root/max_leadfinder/logs/*.log {
+    weekly
+    rotate 8
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+    size 10M
+}

@@ -37,6 +37,7 @@ COUNTS_BEFORE=$(sqlite3 "$DB_FILE" "
 DEL_SL=$(sqlite3 "$DB_FILE" "DELETE FROM send_logs WHERE sent_at < datetime('now', '-${RETENTION_DAYS} days'); SELECT changes();")
 DEL_GE=$(sqlite3 "$DB_FILE" "DELETE FROM guard_events WHERE created_at < datetime('now', '-${RETENTION_DAYS} days'); SELECT changes();")
 DEL_NC=$(sqlite3 "$DB_FILE" "DELETE FROM neuro_chat_messages WHERE created_at < datetime('now', '-${RETENTION_DAYS} days'); SELECT changes();")
+DEL_AL=$(sqlite3 "$DB_FILE" "DELETE FROM audit_log WHERE created_at < datetime('now', '-180 days'); SELECT changes();")
 
 # VACUUM + ANALYZE
 sqlite3 "$DB_FILE" "VACUUM;"
@@ -52,4 +53,4 @@ COUNTS_AFTER=$(sqlite3 "$DB_FILE" "
       (SELECT COUNT(*) FROM neuro_chat_messages)
 " 2>/dev/null || echo "?/?/?")
 
-log "OK delete send=$DEL_SL guard=$DEL_GE neuro=$DEL_NC | counts $COUNTS_BEFORE -> $COUNTS_AFTER | size $(($SIZE_BEFORE/1024/1024))MB -> $(($SIZE_AFTER/1024/1024))MB saved=${SAVED_MB}MB"
+log "OK delete send=$DEL_SL guard=$DEL_GE neuro=$DEL_NC audit=$DEL_AL | counts $COUNTS_BEFORE -> $COUNTS_AFTER | size $(($SIZE_BEFORE/1024/1024))MB -> $(($SIZE_AFTER/1024/1024))MB saved=${SAVED_MB}MB"

@@ -214,5 +214,32 @@
       }
     }
   </script>
+
+<script>
+(function(){
+  function getCookie(n){var m=document.cookie.match('(^|;)\s*'+n+'\s*=\s*([^;]+)');return m?m.pop():''}
+  function inject(){
+    var t=getCookie('csrf_token');
+    if(!t)return;
+    document.querySelectorAll('form[method=post],form[method=POST]').forEach(function(f){
+      if(f.querySelector('input[name=_csrf]'))return;
+      var i=document.createElement('input');i.type='hidden';i.name='_csrf';i.value=t;f.appendChild(i);
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inject);else inject();
+  // Re-inject when new forms appear (modals)
+  new MutationObserver(inject).observe(document.documentElement,{childList:true,subtree:true});
+  // Patch fetch to add X-CSRF-Token header
+  var _fetch=window.fetch;
+  window.fetch=function(u,o){
+    o=o||{};
+    var m=(o.method||'GET').toUpperCase();
+    if(['POST','PUT','PATCH','DELETE'].indexOf(m)>=0){
+      o.headers=Object.assign({},o.headers||{},{'X-CSRF-Token':getCookie('csrf_token')});
+    }
+    return _fetch(u,o);
+  };
+})();
+</script>
 </body>
 </html>
