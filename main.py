@@ -147,6 +147,9 @@ async def startup():
                 await s.commit()
                 logger.info("Суперадмин обновлён: {}", settings.ADMIN_EMAIL)
     asyncio.create_task(run_periodic_check(3600))
+    from max_client.health_digest import run_periodic_digest, check_health
+    asyncio.create_task(run_periodic_digest())
+    asyncio.create_task(check_health())
     logger.info("MaxSurge v3.0 на {}:{}", settings.WEB_HOST, settings.WEB_PORT)
 
 
