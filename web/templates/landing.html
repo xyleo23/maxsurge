@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MaxSurge — продвижение в мессенджере MAX в браузере</title>
-  <meta name="description" content="MaxSurge — веб-панель для рассылок, инвайтинга и парсинга 2GIS в мессенджере MAX. TG→MAX форвардер, AI автоответчик. 7 дней бесплатно, от 1 490₽/мес."/>
+  <meta name="description" content="MaxSurge — веб-панель для поиска B2B и B2C клиентов в мессенджере MAX. Сбор контактов из открытых карт, парсинг чатов, рассылки и AI автоответчик. 7 дней бесплатно, от 1 490₽/мес."/>
   <meta name="keywords" content="MaxSurge, мессенджер MAX, рассылка MAX, инвайтинг MAX, парсинг 2GIS, лиды MAX, TG MAX форвардер, CRM MAX"/>
   <meta name="author" content="MaxSurge"/>
   <meta name="robots" content="index, follow"/>
@@ -82,6 +82,10 @@
     .price-card:hover{transform:translateY(-4px)}
     .price-card.popular{border-color:#6366f1;box-shadow:0 0 30px rgba(99,102,241,0.2)}
     .unique-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a0e1a;font-weight:700;font-size:.68rem;padding:3px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;letter-spacing:.02em}
+    .tag-pill{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.02em;text-transform:uppercase}
+    .tag-b2b{background:linear-gradient(135deg,rgba(34,211,238,.18),rgba(59,130,246,.14));color:#22d3ee;border:1px solid rgba(34,211,238,.35)}
+    .tag-b2c{background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(16,185,129,.14));color:#4ade80;border:1px solid rgba(34,197,94,.35)}
+    .tag-hot{background:linear-gradient(135deg,rgba(244,63,94,.2),rgba(251,146,60,.16));color:#fb7185;border:1px solid rgba(244,63,94,.4)}
     .compare-table td,.compare-table th{padding:14px 16px;border-bottom:1px solid #1e293b}
     .compare-table tr:last-child td{border-bottom:none}
     .compare-our{background:linear-gradient(180deg,rgba(99,102,241,.08),rgba(168,85,247,.04));border-left:2px solid #6366f1;border-right:2px solid #6366f1}
@@ -137,7 +141,7 @@
         Мощное продвижение<br/>в мессенджере <span class="gradient-text">MAX</span>
       </h1>
       <p class="text-xl text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
-        Рассылки, инвайтинг, парсинг 2GIS и TG→MAX форвардер — всё в одной веб-панели. Без установки, из любого браузера.
+        Комплексный набор из 15+ инструментов для поиска <strong class="text-white">B2B и B2C клиентов</strong> в мессенджере MAX. Сбор контактов из открытых карт, парсинг тематических чатов, рассылки, инвайтинг, AI автоответчик — всё в одном браузере.
       </p>
       <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mb-8 text-sm">
         <span class="flex items-center gap-2 text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>от <b class="text-white">1 490 ₽/мес</b></span>
@@ -176,19 +180,19 @@
         <div class="text-xs md:text-sm text-gray-400 mt-2">в браузере —<br/>без установки</div>
       </div>
       <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
-        <div class="text-3xl md:text-4xl font-bold gradient-text">2GIS</div>
-        <div class="text-xs md:text-sm text-gray-400 mt-2">источник лидов —<br/>эксклюзивно</div>
+        <div class="text-3xl md:text-4xl font-bold gradient-text">B2B+B2C</div>
+        <div class="text-xs md:text-sm text-gray-400 mt-2">из карт и чатов<br/>в одной панели</div>
       </div>
     </div>
   </section>
 
-  <!-- Killer: 2GIS parser -->
+  <!-- 2GIS parser: B2B lead sourcing from open maps -->
   <section id="killer-2gis" class="py-20 px-6">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-14">
-        <span class="unique-badge mb-4">⭐ Киллер-фича MaxSurge</span>
-        <h2 class="text-3xl md:text-4xl font-bold mt-4 mb-4">Парсинг из 2GIS — ваш источник клиентов</h2>
-        <p class="text-gray-400 max-w-2xl mx-auto">Автоматический сбор базы организаций из 2GIS с привязкой телефонов к MAX ID. Просто выбираете город и нишу — на выходе готовая база под рассылку.</p>
+        <span class="tag-pill tag-b2b mb-4">🎯 B2B лиды из открытых карт</span>
+        <h2 class="text-3xl md:text-4xl font-bold mt-4 mb-4">B2B-базы из открытых карт за 20 минут</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Автоматический сбор публичных контактов организаций из 2GIS и других картографических сервисов с привязкой телефонов к MAX ID. Выбираете город и нишу — на выходе готовая база под рассылку.</p>
       </div>
       <div class="grid md:grid-cols-4 gap-4 mb-10">
         <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
@@ -214,9 +218,12 @@
       </div>
       <div class="text-center">
         <a href="/register" class="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3.5 rounded-xl font-semibold hover:shadow-xl hover:shadow-indigo-500/30 transition-all">
-          Попробовать 2GIS-парсинг бесплатно
+          Попробовать бесплатно
         </a>
       </div>
+      <p class="mt-10 max-w-3xl mx-auto text-xs text-gray-600 leading-relaxed text-center">
+        Данные собираются только из <strong class="text-gray-500">публичных источников</strong> — картографических сервисов, где организации сами размещают контактную информацию о себе как о бизнесе. Мы не собираем персональные данные физических лиц и не нарушаем 152-ФЗ. Используйте сервис в рамках закона о рекламе (38-ФЗ) и правил мессенджера MAX.
+      </p>
     </div>
   </section>
 
@@ -224,27 +231,27 @@
   <section id="features" class="py-20 px-6 bg-[#0c1120]">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold mb-4">Всё для продвижения в MAX</h2>
-        <p class="text-gray-400 max-w-2xl mx-auto">15+ инструментов в одной панели. Работайте с любого устройства.</p>
+        <h2 class="text-3xl font-bold mb-4">Комплексный набор для работы с MAX</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Полный цикл: от поиска клиентов до их обработки. B2B-лиды из карт, B2C из чатов, сегментация, рассылки, автоответы, CRM — всё в одной панели.</p>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <div class="feature-card bg-[#0f172a] border border-amber-500/30 rounded-2xl p-7 relative">
-          <span class="unique-badge absolute top-4 right-4">⭐ Киллер-фича</span>
+        <div class="feature-card bg-[#0f172a] border border-cyan-500/20 rounded-2xl p-7 relative">
+          <span class="tag-pill tag-b2b absolute top-4 right-4">🎯 B2B</span>
           <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center mb-5">
             <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           </div>
-          <h3 class="text-lg font-semibold mb-2">Сбор лидов из 2GIS</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Парсинг организаций с телефонами, адресами и сайтами по городу и нише. Автопривязка к MAX ID.</p>
+          <h3 class="text-lg font-semibold mb-2">Сбор лидов из открытых карт</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Публичные контакты организаций из 2GIS и других карт по городу и нише. Автопривязка к MAX ID.</p>
         </div>
 
-        <div class="feature-card bg-[#0f172a] border border-amber-500/30 rounded-2xl p-7 relative">
-          <span class="unique-badge absolute top-4 right-4">⭐ Киллер-фича</span>
+        <div class="feature-card bg-[#0f172a] border border-rose-500/25 rounded-2xl p-7 relative">
+          <span class="tag-pill tag-hot absolute top-4 right-4">🔥 Актуально</span>
           <div class="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center mb-5">
             <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
           </div>
           <h3 class="text-lg font-semibold mb-2">TG → MAX форвардер</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Переносите аудиторию из Telegram-каналов в MAX. Встроенный инструмент для миграции сообществ из TG в MAX.</p>
+          <p class="text-gray-400 text-sm leading-relaxed">Переносите аудиторию из Telegram-каналов в MAX. На волне массовой миграции сообществ в новый мессенджер — не теряйте клиентов.</p>
         </div>
 
         <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
@@ -263,12 +270,13 @@
           <p class="text-gray-400 text-sm leading-relaxed">Приглашение пользователей пачками. Пауза/продолжение. Автосмена аккаунтов при лимитах.</p>
         </div>
 
-        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+        <div class="feature-card bg-[#0f172a] border border-emerald-500/20 rounded-2xl p-7 relative">
+          <span class="tag-pill tag-b2c absolute top-4 right-4">👥 B2C</span>
           <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-5">
             <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2"/></svg>
           </div>
           <h3 class="text-lg font-semibold mb-2">Парсинг чатов MAX</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Вступление в чаты и сбор user_id участников. Каталог чатов MAX с категориями для быстрого поиска целевой аудитории.</p>
+          <p class="text-gray-400 text-sm leading-relaxed">Тематические чаты MAX → готовая B2C аудитория. Вступление в чаты, сбор user_id участников, каталог чатов с категориями по интересам.</p>
         </div>
 
         <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
@@ -432,7 +440,7 @@
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-14">
         <h2 class="text-3xl font-bold mb-4">Почему выбирают MaxSurge</h2>
-        <p class="text-gray-400 max-w-2xl mx-auto">Что вы получаете здесь и чего чаще всего не хватает в типичных решениях для MAX.</p>
+        <p class="text-gray-400 max-w-2xl mx-auto">Полный набор инструментов в одном сервисе — не точечное решение под одну задачу, а комбайн для всего цикла работы с MAX.</p>
       </div>
       <div class="overflow-x-auto">
         <table class="compare-table w-full text-sm min-w-[640px]">
