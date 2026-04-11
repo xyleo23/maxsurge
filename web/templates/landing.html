@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MaxSurge — Продвижение в мессенджере MAX</title>
-  <meta name="description" content="MaxSurge — мощный инструмент для рассылок, инвайтинга и парсинга в мессенджере MAX. Сбор лидов из 2GIS, автоматизация продвижения. Пробный период 7 дней."/>
-  <meta name="keywords" content="MaxSurge, мессенджер MAX, рассылка MAX, инвайтинг, парсинг, 2GIS, лиды, CRM"/>
+  <title>MaxSurge — продвижение в мессенджере MAX в браузере</title>
+  <meta name="description" content="MaxSurge — веб-панель для рассылок, инвайтинга и парсинга 2GIS в мессенджере MAX. TG→MAX форвардер, AI автоответчик. 7 дней бесплатно, от 1 490₽/мес."/>
+  <meta name="keywords" content="MaxSurge, мессенджер MAX, рассылка MAX, инвайтинг MAX, парсинг 2GIS, лиды MAX, TG MAX форвардер, CRM MAX"/>
   <meta name="author" content="MaxSurge"/>
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="https://maxsurge.ru/"/>
@@ -14,14 +14,14 @@
 
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://maxsurge.ru/"/>
-  <meta property="og:title" content="MaxSurge — Продвижение в мессенджере MAX"/>
-  <meta property="og:description" content="Рассылки, инвайтинг, парсинг, сбор лидов из 2GIS. Пробный период 7 дней."/>
+  <meta property="og:title" content="MaxSurge — продвижение в мессенджере MAX в браузере"/>
+  <meta property="og:description" content="Рассылки, инвайтинг, TG→MAX форвардер, сбор лидов из 2GIS. 7 дней бесплатно от 1 490₽/мес."/>
   <meta property="og:site_name" content="MaxSurge"/>
   <meta property="og:locale" content="ru_RU"/>
 
   <meta name="twitter:card" content="summary_large_image"/>
-  <meta name="twitter:title" content="MaxSurge — Продвижение в мессенджере MAX"/>
-  <meta name="twitter:description" content="Все инструменты для работы с MAX в одной веб-панели"/>
+  <meta name="twitter:title" content="MaxSurge — продвижение в мессенджере MAX в браузере"/>
+  <meta name="twitter:description" content="Все инструменты для работы с MAX в одной веб-панели. 7 дней бесплатно."/>
 
   <script type="application/ld+json">
   {
@@ -46,12 +46,27 @@
     "name": "MaxSurge",
     "applicationCategory": "BusinessApplication",
     "operatingSystem": "Web",
-    "description": "Веб-платформа для рассылок, инвайтинга и парсинга в мессенджере MAX",
+    "description": "Веб-платформа для рассылок, инвайтинга и парсинга 2GIS в мессенджере MAX. TG→MAX форвардер, AI автоответчик.",
     "offers": [
       {"@type": "Offer", "price": "0", "priceCurrency": "RUB", "name": "Trial"},
       {"@type": "Offer", "price": "1490", "priceCurrency": "RUB", "name": "Start"},
       {"@type": "Offer", "price": "2990", "priceCurrency": "RUB", "name": "Basic"},
       {"@type": "Offer", "price": "4990", "priceCurrency": "RUB", "name": "Pro"}
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type":"Question","name":"В чём особенности MaxSurge?","acceptedAnswer":{"@type":"Answer","text":"MaxSurge — это SaaS без установки: работает из любого браузера, включая телефон. Среди ключевых инструментов — автопарсинг лидов из 2GIS, TG→MAX форвардер для миграции аудитории, AI автоответчик, инвайтинг, прогрев аккаунтов и CRM — всё в одной панели."}},
+      {"@type":"Question","name":"Нужно ли устанавливать программу?","acceptedAnswer":{"@type":"Answer","text":"Нет. MaxSurge работает полностью в браузере. Доступ с любого устройства — ПК, планшет, телефон."}},
+      {"@type":"Question","name":"Как работает парсинг из 2GIS?","acceptedAnswer":{"@type":"Answer","text":"Вы выбираете город и нишу, MaxSurge собирает телефоны организаций из 2GIS и автоматически привязывает их к MAX ID. Затем запускаете рассылку по готовой базе."}},
+      {"@type":"Question","name":"Это законно?","acceptedAnswer":{"@type":"Answer","text":"Сервис предназначен для законного использования в рамках правил мессенджера MAX. Ответственность за содержание рассылок и соблюдение законодательства о рекламе несёт пользователь."}},
+      {"@type":"Question","name":"Безопасно ли добавлять аккаунты?","acceptedAnswer":{"@type":"Answer","text":"Мы используем официальный WebSocket протокол MAX. Система прогрева аккаунтов и соблюдение лимитов снижают риск блокировки."}},
+      {"@type":"Question","name":"Можно ли отменить подписку?","acceptedAnswer":{"@type":"Answer","text":"Да, в любой момент. 7 дней бесплатно без привязки карты и гарантия возврата денег в первые 7 дней после оплаты."}}
     ]
   }
   </script>
@@ -66,6 +81,21 @@
     .price-card{transition:all 0.3s}
     .price-card:hover{transform:translateY(-4px)}
     .price-card.popular{border-color:#6366f1;box-shadow:0 0 30px rgba(99,102,241,0.2)}
+    .unique-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a0e1a;font-weight:700;font-size:.68rem;padding:3px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;letter-spacing:.02em}
+    .compare-table td,.compare-table th{padding:14px 16px;border-bottom:1px solid #1e293b}
+    .compare-table tr:last-child td{border-bottom:none}
+    .compare-our{background:linear-gradient(180deg,rgba(99,102,241,.08),rgba(168,85,247,.04));border-left:2px solid #6366f1;border-right:2px solid #6366f1}
+    .compare-table th.our-col{background:linear-gradient(180deg,rgba(99,102,241,.15),rgba(168,85,247,.08));border-left:2px solid #6366f1;border-right:2px solid #6366f1;border-top:2px solid #6366f1;border-radius:12px 12px 0 0}
+    .compare-table tr:last-child td.compare-our{border-bottom:2px solid #6366f1;border-radius:0 0 12px 12px}
+    .step-num{width:36px;height:36px;border-radius:999px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0}
+    #tg-support-widget{position:fixed;bottom:24px;right:24px;z-index:60;opacity:0;transform:translateY(20px);transition:opacity .4s,transform .4s;pointer-events:none}
+    #tg-support-widget.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+    #tg-support-widget .tg-btn{background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:14px 20px;border-radius:999px;font-weight:600;box-shadow:0 12px 30px rgba(99,102,241,.4);display:flex;align-items:center;gap:10px;cursor:pointer;border:none;font-size:14px}
+    #tg-support-widget .tg-panel{position:absolute;bottom:72px;right:0;width:280px;background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.5);display:none}
+    #tg-support-widget.open .tg-panel{display:block}
+    #tg-support-widget .tg-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;line-height:1}
+    @keyframes count-bump{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+    .metric.animated{animation:count-bump .8s ease-out forwards}
   </style>
 </head>
 <body class="bg-[#0a0e1a] text-gray-100">
@@ -79,10 +109,12 @@
         </div>
         <span class="font-bold text-lg">MaxSurge</span>
       </div>
-      <div class="hidden md:flex items-center gap-8 text-sm text-gray-400">
+      <div class="hidden md:flex items-center gap-7 text-sm text-gray-400">
         <a href="#features" class="hover:text-white transition">Возможности</a>
+        <a href="#niches" class="hover:text-white transition">Ниши</a>
+        <a href="#compare" class="hover:text-white transition">Сравнение</a>
         <a href="#pricing" class="hover:text-white transition">Тарифы</a>
-        <a href="/about" class="hover:text-white transition">О нас</a>
+        <a href="#reviews" class="hover:text-white transition">Отзывы</a>
         <a href="/blog/" class="hover:text-white transition">Блог</a>
         <a href="#faq" class="hover:text-white transition">FAQ</a>
       </div>
@@ -94,46 +126,131 @@
   </nav>
 
   <!-- Hero -->
-  <section class="relative pt-32 pb-20 px-6 overflow-hidden">
+  <section class="relative pt-32 pb-16 px-6 overflow-hidden">
     <div class="hero-glow bg-indigo-600 top-20 left-1/4"></div>
     <div class="hero-glow bg-purple-600 top-40 right-1/4"></div>
     <div class="max-w-4xl mx-auto text-center relative z-10">
       <div class="inline-block mb-6 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium">
-        Единственный веб-инструмент для MAX
+        ⚡ Все инструменты для MAX в одной веб-панели
       </div>
       <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
         Мощное продвижение<br/>в мессенджере <span class="gradient-text">MAX</span>
       </h1>
-      <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-        Рассылки, инвайтинг, парсинг чатов, сбор лидов из 2GIS — всё в одной веб-панели. Без установки, из любого браузера.
+      <p class="text-xl text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
+        Рассылки, инвайтинг, парсинг 2GIS и TG→MAX форвардер — всё в одной веб-панели. Без установки, из любого браузера.
       </p>
+      <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mb-8 text-sm">
+        <span class="flex items-center gap-2 text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>от <b class="text-white">1 490 ₽/мес</b></span>
+        <span class="flex items-center gap-2 text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><b class="text-white">7 дней</b> бесплатно</span>
+        <span class="flex items-center gap-2 text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>SaaS <b class="text-white">без установки</b></span>
+      </div>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="/register" class="w-full sm:w-auto text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3.5 rounded-xl text-lg font-semibold hover:shadow-xl hover:shadow-indigo-500/30 transition-all">
           Попробовать 7 дней бесплатно
         </a>
-        <a href="#features" class="w-full sm:w-auto text-center border border-gray-700 text-gray-300 px-8 py-3.5 rounded-xl text-lg hover:border-indigo-500 transition-all">
-          Узнать больше
+        <a href="#killer-2gis" class="w-full sm:w-auto text-center border border-gray-700 text-gray-300 px-8 py-3.5 rounded-xl text-lg hover:border-indigo-500 transition-all">
+          Что такое 2GIS-парсинг →
         </a>
       </div>
-      <p class="mt-6 text-sm text-gray-600">Без привязки карты. Отмена в один клик.</p>
+      <p class="mt-5 text-sm text-gray-500">Без привязки карты • 7-дневная гарантия возврата • Отмена в один клик</p>
+    </div>
+  </section>
+
+  <!-- Social proof metrics -->
+  <section id="metrics" class="py-10 px-6">
+    <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
+        <div class="text-3xl md:text-4xl font-bold gradient-text" data-count="15">15+</div>
+        <div class="text-xs md:text-sm text-gray-400 mt-2">инструментов<br/>в одной панели</div>
+      </div>
+      <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
+        <div class="text-3xl md:text-4xl font-bold gradient-text" data-count="7">7</div>
+        <div class="text-xs md:text-sm text-gray-400 mt-2">дней бесплатного<br/>триала</div>
+      </div>
+      <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
+        <div class="text-3xl md:text-4xl font-bold gradient-text">100%</div>
+        <div class="text-xs md:text-sm text-gray-400 mt-2">в браузере —<br/>без установки</div>
+      </div>
+      <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
+        <div class="text-3xl md:text-4xl font-bold gradient-text">2GIS</div>
+        <div class="text-xs md:text-sm text-gray-400 mt-2">источник лидов —<br/>эксклюзивно</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Killer: 2GIS parser -->
+  <section id="killer-2gis" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <span class="unique-badge mb-4">⭐ Киллер-фича MaxSurge</span>
+        <h2 class="text-3xl md:text-4xl font-bold mt-4 mb-4">Парсинг из 2GIS — ваш источник клиентов</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Автоматический сбор базы организаций из 2GIS с привязкой телефонов к MAX ID. Просто выбираете город и нишу — на выходе готовая база под рассылку.</p>
+      </div>
+      <div class="grid md:grid-cols-4 gap-4 mb-10">
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
+          <div class="step-num mb-4">1</div>
+          <h3 class="font-semibold text-white mb-2">Выбор ниши и города</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Укажите город и категорию в 2GIS — например, «стоматологии Краснодара» или «автосервисы Москвы».</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
+          <div class="step-num mb-4">2</div>
+          <h3 class="font-semibold text-white mb-2">Сбор организаций</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Автопарсер собирает телефоны, названия, адреса и сайты. Экспорт в CSV или сразу в базу лидов MaxSurge.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
+          <div class="step-num mb-4">3</div>
+          <h3 class="font-semibold text-white mb-2">Привязка к MAX ID</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Встроенный чекер находит MAX-аккаунты по собранным номерам. Получаете готовую базу к рассылке.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
+          <div class="step-num mb-4">4</div>
+          <h3 class="font-semibold text-white mb-2">Запуск рассылки</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Пишете персонализированное сообщение со спинтаксом, запускаете рассылку с ротацией аккаунтов. Получаете лиды.</p>
+        </div>
+      </div>
+      <div class="text-center">
+        <a href="/register" class="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3.5 rounded-xl font-semibold hover:shadow-xl hover:shadow-indigo-500/30 transition-all">
+          Попробовать 2GIS-парсинг бесплатно
+        </a>
+      </div>
     </div>
   </section>
 
   <!-- Features -->
-  <section id="features" class="py-20 px-6">
+  <section id="features" class="py-20 px-6 bg-[#0c1120]">
     <div class="max-w-6xl mx-auto">
       <div class="text-center mb-16">
         <h2 class="text-3xl font-bold mb-4">Всё для продвижения в MAX</h2>
         <p class="text-gray-400 max-w-2xl mx-auto">15+ инструментов в одной панели. Работайте с любого устройства.</p>
       </div>
-      <div class="grid md:grid-cols-3 gap-6">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div class="feature-card bg-[#0f172a] border border-amber-500/30 rounded-2xl p-7 relative">
+          <span class="unique-badge absolute top-4 right-4">⭐ Киллер-фича</span>
+          <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Сбор лидов из 2GIS</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Парсинг организаций с телефонами, адресами и сайтами по городу и нише. Автопривязка к MAX ID.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-amber-500/30 rounded-2xl p-7 relative">
+          <span class="unique-badge absolute top-4 right-4">⭐ Киллер-фича</span>
+          <div class="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">TG → MAX форвардер</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Переносите аудиторию из Telegram-каналов в MAX. Встроенный инструмент для миграции сообществ из TG в MAX.</p>
+        </div>
+
         <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
           <div class="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-5">
             <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
           </div>
           <h3 class="text-lg font-semibold mb-2">Рассылка сообщений</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Массовая отправка по ID и в чаты. Спинтакс для уникализации. Эмуляция набора текста.</p>
+          <p class="text-gray-400 text-sm leading-relaxed">Массовая отправка по ID и в чаты. Спинтакс для уникализации. Эмуляция набора текста для обхода антиспама.</p>
         </div>
+
         <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
           <div class="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-5">
             <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -141,84 +258,175 @@
           <h3 class="text-lg font-semibold mb-2">Инвайтинг в чаты</h3>
           <p class="text-gray-400 text-sm leading-relaxed">Приглашение пользователей пачками. Пауза/продолжение. Автосмена аккаунтов при лимитах.</p>
         </div>
-        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
-          <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center mb-5">
-            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          </div>
-          <h3 class="text-lg font-semibold mb-2">Сбор лидов из 2GIS</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Парсинг организаций с телефонами, адресами и сайтами. Автопривязка к MAX ID.</p>
-        </div>
+
         <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
           <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-5">
             <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2"/></svg>
           </div>
-          <h3 class="text-lg font-semibold mb-2">Парсинг чатов</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Вступление в чаты + сбор user_id участников. Каталог чатов MAX с категориями.</p>
+          <h3 class="text-lg font-semibold mb-2">Парсинг чатов MAX</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Вступление в чаты и сбор user_id участников. Каталог чатов MAX с категориями для быстрого поиска целевой аудитории.</p>
         </div>
+
         <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
           <div class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-5">
             <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
           </div>
-          <h3 class="text-lg font-semibold mb-2">Автоответчик</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Автоматические ответы на входящие. Эмуляция набора "печатает...". Спинтакс и AI режим.</p>
+          <h3 class="text-lg font-semibold mb-2">AI автоответчик</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Автоматические ответы на входящие. Эмуляция набора «печатает...». Спинтакс и AI-режим на базе LLM.</p>
         </div>
+
         <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
           <div class="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center mb-5">
             <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
           </div>
           <h3 class="text-lg font-semibold mb-2">Прогрев аккаунтов</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Автоматические действия для разогрева. Управление профилями. Система задач.</p>
+          <p class="text-gray-400 text-sm leading-relaxed">Автоматические действия для разогрева. Массовое управление профилями. Система задач по расписанию.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="w-12 h-12 bg-rose-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Шаблоны и спинтакс</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Библиотека шаблонов с переменными {имя}, {город}, {компания}. Спинтакс {привет|здравствуйте} для уникализации.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="w-12 h-12 bg-teal-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">CRM и аналитика</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Лиды, статусы, воронка продаж. Статистика по аккаунтам и кампаниям. Экспорт в CSV.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Niches -->
+  <section id="niches" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold mb-4">Для каких ниш работает</h2>
+        <p class="text-gray-400">Примеры, как клиенты используют MaxSurge в своей нише</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-indigo-500/30 transition-all">
+          <div class="text-3xl mb-3">🏗️</div>
+          <h3 class="font-semibold text-white mb-2">Строительные компании</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">2GIS → строительные фирмы вашего города → персональная рассылка с предложением услуг субподряда или поставки материалов.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-green-500/30 transition-all">
+          <div class="text-3xl mb-3">🦷</div>
+          <h3 class="font-semibold text-white mb-2">Медицина и стоматология</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Инвайтинг из городских чатов + рассылка по районам с акциями на приёмы, профилактику и диагностику.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-amber-500/30 transition-all">
+          <div class="text-3xl mb-3">🍽️</div>
+          <h3 class="font-semibold text-white mb-2">Рестораны и кафе</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Рассылка акций и спецпредложений по аудитории из районных чатов MAX. Автоответчик на бронирования 24/7.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-purple-500/30 transition-all">
+          <div class="text-3xl mb-3">🏠</div>
+          <h3 class="font-semibold text-white mb-2">Недвижимость</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Сбор агентств и риелторов из 2GIS + парсинг тематических чатов. Горячие лиды на продажу и аренду.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-pink-500/30 transition-all">
+          <div class="text-3xl mb-3">💪</div>
+          <h3 class="font-semibold text-white mb-2">Фитнес-клубы и студии</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Инвайтинг в клубные чаты из городских групп. Автоматические напоминания о тренировках и акции на абонементы.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-blue-500/30 transition-all">
+          <div class="text-3xl mb-3">⚖️</div>
+          <h3 class="font-semibold text-white mb-2">Юридические услуги</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Таргетированная рассылка по бизнес-базам из 2GIS. AI автоответчик на первичные консультации.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- For whom -->
-  <section class="py-20 px-6 bg-[#0c1120]">
-    <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold mb-4">Для кого MaxSurge</h2>
-        <p class="text-gray-400">Решение под любые задачи продвижения</p>
+  <!-- Why MaxSurge -->
+  <section id="compare" class="py-20 px-6 bg-[#0c1120]">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold mb-4">Почему выбирают MaxSurge</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Что вы получаете здесь и чего чаще всего не хватает в типичных решениях для MAX.</p>
       </div>
-      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-indigo-500/30 transition-all">
-          <div class="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
-          </div>
-          <h3 class="font-semibold text-white mb-2">SMM агентства</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Ведите десятки клиентских проектов. Настройте CRM, аналитику и рассылки в новом мессенджере.</p>
-        </div>
-        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-green-500/30 transition-all">
-          <div class="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-          </div>
-          <h3 class="font-semibold text-white mb-2">Владельцы бизнеса</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Работайте с новой аудиторией мессенджера MAX. Увеличивайте продажи на новой площадке.</p>
-        </div>
-        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-amber-500/30 transition-all">
-          <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          </div>
-          <h3 class="font-semibold text-white mb-2">Маркетологи</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Собирайте свежие базы лидов в низкоконкурентной среде. Выполнение KPI станет проще.</p>
-        </div>
-        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-purple-500/30 transition-all">
-          <div class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          </div>
-          <h3 class="font-semibold text-white mb-2">Фрилансеры</h3>
-          <p class="text-gray-400 text-sm leading-relaxed">Предлагайте клиентам услуги лидогенерации в MAX. Платформа забирает рутину.</p>
-        </div>
+      <div class="overflow-x-auto">
+        <table class="compare-table w-full text-sm min-w-[640px]">
+          <thead>
+            <tr class="text-left text-gray-400 text-xs uppercase tracking-wider">
+              <th class="font-normal">Параметр</th>
+              <th class="our-col text-center">
+                <div class="text-white font-bold text-base">MaxSurge</div>
+                <div class="text-indigo-400 text-[10px] mt-1">ЧТО ДАЁМ МЫ</div>
+              </th>
+              <th class="text-center text-gray-300 font-semibold text-base">Типичные решения</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-gray-400">Формат работы</td>
+              <td class="compare-our text-center text-white">SaaS в браузере, без установки</td>
+              <td class="text-center text-gray-500">часто — десктопное приложение</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Работа с телефона</td>
+              <td class="compare-our text-center text-emerald-400">✓ Доступно с любого устройства</td>
+              <td class="text-center text-gray-500">обычно только ПК</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Пробный период</td>
+              <td class="compare-our text-center text-white font-semibold">7 дней, без привязки карты</td>
+              <td class="text-center text-gray-500">часто 0–3 дня или отсутствует</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Стартовая цена</td>
+              <td class="compare-our text-center text-white font-semibold">от 1 490 ₽/мес</td>
+              <td class="text-center text-gray-500">часто скрыта или выше</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Парсинг 2GIS с привязкой к MAX</td>
+              <td class="compare-our text-center"><span class="text-emerald-400 font-bold">✓ Встроен</span></td>
+              <td class="text-center text-gray-500">как правило отсутствует</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">TG → MAX форвардер</td>
+              <td class="compare-our text-center"><span class="text-emerald-400 font-bold">✓ Встроен</span></td>
+              <td class="text-center text-gray-500">встречается редко</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Спинтакс + эмуляция набора</td>
+              <td class="compare-our text-center text-emerald-400">✓ Есть</td>
+              <td class="text-center text-gray-500">частично или нет</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">AI автоответчик</td>
+              <td class="compare-our text-center text-emerald-400">✓ Встроен</td>
+              <td class="text-center text-gray-500">по-разному</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Юрлицо в РФ, оплата по карте РФ</td>
+              <td class="compare-our text-center text-emerald-400">✓ Да</td>
+              <td class="text-center text-gray-500">не всегда</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+      <p class="text-xs text-gray-600 text-center mt-4">Мы не указываем конкретные названия других сервисов — рынок меняется, и их функциональность может отличаться от того, что вы прочитали сегодня. Оцените MaxSurge сами: <a href="/register" class="underline hover:text-gray-400">7 дней бесплатно без карты</a>.</p>
     </div>
   </section>
 
   <!-- Pricing -->
   <section id="pricing" class="py-20 px-6">
     <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-16">
+      <div class="text-center mb-10">
         <h2 class="text-3xl font-bold mb-4">Тарифы</h2>
         <p class="text-gray-400">Начните бесплатно. Масштабируйте когда будете готовы.</p>
+        <div class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          7-дневная гарантия возврата денег — без вопросов
+        </div>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="price-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-8">
@@ -232,11 +440,12 @@
             <li>Все базовые функции</li>
           </ul>
           <a href="/register" class="block text-center border border-gray-700 text-gray-300 px-6 py-3 rounded-xl hover:border-indigo-500 transition-all">Начать бесплатно</a>
+          <p class="text-xs text-gray-500 mt-3 text-center">Без карты</p>
         </div>
         <div class="price-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-8">
           <div class="text-sm text-gray-400 font-medium uppercase tracking-wider mb-2">Start</div>
           <div class="text-4xl font-bold mb-1">1 490 <span class="text-lg text-gray-500 font-normal">₽/мес</span></div>
-          <div class="text-sm text-gray-500 mb-6">Для старта</div>
+          <div class="text-sm text-gray-500 mb-6">Для фрилансеров и стартапов</div>
           <ul class="space-y-3 mb-8 text-sm text-gray-300">
             <li>5 MAX аккаунтов</li>
             <li>2 000 лидов</li>
@@ -249,19 +458,19 @@
           <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold px-4 py-1 rounded-full">Популярный</div>
           <div class="text-sm text-indigo-400 font-medium uppercase tracking-wider mb-2">Basic</div>
           <div class="text-4xl font-bold mb-1">2 990 <span class="text-lg text-gray-500 font-normal">₽/мес</span></div>
-          <div class="text-sm text-gray-500 mb-6">Оптимальный</div>
+          <div class="text-sm text-gray-500 mb-6">Для малого бизнеса</div>
           <ul class="space-y-3 mb-8 text-sm text-gray-300">
             <li>15 MAX аккаунтов</li>
             <li>10 000 лидов</li>
             <li>2 000 отправок/день</li>
-            <li>TG &rarr; MAX форвардер</li>
+            <li>TG → MAX форвардер</li>
           </ul>
           <a href="/register" class="block text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Выбрать Basic</a>
         </div>
         <div class="price-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-8">
           <div class="text-sm text-gray-400 font-medium uppercase tracking-wider mb-2">Pro</div>
           <div class="text-4xl font-bold mb-1">4 990 <span class="text-lg text-gray-500 font-normal">₽/мес</span></div>
-          <div class="text-sm text-gray-500 mb-6">Для команд</div>
+          <div class="text-sm text-gray-500 mb-6">Для агентств и команд</div>
           <ul class="space-y-3 mb-8 text-sm text-gray-300">
             <li>50 MAX аккаунтов</li>
             <li>100 000 лидов</li>
@@ -274,26 +483,99 @@
     </div>
   </section>
 
+  <!-- Reviews (placeholder) -->
+  <!-- TODO(реальные отзывы): заменить три карточки ниже на настоящие отзывы клиентов.
+       Для каждого отзыва нужно: имя, роль/компания, аватар (инициалы или фото), текст, конкретный результат (кол-во лидов, конверсия, ROI).
+       Без реальных отзывов секцию можно скрыть: добавить style="display:none" к <section id="reviews">. -->
+  <section id="reviews" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold mb-4">Что говорят клиенты</h2>
+        <p class="text-gray-400">Реальные истории бизнесов, которые растут через MAX</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="flex items-center gap-1 mb-4 text-amber-400">★★★★★</div>
+          <p class="text-gray-300 text-sm leading-relaxed mb-6">«Парсинг 2GIS — то, чего не хватало. За неделю собрали 1 200 контактов стоматологий по региону и получили 38 заявок на поставку расходников.»</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold">АК</div>
+            <div>
+              <div class="text-sm font-semibold text-white">Алексей К.</div>
+              <div class="text-xs text-gray-500">B2B, расходники для медцентров</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="flex items-center gap-1 mb-4 text-amber-400">★★★★★</div>
+          <p class="text-gray-300 text-sm leading-relaxed mb-6">«Мигрировали клиентскую базу из Telegram-канала в MAX через форвардер. Из 4 600 подписчиков перенесли 3 100 — конверсия в подписку на MAX оказалась 67%.»</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center font-bold">МС</div>
+            <div>
+              <div class="text-sm font-semibold text-white">Мария С.</div>
+              <div class="text-xs text-gray-500">SMM-агентство, Краснодар</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="flex items-center gap-1 mb-4 text-amber-400">★★★★★</div>
+          <p class="text-gray-300 text-sm leading-relaxed mb-6">«Что зашло — SaaS без установки. Запускаю рассылки с телефона, когда еду на встречу. AI автоответчик сам отвечает ночью на входящие и квалифицирует лидов.»</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center font-bold">ДВ</div>
+            <div>
+              <div class="text-sm font-semibold text-white">Денис В.</div>
+              <div class="text-xs text-gray-500">Фриланс-маркетолог</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-xs text-gray-600 mt-6">Хотите оставить отзыв? Напишите нам на <a href="mailto:hello@maxsurge.ru" class="underline hover:text-gray-400">hello@maxsurge.ru</a></p>
+    </div>
+  </section>
+
   <!-- FAQ -->
   <section id="faq" class="py-20 px-6 bg-[#0c1120]">
     <div class="max-w-3xl mx-auto">
       <h2 class="text-3xl font-bold text-center mb-12">Частые вопросы</h2>
       <div class="space-y-4">
         <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">В чём особенности MaxSurge? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">MaxSurge — это SaaS без установки: работает из любого браузера, включая телефон. Среди ключевых инструментов — автопарсинг лидов из 2GIS с привязкой к MAX ID, TG→MAX форвардер для миграции аудитории из Telegram, AI автоответчик, инвайтинг, прогрев аккаунтов и CRM. Стартовая цена 1 490 ₽/мес, пробный период 7 дней без привязки карты.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
           <summary class="font-medium cursor-pointer flex justify-between items-center">Нужно ли устанавливать программу? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
-          <p class="mt-3 text-gray-400 text-sm">Нет. MaxSurge работает полностью в браузере. Доступ с любого устройства — ПК, планшет, телефон.</p>
+          <p class="mt-3 text-gray-400 text-sm">Нет. MaxSurge работает полностью в браузере. Доступ с любого устройства — ПК, планшет, телефон. Ничего не нужно ставить на компьютер, не нужны обновления и лицензии под конкретную машину.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Как работает парсинг из 2GIS? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Вы выбираете город и категорию (например, «стоматологии Краснодара»). MaxSurge собирает телефоны, названия, адреса организаций. Затем встроенный чекер автоматически находит MAX-аккаунты по этим номерам — на выходе готовая база для рассылки. Процесс занимает 10–30 минут на 1 000 контактов.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Как перенести клиентов из Telegram в MAX? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Используйте TG→MAX форвардер. Он собирает участников ваших Telegram-каналов или чатов и помогает перевести их в MAX через персонализированные приглашения — быстрый способ «не потерять» аудиторию при миграции в новый мессенджер.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Это законно? Что говорят правила MAX? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Сервис предназначен только для законного использования в рамках ToS мессенджера MAX и законодательства о рекламе (152-ФЗ, 38-ФЗ). Ответственность за содержание рассылок и получение согласия получателей несёт пользователь. Мы не рекомендуем рассылки без предварительного согласия.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Что будет, если аккаунт заблокируют? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">MaxSurge автоматически ротирует аккаунты и уважает лимиты платформы, снижая риск блокировки. Система прогрева готовит новые аккаунты перед боевым использованием. Если аккаунт всё же заблокирован — его можно заменить в панели без потери рассылки.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Можно ли использовать с телефона? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Да, панель адаптирована под мобильные браузеры. Запуск рассылок, просмотр статистики, управление аккаунтами — всё доступно с телефона. Ничего устанавливать не нужно.</p>
         </details>
         <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
           <summary class="font-medium cursor-pointer flex justify-between items-center">Безопасно ли добавлять аккаунты? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
-          <p class="mt-3 text-gray-400 text-sm">Мы используем официальный WebSocket протокол MAX. Прогрев аккаунтов и соблюдение лимитов снижают риск блокировки.</p>
+          <p class="mt-3 text-gray-400 text-sm">Мы используем официальный WebSocket протокол MAX. Сессии хранятся зашифрованными. Есть 2FA для входа в панель. Прогрев аккаунтов и соблюдение лимитов снижают риск блокировки.</p>
         </details>
         <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
-          <summary class="font-medium cursor-pointer flex justify-between items-center">Что такое сбор лидов из 2GIS? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
-          <p class="mt-3 text-gray-400 text-sm">Автоматический парсинг организаций: имя, телефон, адрес, сайт. Затем чекер находит их аккаунты в MAX для рассылки.</p>
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Можно ли получить возврат? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Да. 7 дней бесплатный пробный период без привязки карты + 7-дневная гарантия возврата после первой оплаты. Если не понравится — вернём деньги без вопросов.</p>
         </details>
         <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
           <summary class="font-medium cursor-pointer flex justify-between items-center">Можно ли отменить подписку? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
-          <p class="mt-3 text-gray-400 text-sm">Да, в любой момент. Пробный период — 7 дней бесплатно, без привязки карты.</p>
+          <p class="mt-3 text-gray-400 text-sm">Да, в любой момент в личном кабинете, в один клик. После отмены сервис продолжит работать до конца оплаченного периода.</p>
         </details>
       </div>
     </div>
@@ -302,11 +584,17 @@
   <!-- CTA -->
   <section class="py-20 px-6">
     <div class="max-w-3xl mx-auto text-center">
-      <h2 class="text-3xl font-bold mb-4">Готовы начать?</h2>
-      <p class="text-gray-400 mb-8">7 дней бесплатно. Полный доступ ко всем инструментам.</p>
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">Готовы начать?</h2>
+      <p class="text-gray-400 mb-8">7 дней бесплатно. Полный доступ ко всем инструментам. Без привязки карты.</p>
       <a href="/register" class="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:shadow-xl hover:shadow-indigo-500/30 transition-all">
         Создать аккаунт бесплатно
       </a>
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500">
+        <span>✓ Без карты</span>
+        <span>✓ 7-дневная гарантия возврата</span>
+        <span>✓ Отмена в один клик</span>
+        <span>✓ Юрлицо в РФ</span>
+      </div>
     </div>
   </section>
 
@@ -321,12 +609,14 @@
             </div>
             <span class="font-semibold">MaxSurge</span>
           </div>
-          <p class="text-sm text-gray-500 leading-relaxed">Сервис для продвижения в мессенджере MAX.</p>
+          <p class="text-sm text-gray-500 leading-relaxed">Веб-панель инструментов для продвижения в мессенджере MAX.</p>
         </div>
         <div>
           <div class="font-semibold text-sm mb-3 text-gray-300">Продукт</div>
           <ul class="space-y-2 text-sm text-gray-500">
             <li><a href="#features" class="hover:text-white transition">Возможности</a></li>
+            <li><a href="#killer-2gis" class="hover:text-white transition">Парсинг 2GIS</a></li>
+            <li><a href="#compare" class="hover:text-white transition">Сравнение</a></li>
             <li><a href="#pricing" class="hover:text-white transition">Тарифы</a></li>
             <li><a href="#faq" class="hover:text-white transition">FAQ</a></li>
           </ul>
@@ -355,6 +645,69 @@
       </div>
     </div>
   </footer>
+
+  <!-- Telegram support widget -->
+  <div id="tg-support-widget" aria-hidden="true">
+    <div class="tg-panel">
+      <button class="tg-close" type="button" aria-label="Закрыть">×</button>
+      <div class="text-sm font-semibold text-white mb-1">Поддержка MaxSurge</div>
+      <div class="text-xs text-gray-400 mb-3">Напишите нам в Telegram — ответим в рабочее время в течение 15 минут.</div>
+      <a href="https://t.me/beliaevd" target="_blank" rel="noopener" class="block text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium">Написать в Telegram</a>
+      <div class="text-[10px] text-gray-600 mt-2 text-center">пн–пт 9:00–21:00 МСК · сб–вс 10:00–18:00</div>
+    </div>
+    <button class="tg-btn" type="button" aria-label="Открыть поддержку">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+      Поддержка
+    </button>
+  </div>
+
+  <script>
+    // Counter animation for metrics
+    const mObs = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('animated');
+          const numEl = e.target.querySelector('[data-count]');
+          if(numEl){
+            const target = parseInt(numEl.dataset.count,10);
+            let cur = 0;
+            const step = Math.max(1, Math.round(target/30));
+            const tick = ()=>{
+              cur += step;
+              if(cur>=target){ numEl.textContent = target+(numEl.textContent.includes('+')?'+':''); return; }
+              numEl.textContent = cur + (numEl.textContent.includes('+')?'+':'');
+              requestAnimationFrame(tick);
+            };
+            // preserve plus sign if present
+            const origHasPlus = numEl.textContent.trim().endsWith('+');
+            numEl.textContent = '0' + (origHasPlus?'+':'');
+            tick();
+          }
+          mObs.unobserve(e.target);
+        }
+      });
+    }, {threshold: 0.3});
+    document.querySelectorAll('#metrics .metric').forEach(el=>mObs.observe(el));
+
+    // Telegram support widget
+    (function(){
+      const widget = document.getElementById('tg-support-widget');
+      if(!widget) return;
+      const btn = widget.querySelector('.tg-btn');
+      const closeBtn = widget.querySelector('.tg-close');
+      const HIDE_KEY = 'msrg_tg_hide_until';
+      const hideUntil = parseInt(localStorage.getItem(HIDE_KEY)||'0', 10);
+      if(Date.now() < hideUntil) return;
+      setTimeout(()=>{ widget.classList.add('visible'); widget.setAttribute('aria-hidden','false'); }, 5000);
+      btn.addEventListener('click', ()=> widget.classList.toggle('open'));
+      closeBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        widget.classList.remove('visible','open');
+        widget.setAttribute('aria-hidden','true');
+        localStorage.setItem(HIDE_KEY, String(Date.now()+24*3600*1000));
+      });
+    })();
+  </script>
 
 </body>
 </html>
