@@ -55,6 +55,26 @@
             <form method="post" action="/app/templates/{{ tmpl.id }}/recheck" class="inline">
               <button class="text-xs text-indigo-400 hover:text-indigo-300" title="Перепроверить AI">🔄</button>
             </form>
+            {% if tmpl.status.value == "approved" %}
+              {% if tmpl.is_public %}
+              <form method="post" action="/app/marketplace/{{ tmpl.id }}/unpublish" class="inline">
+                <button class="text-xs text-amber-400" title="Снять с маркетплейса">🌐✗</button>
+              </form>
+              {% else %}
+              <form method="post" action="/app/marketplace/{{ tmpl.id }}/publish" class="inline">
+                <select name="category" class="text-xs" style="background:transparent;border:1px solid var(--border);border-radius:4px">
+                  <option value="sales">Продажи</option>
+                  <option value="services">Услуги</option>
+                  <option value="realestate">Недвижимость</option>
+                  <option value="ecommerce">E-commerce</option>
+                  <option value="info">Инфобизнес</option>
+                  <option value="b2b">B2B</option>
+                  <option value="other" selected>Другое</option>
+                </select>
+                <button class="text-xs text-green-400" title="Опубликовать в маркетплейсе">🌐+</button>
+              </form>
+              {% endif %}
+            {% endif %}
             <button @click="editing=true" class="text-xs text-gray-500 hover:text-gray-300">Редактировать</button>
             <form method="post" action="/app/templates/{{ tmpl.id }}/delete" onsubmit="return confirm('Удалить?')">
               <button class="text-xs text-red-500 hover:text-red-400">✕</button>

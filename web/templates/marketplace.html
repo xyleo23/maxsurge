@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %} — Маркетплейс шаблонов{% endblock %}
+{% block content %}
+<div class="mb-6">
+  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Маркетплейс шаблонов</h1>
+  <p style="color:var(--text-muted)" class="text-sm mt-1">Рабочие шаблоны от других пользователей. Скопируйте одним кликом и адаптируйте под себя.</p>
+</div>
+
+{% if msg %}<div class="card mb-4" style="border-left:3px solid #10b981">{{ msg }}</div>{% endif %}
+
+<div class="card mb-6">
+  <form method="get" class="flex flex-wrap gap-3 p-4">
+    <input name="search" value="{{ search }}" placeholder="Поиск по тексту..." class="input flex-1 min-w-60">
+    <select name="category" class="input w-48">
+      <option value="">Все категории</option>
+      {% for v, l in categories %}<option value="{{ v }}" {% if category == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn-primary">Применить</button>
+    {% if search or category %}<a href="/app/marketplace/" class="btn-ghost">Сбросить</a>{% endif %}
+  </form>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {% for t in items %}
+  <div class="card">
+    <div class="card-header flex items-center justify-between">
+      <div>
+        <span style="color:var(--text-primary);font-weight:600">{{ t.name }}</span>
+        {% if t.public_category %}
+          <span class="ml-2 text-xs px-2 py-0.5 rounded" style="background:#6366f122;color:#6366f1">
+            {% for v, l in categories %}{% if v == t.public_category %}{{ l }}{% endif %}{% endfor %}
+          </span>
+        {% endif %}
+      </div>
+      <div class="text-xs" style="color:var(--text-muted)">📋 {{ t.copies_count }}</div>
+    </div>
+    <div class="p-4">
+      <pre class="text-xs whitespace-pre-wrap font-sans mb-3" style="color:var(--text-muted);max-height:180px;overflow-y:auto">{{ t.body }}</pre>
+      <div class="flex items-center justify-between">
+        <div class="text-xs" style="color:var(--text-muted)">
+          от {% if authors.get(t.owner_id) %}{{ authors[t.owner_id].name or "user#" + (t.owner_id|string) }}{% else %}—{% endif %}
+        </div>
+        <form method="post" action="/app/marketplace/{{ t.id }}/copy">
+          <button class="btn-primary text-xs">📋 Скопировать себе</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card col-span-2 p-8 text-center" style="color:var(--text-muted)">
+    Пока пусто. Будьте первым — опубликуйте свой шаблон из <a href="/app/templates/" class="text-indigo-400">Шаблонов</a>.
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

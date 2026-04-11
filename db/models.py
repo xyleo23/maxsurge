@@ -100,6 +100,9 @@ class MessageTemplate(Base):
     ai_feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
     admin_feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, default=False)
+    public_category: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    copies_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
 # ── Лог отправок ────────────────────────────────────────
