@@ -6,7 +6,7 @@
   <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Спарсено юзеров</div><div class="text-2xl font-bold text-indigo-400">{{ parsed_total }}</div></div>
   <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Чатов в каталоге</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ chats_in_catalog }}</div></div>
 </div>
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
   <!-- Вступление в чаты -->
   <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
     <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Вступление в чаты</h2>
@@ -34,6 +34,22 @@
         {% for a in accounts %}<option value="{{ a.phone }}">{{ a.phone }}</option>{% endfor %}
       </select>
       <button type="submit" class="btn-primary w-full">Спарсить участников</button>
+    </form>
+  </div>
+  <!-- P4: Парсинг по сообщениям -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-1">По сообщениям <span class="text-xs text-orange-400">NEW</span></h2>
+    <p class="text-xs mb-3" style="color:var(--text-muted)">Авторы из истории. Работает когда список участников закрыт.</p>
+    <form method="post" action="/app/parser/parse-messages">
+      <label class="text-gray-400 text-xs mb-1 block">Chat IDs (список через запятую или строку)</label>
+      <textarea name="chat_ids" rows="3" class="form-input mb-3 font-mono text-xs" placeholder="-100123&#10;-100456"></textarea>
+      <label class="text-gray-400 text-xs mb-1 block">Макс сообщений на чат</label>
+      <input name="max_messages" type="number" value="2000" min="100" max="20000" class="form-input mb-3"/>
+      <select name="phone" class="form-input mb-3">
+        <option value="">Авто</option>
+        {% for a in accounts %}<option value="{{ a.phone }}">{{ a.phone }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn-primary w-full">Парсить историю</button>
     </form>
   </div>
 </div>

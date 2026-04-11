@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import select, func
 from web.routes._scope import get_request_user, scope_query
 from db.models import ParsedUser, ChatCatalog, MaxAccount, AccountStatus, async_session_factory
-from max_client.parser import mass_join_chats, parse_chat, get_parse_status, stop_parsing
+from max_client.parser import mass_join_chats, parse_chat, get_parse_status, stop_parsing, parse_by_messages_phones
 
 router = APIRouter(prefix="/parser")
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
@@ -51,3 +51,33 @@ async def stop():
 @router.get("/status")
 async def status():
     return JSONResponse(get_parse_status())
+
+
+@router.post('/parse-messages')
+async def parse_messages_route(
+    request: Request,
+    chat_ids: str = Form(...),
+    max_messages: int = Form(2000),
+    phone: str = Form(''),
+):
+    global _task
+    user = await get_request_user(request)
+    ids = []
+    for part in chat_ids.replace(chr(10), ',').split(','):
+        part = part.strip()
+        if part.lstrip('-').isdigit():
+            ids.append(int(part))
+    if not ids:
+        return RedirectResponse('/app/parser/?msg=Нет+валидных+chat_id', status_code=303)
+
+    async with async_session_factory() as s:
+        acc_q = scope_query(select(MaxAccount), MaxAccount, user).where(MaxAccount.status == AccountStatus.ACTIVE)
+        accounts = (await s.execute(acc_q)).scalars().all()
+    phones = [phone] if phone else [a.phone for a in accounts]
+    if not phones:
+        return RedirectResponse('/app/parser/?msg=Нет+активных+аккаунтов', status_code=303)
+
+    _task = asyncio.create_task(
+        parse_by_messages_phones(phones, ids, owner_id=user.id if user else None, max_messages=max_messages)
+    )
+    return RedirectResponse('/app/parser/?msg=Парсинг+по+сообщениям+запущен', status_code=303)
