@@ -1,5 +1,34 @@
 {% extends "base.html" %}
-{% block title %} — Дашборд{% endblock %}
+{% block title %} — Дашборд
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <div class="card">
+    <div class="card-header">Лиды за 14 дней</div>
+    <div class="p-4"><canvas id="leadsChart" height="180"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-header">Сообщения за 14 дней</div>
+    <div class="p-4"><canvas id="msgsChart" height="180"></canvas></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var labels = {{ chart_labels_json|safe }};
+  var leadsData = {{ chart_leads_json|safe }};
+  var msgsData = {{ chart_msgs_json|safe }};
+  var opts = {responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}};
+  new Chart(document.getElementById('leadsChart'),{
+    type:'bar', data:{labels:labels, datasets:[{label:'Лиды',data:leadsData,backgroundColor:'rgba(99,102,241,0.5)',borderColor:'#6366f1',borderWidth:1,borderRadius:4}]}, options:opts
+  });
+  new Chart(document.getElementById('msgsChart'),{
+    type:'bar', data:{labels:labels, datasets:[{label:'Отправлено',data:msgsData,backgroundColor:'rgba(16,185,129,0.5)',borderColor:'#10b981',borderWidth:1,borderRadius:4}]}, options:opts
+  });
+})();
+</script>
+
+{% endblock %}
 {% block content %}
 <div class="flex items-center justify-between mb-6">
   <div>

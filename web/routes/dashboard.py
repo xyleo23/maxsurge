@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select, func
+from sqlalchemy import select, func, cast, Date
 
 from db.models import NeuroCampaign, MaxBot, ChatGuard, Lead, LeadStatus, MaxAccount, AccountStatus, SendLog, Task, TaskStatus, MessageTemplate, async_session_factory
 from db.plan_limits import get_limits
@@ -63,6 +63,41 @@ async def dashboard(request: Request):
             scope_query(select(Lead.status, func.count(Lead.id)), Lead, user).group_by(Lead.status)
         )).all()
 
+
+        # Chart data — last 14 days
+        from datetime import date as _dt_date
+        chart_days = 14
+        chart_since = today - timedelta(days=chart_days)
+
+        # Leads per day
+        leads_per_day_q = (await s.execute(
+            scope_query(
+                select(func.date(Lead.created_at).label("d"), func.count(Lead.id)),
+                Lead, user,
+            ).where(Lead.created_at >= chart_since).group_by("d")
+        )).all()
+        leads_chart = {str(r[0]): r[1] for r in leads_per_day_q}
+
+        # Messages per day
+        msgs_per_day_q = (await s.execute(
+            scope_query(
+                select(func.date(SendLog.sent_at).label("d"), func.count(SendLog.id)),
+                SendLog, user,
+            ).where(SendLog.sent_at >= chart_since, SendLog.status == "sent").group_by("d")
+        )).all()
+        msgs_chart = {str(r[0]): r[1] for r in msgs_per_day_q}
+
+        # Build labels array
+        import json as _json
+        chart_labels = []
+        chart_leads_data = []
+        chart_msgs_data = []
+        for i in range(chart_days):
+            d = (today + timedelta(days=i - chart_days + 1)).strftime("%Y-%m-%d")
+            chart_labels.append(d[-5:])  # MM-DD
+            chart_leads_data.append(leads_chart.get(d, 0))
+            chart_msgs_data.append(msgs_chart.get(d, 0))
+
     # Лимиты тарифа
     limits = get_limits(user.plan) if user and not getattr(user, "is_superadmin", False) else {}
     plan_usage = {
@@ -111,5 +146,8 @@ async def dashboard(request: Request):
         "recent_logs": recent_logs,
         "status_stats": {str(r[0].value if hasattr(r[0], 'value') else r[0]): r[1] for r in status_stats},
         "plan_usage": plan_usage,
+        "chart_labels_json": _json.dumps(chart_labels),
+        "chart_leads_json": _json.dumps(chart_leads_data),
+        "chart_msgs_json": _json.dumps(chart_msgs_data),
         "is_admin": user and getattr(user, "is_superadmin", False),
     })
