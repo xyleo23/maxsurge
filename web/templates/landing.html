@@ -123,7 +123,14 @@
     #tg-support-widget.open .tg-panel{display:block}
     #tg-support-widget .tg-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;line-height:1}
     @keyframes count-bump{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
-    .metric.animated{animation:count-bump .8s ease-out forwards}
+    .metric{position:relative;overflow:hidden;transition:all .3s}
+    .metric::before{content:'';position:absolute;inset:-1px;border-radius:1rem;background:linear-gradient(135deg,rgba(129,140,248,0.2),rgba(192,132,252,0.2),rgba(244,114,182,0.12));opacity:0;transition:opacity .4s}
+    .metric:hover::before{opacity:1}
+    .metric:hover{transform:translateY(-3px)}
+    .metric-num{font-size:2.75rem;line-height:1;text-shadow:0 0 30px rgba(129,140,248,0.5),0 0 60px rgba(192,132,252,0.25)}
+    @media(min-width:768px){.metric-num{font-size:3.75rem}}
+    @keyframes glow-pulse{0%,100%{box-shadow:0 0 15px rgba(129,140,248,0.06),inset 0 0 30px rgba(129,140,248,0.03)}50%{box-shadow:0 0 25px rgba(129,140,248,0.15),inset 0 0 40px rgba(192,132,252,0.08)}}
+    .metric.animated{animation:count-bump .8s ease-out forwards,glow-pulse 4s ease-in-out 1s infinite}
   </style>
 </head>
 <body class="bg-[#0a0e1a] text-gray-100">
@@ -190,23 +197,23 @@
   </section>
 
   <!-- Social proof metrics -->
-  <section id="metrics" class="py-10 px-6">
-    <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
-        <div class="text-3xl md:text-4xl font-bold gradient-text" data-count="15">15+</div>
-        <div class="text-xs md:text-sm text-gray-400 mt-2">инструментов<br/>в одной панели</div>
+  <section id="metrics" class="py-14 px-6">
+    <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-5">
+      <div class="metric bg-[#0f172a]/80 border border-[#1e293b] rounded-2xl p-8 text-center backdrop-blur-sm">
+        <div class="metric-num font-extrabold gradient-text" data-count="15">15+</div>
+        <div class="text-sm text-gray-400 mt-3 leading-snug">инструментов<br/>в одной панели</div>
       </div>
-      <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
-        <div class="text-3xl md:text-4xl font-bold gradient-text" data-count="7">7</div>
-        <div class="text-xs md:text-sm text-gray-400 mt-2">дней бесплатного<br/>триала</div>
+      <div class="metric bg-[#0f172a]/80 border border-[#1e293b] rounded-2xl p-8 text-center backdrop-blur-sm">
+        <div class="metric-num font-extrabold gradient-text" data-count="7">7</div>
+        <div class="text-sm text-gray-400 mt-3 leading-snug">дней бесплатного<br/>триала</div>
       </div>
-      <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
-        <div class="text-3xl md:text-4xl font-bold gradient-text">100%</div>
-        <div class="text-xs md:text-sm text-gray-400 mt-2">в браузере —<br/>без установки</div>
+      <div class="metric bg-[#0f172a]/80 border border-[#1e293b] rounded-2xl p-8 text-center backdrop-blur-sm">
+        <div class="metric-num font-extrabold gradient-text">100%</div>
+        <div class="text-sm text-gray-400 mt-3 leading-snug">в браузере —<br/>без установки</div>
       </div>
-      <div class="metric bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 text-center">
-        <div class="text-3xl md:text-4xl font-bold gradient-text">B2B+B2C</div>
-        <div class="text-xs md:text-sm text-gray-400 mt-2">из карт и чатов<br/>в одной панели</div>
+      <div class="metric bg-[#0f172a]/80 border border-[#1e293b] rounded-2xl p-8 text-center backdrop-blur-sm">
+        <div class="metric-num font-extrabold gradient-text">B2B+B2C</div>
+        <div class="text-sm text-gray-400 mt-3 leading-snug">из карт и чатов<br/>в одной панели</div>
       </div>
     </div>
   </section>
