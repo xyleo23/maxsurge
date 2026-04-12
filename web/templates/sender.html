@@ -39,7 +39,16 @@
         <form method="post" action="/app/sender/pause" class="flex-1"><button class="btn-ghost w-full">{% if status.paused %}Продолжить{% else %}Пауза{% endif %}</button></form>
         <form method="post" action="/app/sender/stop" class="flex-1"><button class="btn-danger w-full">Стоп</button></form>
       </div>
-      {% else %}<button type="submit" class="btn-primary w-full text-base py-3">Запустить рассылку</button>{% endif %}
+      {% else %}
+      <div class="grid grid-cols-2 gap-3">
+        <button type="submit" class="btn-primary w-full text-base py-3">Запустить сейчас</button>
+        <button type="submit" name="schedule" value="1" class="btn-ghost w-full text-base py-3" style="border:1px solid var(--border)">⏰ Запланировать</button>
+      </div>
+      <div class="mt-2">
+        <label class="text-gray-400 text-xs">Дата и время (UTC, для кнопки Запланировать)</label>
+        <input type="datetime-local" name="scheduled_at" class="form-input w-full">
+      </div>
+      {% endif %}
     </form>
   </div>
 

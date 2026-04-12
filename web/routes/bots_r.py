@@ -54,6 +54,7 @@ async def create(
     bonus_limit: int = Form(0),
     ai_enabled: bool = Form(False),
     knowledge_base: str = Form(""),
+    quick_replies: str = Form("[]"),
     notify_owner_tg: bool = Form(True),
 ):
     user = await get_current_user(request)
@@ -94,6 +95,7 @@ async def create(
             bonus_limit=max(0, bonus_limit),
             ai_enabled=ai_enabled,
             knowledge_base=knowledge_base or None,
+            quick_replies=quick_replies or "[]",
             notify_owner_tg=notify_owner_tg,
             owner_id=user.id,
         )

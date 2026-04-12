@@ -33,6 +33,36 @@ async def start_broadcast(template_id: int = Form(...), limit: int = Form(50),
                            dry_run: bool = Form(False), account_ids: list[int] = Form([]),
                            target_type: str = Form("users"), typing_emulation: bool = Form(True),
                            template_b_id: int = Form(0)):
+    # Scheduled?
+    if schedule and scheduled_at:
+        from datetime import datetime as _dt
+        import json as _json
+        try:
+            sched_time = _dt.fromisoformat(scheduled_at)
+        except Exception:
+            return RedirectResponse("/app/sender/?msg=Неверный+формат+даты", status_code=303)
+        from db.models import Task, TaskType, TaskStatus, async_session_factory as _asf
+        user = await get_request_user(request) if hasattr(request, "state") else None
+        async with _asf() as _s:
+            _s.add(Task(
+                name=f"Рассылка (запланировано на {scheduled_at})",
+                task_type=TaskType.BROADCAST,
+                status=TaskStatus.PENDING,
+                owner_id=user.id if user else None,
+                scheduled_at=sched_time,
+                broadcast_config=_json.dumps({
+                    "template_id": template_id,
+                    "limit": limit,
+                    "dry_run": dry_run,
+                    "target_type": target_type,
+                    "typing_emulation": typing_emulation,
+                    "template_b_id": template_b_id or None,
+                    "account_ids": account_ids or None,
+                }),
+            ))
+            await _s.commit()
+        return RedirectResponse(f"/app/sender/?msg=Рассылка+запланирована+на+{scheduled_at}", status_code=303)
+
     try:
         start_broadcast_background(template_id, limit, dry_run, account_ids or None, target_type, typing_emulation,
                                     template_b_id=(template_b_id or None))

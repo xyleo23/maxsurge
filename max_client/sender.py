@@ -91,6 +91,7 @@ async def run_broadcast(
             for lead in leads:
                 targets.append({"id": lead.max_user_id, "name": lead.name, "type": "user", "lead": lead, "lead_id": lead.id})
 
+        user_owner_id = 0  # will be set from account owner
         _broadcast_status["total"] = len(targets)
         if not targets:
             _broadcast_status["log"].append("Нет целей для рассылки")
@@ -111,6 +112,16 @@ async def run_broadcast(
                 if not _broadcast_status["running"]:
                     return
 
+            # Blacklist check
+            try:
+                from web.routes.blacklist_r import is_blacklisted as _bl
+                bl_val = str(target.get("id", ""))
+                if await _bl(user_owner_id, bl_val):
+                    _broadcast_status["log"].append(f"[SKIP] {target['name']} — в блэклисте")
+                    _broadcast_status["failed"] += 1
+                    continue
+            except Exception:
+                pass
             lead_obj = target.get("lead")
             # A/B split
             _active_tmpl = tmpl

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %} — Блэклист{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Блэклист</h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Исключает номера/ID из рассылки и инвайтинга. Всего: {{ total }}</p>
+  </div>
+</div>
+{% if msg %}<div class="card mb-4" style="border-left:3px solid #10b981">{{ msg }}</div>{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="card">
+    <div class="card-header">Добавить</div>
+    <form method="post" action="/app/blacklist/add" class="p-4 space-y-3">
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Значения (по одному на строку или через запятую)</label>
+        <textarea name="values" rows="5" class="input w-full font-mono text-xs" placeholder="+79991112233&#10;user_12345&#10;spam@mail.ru"></textarea>
+      </div>
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Тип</label>
+        <select name="type" class="input w-full">
+          <option value="phone">Телефон</option>
+          <option value="user_id">User ID (MAX)</option>
+          <option value="email">Email</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Причина (опц.)</label>
+        <input name="reason" class="input w-full" placeholder="Попросил не писать">
+      </div>
+      <button type="submit" class="btn-primary w-full">Добавить</button>
+    </form>
+  </div>
+
+  <div class="lg:col-span-2 card">
+    <div class="card-header">Текущий список</div>
+    {% if items %}
+    <table class="w-full text-sm">
+      <thead><tr style="color:var(--text-muted)"><th class="text-left py-2">Значение</th><th class="text-left">Тип</th><th class="text-left">Причина</th><th class="text-left">Дата</th><th></th></tr></thead>
+      <tbody>
+        {% for i in items %}
+        <tr style="border-top:1px solid var(--border)">
+          <td class="py-2 font-mono text-xs" style="color:var(--text-primary)">{{ i.value }}</td>
+          <td class="text-xs">{{ i.type }}</td>
+          <td class="text-xs" style="color:var(--text-muted)">{{ i.reason or "—" }}</td>
+          <td class="text-xs" style="color:var(--text-muted)">{{ i.created_at.strftime("%d.%m") }}</td>
+          <td>
+            <form method="post" action="/app/blacklist/{{ i.id }}/delete" class="inline">
+              <button class="text-xs" style="color:#ef4444">×</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="p-4" style="color:var(--text-muted)">Пусто. Добавьте номера или ID которые хотите исключить.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

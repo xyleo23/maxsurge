@@ -134,6 +134,11 @@
             <label class="text-xs" style="color:var(--text-muted)">База знаний (контекст для AI)</label>
             <textarea name="knowledge_base" rows="4" class="input w-full" placeholder="Компания X продаёт Y. Рабочие часы 9-18. Доставка по РФ бесплатно от 3000₽..."></textarea>
           </div>
+          <div>
+            <label class="text-xs" style="color:var(--text-muted)">Quick-reply кнопки (JSON) <span class="text-xs text-orange-400">NEW</span></label>
+            <textarea name="quick_replies" rows="4" class="input w-full font-mono text-xs" placeholder='[{"label":"Режим работы","answer":"Мы работаем ПН-ПТ 9:00-18:00"},{"label":"Доставка","answer":"Доставка по РФ от 3000₽ бесплатно, иначе 350₽"}]'>[{"label":"Режим работы","answer":"Мы работаем ПН-ПТ 9:00-18:00"},{"label":"Цены","answer":"Уточните что вас интересует, и я пришлю актуальный прайс"}]</textarea>
+            <div class="text-xs mt-1" style="color:var(--text-muted)">Массив {label, answer}. Кнопки показываются при /start, по нажатию бот отвечает готовым текстом.</div>
+          </div>
         </div>
       </template>
 

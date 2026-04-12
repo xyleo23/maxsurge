@@ -62,6 +62,7 @@ from web.routes.api_ingest_r import router as api_ingest_router
 from web.routes.logs_r import router as logs_router
 from web.routes.csv_r import router as csv_router
 from web.routes.marketplace_r import router as marketplace_router
+from web.routes.blacklist_r import router as blacklist_router
 from web.routes.notifications_r import router as notifications_router
 from web.routes.admin_r import router as admin_router
 
@@ -297,7 +298,7 @@ for r in [dashboard_router, leads_router, accounts_router, templates_router,
           sender_router, scraper_router, parser_router, checker_router,
           warming_router, profile_router, catalog_router, analytics_router,
           autoresponder_router, inviter_router, forwarder_router,
-          tasks_router, files_router, admin_router, settings_router, billing_router, referral_router, twofa_router, neurochat_router, bots_router, guard_router, logs_router, csv_router, marketplace_router, notifications_router]:
+          tasks_router, files_router, admin_router, settings_router, billing_router, referral_router, twofa_router, neurochat_router, bots_router, guard_router, logs_router, csv_router, marketplace_router, notifications_router, blacklist_router]:
     app.include_router(r, prefix="/app")
 
 
@@ -339,6 +340,8 @@ async def startup():
     from max_client.health_digest import run_periodic_digest, check_health
     asyncio.create_task(run_periodic_digest())
     asyncio.create_task(check_health())
+    from max_client.scheduler import run_scheduler_loop
+    asyncio.create_task(run_scheduler_loop())
     from max_client.health_digest import run_periodic_weekly as _rpw
     asyncio.create_task(_rpw())
 

@@ -209,6 +209,8 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    broadcast_config: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 # ── Хранилище файлов ────────────────────────────────────
@@ -434,6 +436,7 @@ class MaxBot(Base):
     # Для SUPPORT бота
     ai_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     knowledge_base: Mapped[str | None] = mapped_column(Text, nullable=True)
+    quick_replies: Mapped[str] = mapped_column(Text, default="[]")
 
     # Уведомления владельцу о новых лидах
     notify_owner_tg: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -577,3 +580,15 @@ class ErrorLog(Base):
     ip: Mapped[str | None] = mapped_column(String(64), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
+# ── Блэклист ──────────────────────────────────────
+class Blacklist(Base):
+    __tablename__ = "blacklist"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+    value: Mapped[str] = mapped_column(String(128), index=True)
+    type: Mapped[str] = mapped_column(String(16), default="phone")  # phone / user_id / email
+    reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

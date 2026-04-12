@@ -241,6 +241,44 @@ async def _handle_bonus(api: MaxBotAPI, bot: MaxBot, msg: dict):
     )
 
 
+
+def _build_quick_reply_keyboard(bot) -> list[list[dict]] | None:
+    """Build inline keyboard from bot.quick_replies JSON."""
+    import json
+    try:
+        replies = json.loads(bot.quick_replies or "[]")
+    except Exception:
+        return None
+    if not replies:
+        return None
+    rows = []
+    row = []
+    for i, qr in enumerate(replies):
+        label = qr.get("label") or qr.get("button") or f"#{i+1}"
+        callback = f"qr_{i}"
+        row.append({"type": "callback", "text": label, "payload": callback})
+        if len(row) >= 2:  # 2 buttons per row
+            rows.append(row)
+            row = []
+    if row:
+        rows.append(row)
+    return rows
+
+
+def _get_quick_reply_text(bot, callback_data: str) -> str | None:
+    """Get answer text for a quick-reply callback."""
+    import json
+    try:
+        replies = json.loads(bot.quick_replies or "[]")
+        idx_str = callback_data.replace("qr_", "")
+        idx = int(idx_str)
+        if 0 <= idx < len(replies):
+            return replies[idx].get("answer") or replies[idx].get("text") or ""
+    except Exception:
+        pass
+    return None
+
+
 async def _handle_support(api: MaxBotAPI, bot: MaxBot, msg: dict):
     sender = msg.get("sender") or {}
     user_id = sender.get("user_id")
@@ -309,7 +347,18 @@ async def _run_bot(bot_id: int):
                 try:
                     async with async_session_factory() as s:
                         fresh = await s.get(MaxBot, bot_id)
-                    if upd.get("update_type") == "message_created":
+                    if upd.get("update_type") == "message_callback":
+                        cb = upd.get("callback", {})
+                        cb_id = cb.get("callback_id")
+                        cb_data = cb.get("payload") or ""
+                        cb_user = (cb.get("user") or {}).get("user_id")
+                        if cb_data.startswith("qr_") and fresh.bot_type == MaxBotType.SUPPORT:
+                            answer = _get_quick_reply_text(fresh, cb_data)
+                            if answer and cb_user:
+                                await api.send_message(user_id=cb_user, text=answer)
+                            if cb_id:
+                                await api.answer_callback(cb_id)
+                    elif upd.get("update_type") == "message_created":
                         msg = upd.get("message", {})
                         if fresh.bot_type == MaxBotType.LEAD:
                             await _handle_lead(api, fresh, msg)
