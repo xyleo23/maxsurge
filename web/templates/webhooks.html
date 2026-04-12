@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Webhook API — MaxSurge{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">Webhook API</h1>
+      <p class="text-sm text-gray-400 mt-1">Получайте POST-запросы при событиях MaxSurge в ваш CRM, Telegram-бот, Google Sheets или любой другой сервис.</p>
+    </div>
+  </div>
+
+  <!-- Endpoints list -->
+  {% if endpoints %}
+  <div class="space-y-4 mb-8">
+    {% for ep in endpoints %}
+    <div class="bg-white/5 border border-white/10 rounded-xl p-5">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-3">
+          <span class="w-2.5 h-2.5 rounded-full {% if ep.active %}bg-emerald-400{% else %}bg-gray-500{% endif %}"></span>
+          <code class="text-sm text-gray-300 break-all">{{ ep.url }}</code>
+        </div>
+        <div class="flex items-center gap-2">
+          <form method="post" action="/app/webhooks/test" class="inline">
+            <input type="hidden" name="endpoint_id" value="{{ ep.id }}"/>
+            <button type="submit" class="px-3 py-1 text-xs border border-indigo-500/40 text-indigo-300 rounded-lg hover:bg-indigo-500/10">Тест</button>
+          </form>
+          <form method="post" action="/app/webhooks/toggle" class="inline">
+            <input type="hidden" name="endpoint_id" value="{{ ep.id }}"/>
+            <button type="submit" class="px-3 py-1 text-xs border border-white/10 text-gray-400 rounded-lg hover:bg-white/5">
+              {{ "Выкл" if ep.active else "Вкл" }}
+            </button>
+          </form>
+          <form method="post" action="/app/webhooks/delete" class="inline" onsubmit="return confirm('Удалить вебхук?')">
+            <input type="hidden" name="endpoint_id" value="{{ ep.id }}"/>
+            <button type="submit" class="px-3 py-1 text-xs border border-rose-500/30 text-rose-400 rounded-lg hover:bg-rose-500/10">Удалить</button>
+          </form>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-500">
+        <div>
+          <span class="text-gray-600">Secret:</span>
+          <code class="text-gray-400 ml-1">{{ ep.secret[:12] }}...</code>
+        </div>
+        <div>
+          <span class="text-gray-600">События:</span>
+          <span class="text-gray-400 ml-1">{{ ep.events if ep.events != '*' else 'все' }}</span>
+        </div>
+        <div>
+          <span class="text-gray-600">Ошибки:</span>
+          <span class="{% if ep.fail_count > 0 %}text-rose-400{% else %}text-emerald-400{% endif %} ml-1">{{ ep.fail_count }}</span>
+        </div>
+        <div>
+          <span class="text-gray-600">Последний:</span>
+          <span class="text-gray-400 ml-1">{{ ep.last_triggered_at.strftime('%d.%m %H:%M') if ep.last_triggered_at else '—' }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white/5 border border-white/10 rounded-xl p-8 text-center mb-8">
+    <div class="text-3xl mb-3">🔌</div>
+    <div class="text-gray-300 font-medium mb-1">Вебхуки не настроены</div>
+    <div class="text-sm text-gray-500">Добавьте URL, на который MaxSurge будет отправлять POST-запросы при событиях.</div>
+  </div>
+  {% endif %}
+
+  <!-- Add new -->
+  <div class="bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
+    <h2 class="font-semibold mb-4">Добавить вебхук</h2>
+    <form method="post" action="/app/webhooks/create" class="space-y-4">
+      <div>
+        <label class="block text-xs text-gray-500 uppercase tracking-wider mb-1">URL endpoint</label>
+        <input name="url" type="url" required placeholder="https://your-server.com/webhook" class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"/>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-500 uppercase tracking-wider mb-1">События (JSON array или * = все)</label>
+        <input name="events" type="text" value="*" placeholder='["message_sent","lead_collected"] или *' class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"/>
+      </div>
+      <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition">Создать вебхук</button>
+    </form>
+  </div>
+
+  <!-- Events reference -->
+  <div class="bg-white/5 border border-white/10 rounded-xl p-6 mb-8">
+    <h2 class="font-semibold mb-4">Доступные события</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {% for key, desc in events.items() %}
+      <div class="flex items-center gap-3 text-sm">
+        <code class="text-indigo-400 text-xs bg-indigo-500/10 px-2 py-0.5 rounded">{{ key }}</code>
+        <span class="text-gray-400">{{ desc }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- How to verify -->
+  <div class="bg-white/5 border border-white/10 rounded-xl p-6">
+    <h2 class="font-semibold mb-4">Верификация подписи</h2>
+    <p class="text-sm text-gray-400 mb-3">Каждый запрос приходит с заголовком <code class="text-indigo-400">X-MaxSurge-Signature: sha256=...</code>. Проверьте HMAC-SHA256 payload с вашим Secret-ключом.</p>
+    <pre class="bg-black/30 rounded-lg p-4 text-xs text-gray-300 overflow-x-auto leading-relaxed"><code># Python
+import hmac, hashlib
+
+def verify(body: bytes, secret: str, signature: str) -> bool:
+    expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature)
+
+# Node.js
+const crypto = require('crypto');
+function verify(body, secret, signature) {
+    const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(body).digest('hex');
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}</code></pre>
+    <p class="text-xs text-gray-500 mt-3">Подробнее: <a href="/help/webhook-api" class="text-indigo-400 hover:text-indigo-300">документация</a> (скоро)</p>
+  </div>
+</div>
+{% endblock %}

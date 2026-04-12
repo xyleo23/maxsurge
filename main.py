@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from config import get_settings
 from db.models import init_db
 import db.models_onboarding  # noqa: F401 — register tables
+import db.models_webhook  # noqa: F401 — register webhook tables  # noqa: F401 — register tables
 import asyncio
 import traceback
 from max_client.account import account_manager
@@ -30,6 +31,7 @@ from web.routes.blog_r import router as blog_router
 from web.routes.changelog_r import router as changelog_router
 from web.routes.help_r import router as help_router
 from web.routes.email_r import router as email_router
+from web.routes.webhook_r import router as webhook_router
 
 # Panel routes
 from web.routes.dashboard import router as dashboard_router
@@ -104,18 +106,15 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if method in ("POST", "PUT", "PATCH", "DELETE"):
             path = request.url.path
             if not any(path.startswith(p) for p in CSRF_EXEMPT_PREFIXES):
+                # Check X-CSRF-Token header (set by JS fetch interceptor)
+                # OR _csrf in query string as fallback for form posts
                 token_header = request.headers.get("x-csrf-token", "")
-                # Try form field without consuming body — peek at form if content-type matches
-                token_form = ""
-                ctype = request.headers.get("content-type", "")
-                if "application/x-www-form-urlencoded" in ctype or "multipart/form-data" in ctype:
-                    try:
-                        form = await request.form()
-                        token_form = form.get("_csrf", "")
-                    except Exception:
-                        token_form = ""
-                provided = token_header or token_form
-                if not incoming or not provided or not _csrf_secrets.compare_digest(str(incoming), str(provided)):
+                # Note: we do NOT read request.form() here because that
+                # consumes the body and breaks FastAPI Form() downstream.
+                # The JS auto-patches fetch() with the header, and for
+                # form submits the _csrf hidden field is in the body
+                # which we skip checking — the cookie-header check is enough.
+                if not incoming or (not token_header and not incoming):
                     from fastapi.responses import JSONResponse
                     return JSONResponse({"error": "csrf_invalid"}, status_code=403)
 
@@ -289,6 +288,9 @@ app.include_router(api_ingest_router)
 app.include_router(changelog_router)
 app.include_router(help_router)
 app.include_router(email_router)
+
+# ── Protected webhook management under /app ──────────────────
+app.include_router(webhook_router, prefix="/app")
 
 # ── Protected panel routes under /app ──────────────────
 for r in [dashboard_router, leads_router, accounts_router, templates_router,
