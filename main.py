@@ -96,6 +96,8 @@ CSRF_EXEMPT_PREFIXES = (
     "/auth/verify",
     "/forgot-password",
     "/reset-password",
+    "/api/lead",            # public lead capture (exit intent)
+    "/email/unsubscribe",   # public unsubscribe
 )
 
 
