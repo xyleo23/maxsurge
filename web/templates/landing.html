@@ -111,6 +111,11 @@
     .compare-table th.our-col{background:linear-gradient(180deg,rgba(99,102,241,.15),rgba(168,85,247,.08));border-left:2px solid #6366f1;border-right:2px solid #6366f1;border-top:2px solid #6366f1;border-radius:12px 12px 0 0}
     .compare-table tr:last-child td.compare-our{border-bottom:2px solid #6366f1;border-radius:0 0 12px 12px}
     .step-num{width:36px;height:36px;border-radius:999px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0}
+    #exit-popup{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:90;padding:24px;backdrop-filter:blur(6px)}
+    #exit-popup.open{display:flex}
+    #exit-popup .ep-card{background:#0f172a;border:1px solid #1e293b;border-radius:20px;max-width:440px;width:100%;padding:36px;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.6)}
+    #exit-popup .ep-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#64748b;cursor:pointer;font-size:22px;line-height:1}
+    #exit-popup .ep-ok{display:none;text-align:center;color:#34d399;font-weight:600;padding:8px 0}
     #tg-support-widget{position:fixed;bottom:24px;right:24px;z-index:60;opacity:0;transform:translateY(20px);transition:opacity .4s,transform .4s;pointer-events:none}
     #tg-support-widget.visible{opacity:1;transform:translateY(0);pointer-events:auto}
     #tg-support-widget .tg-btn{background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:14px 20px;border-radius:999px;font-weight:600;box-shadow:0 12px 30px rgba(99,102,241,.4);display:flex;align-items:center;gap:10px;cursor:pointer;border:none;font-size:14px}
@@ -161,7 +166,7 @@
         Мощное продвижение<br/>в мессенджере <span class="gradient-text">MAX</span>
       </h1>
       <p class="text-xl text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
-        Комплексный набор из 15+ инструментов для поиска <strong class="text-white">B2B и B2C клиентов</strong> в мессенджере MAX. Сбор контактов из открытых карт, парсинг тематических чатов, рассылки, инвайтинг, AI автоответчик — всё в одном браузере.
+        Клиенты уходят в MAX — а вы ещё не там? <strong class="text-white">MaxSurge находит их и пишет за вас.</strong> Сбор B2B-контактов из открытых карт, B2C из чатов, массовые рассылки, AI автоответчик — 15+ инструментов в одном браузере.
       </p>
       <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mb-8 text-sm">
         <span class="flex items-center gap-2 text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>от <b class="text-white">1 490 ₽/мес</b></span>
@@ -832,6 +837,28 @@
     </div>
   </footer>
 
+  <!-- Exit intent popup -->
+  <div id="exit-popup" role="dialog" aria-label="Не уходите">
+    <div class="ep-card">
+      <button class="ep-close" aria-label="Закрыть">×</button>
+      <div id="ep-form">
+        <div class="text-3xl mb-3">🎯</div>
+        <h3 class="text-xl font-bold text-white mb-2">Подождите! Забери чек-лист</h3>
+        <p class="text-sm text-gray-400 leading-relaxed mb-5">Как собрать 500 B2B-лидов из открытых карт за 1 день — пошаговая инструкция на почту. Бесплатно.</p>
+        <form id="ep-email-form" class="space-y-3">
+          <input id="ep-email" type="email" required placeholder="your@email.com" class="w-full bg-[#0a0e1a] border border-[#1e293b] rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 placeholder-gray-600"/>
+          <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Получить чек-лист</button>
+        </form>
+        <p class="text-[10px] text-gray-600 mt-3 text-center">Никакого спама. Одно письмо с чек-листом.</p>
+      </div>
+      <div id="ep-ok" class="ep-ok">
+        <div class="text-3xl mb-3">✅</div>
+        <div class="text-lg font-bold text-white mb-1">Отправили!</div>
+        <p class="text-sm text-gray-400">Проверьте почту через пару минут.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Telegram support widget -->
   <div id="tg-support-widget" aria-hidden="true">
     <div class="tg-panel">
@@ -874,6 +901,55 @@
       });
     }, {threshold: 0.3});
     document.querySelectorAll('#metrics .metric').forEach(el=>mObs.observe(el));
+
+    // Exit intent popup
+    (function(){
+      const popup = document.getElementById('exit-popup');
+      const form = document.getElementById('ep-email-form');
+      const emailInput = document.getElementById('ep-email');
+      const closeBtn = popup?.querySelector('.ep-close');
+      const okBlock = document.getElementById('ep-ok');
+      const formBlock = document.getElementById('ep-form');
+      if(!popup || !form) return;
+      const KEY = 'msrg_exit_shown';
+      // Don't show if already shown or dismissed
+      if(localStorage.getItem(KEY)) return;
+      let shown = false;
+      // Trigger: cursor leaves viewport at top (desktop only)
+      document.documentElement.addEventListener('mouseleave', (e) => {
+        if(shown) return;
+        if(e.clientY > 10) return; // only top exit
+        // Wait at least 8 seconds on page before showing
+        if(performance.now() < 8000) return;
+        shown = true;
+        popup.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      });
+      const close = () => {
+        popup.classList.remove('open');
+        document.body.style.overflow = '';
+        localStorage.setItem(KEY, Date.now().toString());
+      };
+      closeBtn?.addEventListener('click', close);
+      popup.addEventListener('click', (e) => { if(e.target === popup) close(); });
+      document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && popup.classList.contains('open')) close(); });
+      // Form submit
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        if(!email) return;
+        try {
+          await fetch('/api/lead', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, source: 'exit_intent'})
+          });
+        } catch(_) {}
+        formBlock.style.display = 'none';
+        okBlock.style.display = 'block';
+        setTimeout(close, 3000);
+      });
+    })();
 
     // Screenshot tabs + lightbox
     (function(){

@@ -32,6 +32,7 @@ from web.routes.changelog_r import router as changelog_router
 from web.routes.help_r import router as help_router
 from web.routes.email_r import router as email_router
 from web.routes.webhook_r import router as webhook_router
+from web.routes.lead_capture_r import router as lead_capture_router
 
 # Panel routes
 from web.routes.dashboard import router as dashboard_router
@@ -289,6 +290,7 @@ app.include_router(api_ingest_router)
 app.include_router(changelog_router)
 app.include_router(help_router)
 app.include_router(email_router)
+app.include_router(lead_capture_router)
 
 # ── Protected webhook management under /app ──────────────────
 app.include_router(webhook_router, prefix="/app")
