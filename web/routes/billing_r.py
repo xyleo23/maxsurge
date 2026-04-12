@@ -197,6 +197,8 @@ async def webhook(request: Request):
                 on_payment_success(user.email, payment.plan.value, payment.amount)
                 # P-E3: персональное уведомление пользователю
                 from max_client.tg_notifier import notify_user_async
+                from max_client.webhook_sender import webhook_async
+                webhook_async(user.id, "payment.succeeded", {"plan": payment.plan.value, "amount": payment.amount})
                 notify_user_async(user.id, "\U0001f4b0 <b>\u041f\u043b\u0430\u0442\u0451\u0436 \u0443\u0441\u043f\u0435\u0448\u0435\u043d</b>\n\n\u0422\u0430\u0440\u0438\u0444: <b>" + payment.plan.value + "</b>\n\u0421\u0443\u043c\u043c\u0430: <b>" + str(payment.amount) + "\u20bd</b>", pref_field="notify_on_payment")
 
                 # Реферальная комиссия (20% если юзер пришёл по рефералу)

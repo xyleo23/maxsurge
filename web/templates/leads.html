@@ -1,6 +1,58 @@
 {% extends "base.html" %}
-{% block title %} — Лиды{% endblock %}
+{% block title %} — Лиды
+<!-- Lead Card Popup -->
+<div x-show="cardOpen" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @click.self="cardOpen=false">
+  <div class="card max-w-lg w-full max-h-[80vh] overflow-y-auto">
+    <div class="card-header flex justify-between">
+      <span x-text="card.name || 'Загрузка...'"></span>
+      <button @click="cardOpen=false" class="btn-ghost">×</button>
+    </div>
+    <div class="p-4 space-y-2 text-sm">
+      <template x-if="card.id">
+        <div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><span style="color:var(--text-muted)" class="text-xs">Телефон:</span><div x-text="card.phone||'—'"></div></div>
+            <div><span style="color:var(--text-muted)" class="text-xs">Город:</span><div x-text="card.city||'—'"></div></div>
+            <div><span style="color:var(--text-muted)" class="text-xs">Адрес:</span><div x-text="card.address||'—'"></div></div>
+            <div><span style="color:var(--text-muted)" class="text-xs">Сайт:</span><div x-text="card.website||'—'"></div></div>
+            <div><span style="color:var(--text-muted)" class="text-xs">Категории:</span><div x-text="card.categories||'—'"></div></div>
+            <div><span style="color:var(--text-muted)" class="text-xs">MAX ID:</span><div x-text="card.max_user_id||'—'"></div></div>
+            <div><span style="color:var(--text-muted)" class="text-xs">Статус:</span><div x-text="card.status"></div></div>
+            <div><span style="color:var(--text-muted)" class="text-xs">Создан:</span><div x-text="card.created_at||'—'"></div></div>
+          </div>
+          <template x-if="card.comment">
+            <div class="mt-2 p-2 rounded text-xs" style="background:var(--bg-card-alt);color:var(--text-muted)"><b>Комментарий:</b> <span x-text="card.comment"></span></div>
+          </template>
+          <template x-if="card.send_history && card.send_history.length">
+            <div class="mt-3">
+              <div class="text-xs font-semibold mb-1" style="color:var(--text-muted)">История отправок</div>
+              <template x-for="h in card.send_history">
+                <div class="text-xs py-1" style="border-top:1px solid var(--border)">
+                  <span x-text="h.date" style="color:var(--text-muted)"></span>
+                  <span :style="h.status==='sent'?'color:#10b981':'color:#ef4444'" x-text="h.status"></span>
+                  <span style="color:var(--text-muted)" x-text="h.text"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </template>
+      <template x-if="cardErr"><div style="color:#ef4444" x-text="cardErr"></div></template>
+    </div>
+  </div>
+</div>
+<script>
+function openCard(id){
+  this.cardOpen=true;this.card={};this.cardErr='';
+  fetch('/app/leads/'+id+'/card').then(r=>r.json()).then(d=>{
+    if(d.error){this.cardErr=d.error}else{this.card=d}
+  }).catch(e=>{this.cardErr='Ошибка: '+e});
+}
+</script>
+</div>
+{% endblock %}
 {% block content %}
+<div x-data="{cardOpen:false,card:{},cardErr:''}">
 <div class="flex items-center justify-between mb-6">
   <div>
     <h1 class="text-2xl font-bold text-[color:var(--text-primary)]">Лиды <span class="text-[color:var(--text-muted)] text-lg font-normal">({{ total }})</span></h1>
@@ -12,6 +64,7 @@
       <button type="submit" class="btn-ghost text-xs">📥 Импорт</button>
     </form>
     <a href="/app/csv/export/leads" class="btn-ghost text-xs">📤 Экспорт CSV</a>
+      <a href="/app/leads/duplicates" class="btn-ghost text-xs">🔍 Дубли</a>
   </div>
 </div>
 
@@ -55,7 +108,7 @@
     <tbody>
       {% for lead in leads %}
       <tr>
-        <td class="font-medium text-[color:var(--text-primary)] max-w-[200px] truncate">{{ lead.name }}</td>
+        <td class="font-medium max-w-[200px] truncate"><a href="#" @click.prevent="openCard({{ lead.id }})" class="text-indigo-400 hover:text-indigo-300 cursor-pointer">{{ lead.name }}</a></td>
         <td class="text-xs">{{ lead.city or '—' }}</td>
         <td class="font-mono text-xs">{{ lead.phone or '—' }}</td>
         <td class="text-xs"><span class="badge badge-blue">{{ lead.categories or '—' }}</span></td>

@@ -67,6 +67,11 @@ async def _notify_owner(bot: MaxBot, text: str):
     # Использует персональный бот пользователя если подключён,
     # а notify_user_async проверит префс notify_on_lead
     notify_user_async(bot.owner_id, text, pref_field="notify_on_lead")
+    try:
+        from max_client.webhook_sender import webhook_async
+        webhook_async(bot.owner_id, "lead.created", {"bot": bot.name, "text": text[:500]})
+    except Exception:
+        pass
 
 
 # ── Обработчики типов ────────────────────

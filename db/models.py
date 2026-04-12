@@ -277,6 +277,7 @@ class SiteUser(Base):
     notify_on_lead: Mapped[bool] = mapped_column(Boolean, default=True)
     notify_on_payment: Mapped[bool] = mapped_column(Boolean, default=True)
     notify_on_task_done: Mapped[bool] = mapped_column(Boolean, default=True)
+    webhook_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     tg_chat_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
 

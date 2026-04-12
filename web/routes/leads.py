@@ -124,3 +124,91 @@ async def export_csv(request: Request):
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=leads.csv"},
     )
+
+
+@router.get("/{lead_id}/card")
+async def lead_card(lead_id: int, request: Request):
+    """JSON карточка лида + история отправок для popup."""
+    from fastapi.responses import JSONResponse
+    from db.models import SendLog
+    user = await get_request_user(request)
+    async with async_session_factory() as session:
+        lead = await _get_lead_if_owned(session, lead_id, user)
+        if not lead:
+            return JSONResponse({"error": "not found"}, status_code=404)
+        logs_q = select(SendLog).where(SendLog.lead_id == lead_id).order_by(SendLog.sent_at.desc()).limit(20)
+        logs = (await session.execute(logs_q)).scalars().all()
+
+    return JSONResponse({
+        "id": lead.id,
+        "name": lead.name,
+        "phone": lead.phone,
+        "email": getattr(lead, "email", None),
+        "city": lead.city,
+        "address": lead.address,
+        "website": lead.website,
+        "categories": lead.categories,
+        "status": lead.status.value if lead.status else "new",
+        "max_user_id": lead.max_user_id,
+        "max_username": lead.max_username,
+        "created_at": lead.created_at.strftime("%Y-%m-%d %H:%M") if lead.created_at else None,
+        "comment": lead.admin_comment,
+        "send_history": [
+            {
+                "date": l.sent_at.strftime("%Y-%m-%d %H:%M") if l.sent_at else None,
+                "status": l.status,
+                "text": (l.outgoing_text or "")[:200],
+                "account_id": l.account_id,
+            } for l in logs
+        ],
+    })
+
+
+@router.get("/duplicates", response_class=HTMLResponse)
+async def duplicates_page(request: Request):
+    """Поиск дублей по телефону."""
+    user = await get_request_user(request)
+    async with async_session_factory() as session:
+        # Дубли по телефону (>1 записи с одним phone)
+        from sqlalchemy import func
+        q = scope_query(
+            select(Lead.phone, func.count(Lead.id).label("cnt")).where(Lead.phone.isnot(None), Lead.phone != ""),
+            Lead, user,
+        ).group_by(Lead.phone).having(func.count(Lead.id) > 1).order_by(func.count(Lead.id).desc()).limit(100)
+        dups = (await session.execute(q)).all()
+
+        # Для каждого дуб-телефона — список лидов
+        dup_groups = []
+        for row in dups:
+            phone, cnt = row[0], row[1]
+            leads_q = scope_query(select(Lead), Lead, user).where(Lead.phone == phone).order_by(Lead.created_at)
+            leads = (await session.execute(leads_q)).scalars().all()
+            dup_groups.append({"phone": phone, "count": cnt, "leads": leads})
+
+    return templates.TemplateResponse(
+        request=request,
+        name="leads_duplicates.html",
+        context={"dup_groups": dup_groups, "total_dups": sum(d["count"] for d in dup_groups)},
+    )
+
+
+@router.post("/merge")
+async def merge_leads(request: Request, keep_id: int = Form(...), delete_ids: str = Form("")):
+    """Merge: оставить keep_id, удалить остальные."""
+    user = await get_request_user(request)
+    del_ids = [int(x.strip()) for x in delete_ids.split(",") if x.strip().isdigit()]
+    deleted = 0
+    async with async_session_factory() as session:
+        # Verify ownership
+        keep = await _get_lead_if_owned(session, keep_id, user)
+        if not keep:
+            return RedirectResponse("/app/leads/duplicates?msg=Нет+доступа", status_code=303)
+        for did in del_ids:
+            if did == keep_id:
+                continue
+            lead = await _get_lead_if_owned(session, did, user)
+            if lead:
+                await session.delete(lead)
+                deleted += 1
+        await session.commit()
+    return RedirectResponse(f"/app/leads/duplicates?msg=Удалено+{deleted}+дублей", status_code=303)

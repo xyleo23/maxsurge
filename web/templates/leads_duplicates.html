@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %} — Дубли лидов{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Дубли лидов</h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Найдено {{ dup_groups|length }} групп ({{ total_dups }} записей с повторяющимися телефонами)</p>
+  </div>
+  <a href="/app/leads/" class="btn-ghost">← Назад к лидам</a>
+</div>
+
+{% if dup_groups %}
+{% for g in dup_groups %}
+<div class="card mb-4">
+  <div class="card-header">📞 {{ g.phone }} — {{ g.count }} записей</div>
+  <form method="post" action="/app/leads/merge">
+    <table class="w-full text-sm">
+      <thead><tr style="color:var(--text-muted)"><th class="py-2 w-8"></th><th class="text-left">ID</th><th class="text-left">Название</th><th class="text-left">Город</th><th class="text-left">Статус</th><th class="text-left">Создан</th></tr></thead>
+      <tbody>
+        {% for l in g.leads %}
+        <tr style="border-top:1px solid var(--border)">
+          <td class="py-2"><input type="radio" name="keep_id" value="{{ l.id }}" {% if loop.first %}checked{% endif %}></td>
+          <td>#{{ l.id }}</td>
+          <td style="color:var(--text-primary)">{{ l.name }}</td>
+          <td class="text-xs">{{ l.city or "—" }}</td>
+          <td class="text-xs">{{ l.status.value if l.status else "?" }}</td>
+          <td class="text-xs">{{ l.created_at.strftime("%d.%m %H:%M") if l.created_at else "?" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <input type="hidden" name="delete_ids" value="{{ g.leads|map(attribute='id')|join(',') }}">
+    <div class="p-3 flex justify-end">
+      <button type="submit" class="btn-ghost text-xs" style="color:#ef4444">Оставить выбранного, удалить остальных</button>
+    </div>
+  </form>
+</div>
+{% endfor %}
+{% else %}
+<div class="card p-8 text-center" style="color:var(--text-muted)">Дублей не найдено.</div>
+{% endif %}
+{% endblock %}

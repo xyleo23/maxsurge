@@ -81,3 +81,18 @@ async def parse_messages_route(
         parse_by_messages_phones(phones, ids, owner_id=user.id if user else None, max_messages=max_messages)
     )
     return RedirectResponse('/app/parser/?msg=Парсинг+по+сообщениям+запущен', status_code=303)
+
+
+@router.get("/export-ids")
+async def export_ids(request: Request, chat_id: int = 0):
+    """Экспорт max_user_id для вставки в инвайтинг."""
+    from fastapi.responses import PlainTextResponse
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        q = scope_query(select(ParsedUser.max_user_id), ParsedUser, user).where(ParsedUser.max_user_id.isnot(None))
+        if chat_id:
+            q = q.where(ParsedUser.source_chat_id == chat_id)
+        q = q.distinct()
+        ids = (await s.execute(q)).scalars().all()
+    text = chr(10).join(str(uid) for uid in ids)
+    return PlainTextResponse(text, headers={"Content-Disposition": f"attachment; filename=user_ids_{len(ids)}.txt"})

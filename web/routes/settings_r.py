@@ -50,6 +50,7 @@ async def save_ai_settings(
     ai_api_url: str = Form(""),
     ai_api_key: str = Form(""),
     ai_model: str = Form(""),
+    webhook_url: str = Form(""),
 ):
     user = await get_current_user(request)
     if not user:
@@ -63,6 +64,7 @@ async def save_ai_settings(
             if ai_api_key and not ai_api_key.startswith("***"):
                 db_user.ai_api_key = ai_api_key.strip() or None
             db_user.ai_model = ai_model.strip() or None
+            db_user.webhook_url = webhook_url.strip() or None
             await s.commit()
 
     return RedirectResponse("/app/settings/?msg=Настройки+AI+сохранены", status_code=303)
