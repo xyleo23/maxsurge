@@ -11,6 +11,7 @@ from max_client.account import account_manager
 from vkmax.functions.groups import get_group_members, join_group_by_link, resolve_group_by_link
 from vkmax.functions.channels import join_channel, resolve_channel_username
 from vkmax.functions.users import resolve_users
+from max_client.webhook_dispatcher import dispatch_webhook
 
 _parse_status: dict = {"running": False, "parsed": 0, "chats_done": 0, "total_chats": 0, "log": []}
 
@@ -199,6 +200,16 @@ async def parse_chat(chat_id: int, chat_name: str = "", phone: str | None = None
 
     _parse_status["parsed"] += saved
     _parse_status["log"].append(f"[PARSE] {chat_name or chat_id}: {saved} новых из {len(members)}")
+
+    # Webhook: lead_collected (парсинг участников)
+    if saved > 0:
+        asyncio.create_task(dispatch_webhook(0, "lead_collected", {
+            "source": "chat_members",
+            "chat_id": chat_id,
+            "chat_name": chat_name,
+            "new_leads": saved,
+            "total_members": len(members),
+        }))
     return saved
 
 
@@ -313,6 +324,16 @@ async def parse_users_from_messages(
     _parse_status["log"].append(
         f"[MSG-PARSE] {chat_name or chat_id}: {saved} новых авторов (обработано {fetched} сообщений, уникальных {len(seen_senders)})"
     )
+
+    # Webhook: lead_collected (парсинг по сообщениям)
+    if saved > 0 and owner_id:
+        asyncio.create_task(dispatch_webhook(owner_id, "lead_collected", {
+            "source": "message_history",
+            "chat_id": chat_id,
+            "chat_name": chat_name,
+            "new_leads": saved,
+            "messages_processed": fetched,
+        }))
     return saved
 
 

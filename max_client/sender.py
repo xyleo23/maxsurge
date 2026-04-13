@@ -11,6 +11,7 @@ from max_client.account import account_manager
 from max_client.spintax import render_template_with_spintax
 from vkmax.functions.messages import send_message
 from config import get_settings
+from max_client.webhook_dispatcher import dispatch_webhook
 
 settings = get_settings()
 
@@ -92,6 +93,8 @@ async def run_broadcast(
                 targets.append({"id": lead.max_user_id, "name": lead.name, "type": "user", "lead": lead, "lead_id": lead.id})
 
         user_owner_id = 0  # will be set from account owner
+        if active_pairs:
+            user_owner_id = active_pairs[0][0].owner_id or 0
         _broadcast_status["total"] = len(targets)
         if not targets:
             _broadcast_status["log"].append("Нет целей для рассылки")
@@ -158,6 +161,16 @@ async def run_broadcast(
                 _broadcast_status["sent"] += 1
                 _broadcast_status["log"].append(f"[OK] {target['name']} ({target['type']}:{target['id']})")
 
+                # Webhook: message_sent
+                if user_owner_id:
+                    asyncio.create_task(dispatch_webhook(user_owner_id, "message_sent", {
+                        "target_id": str(target["id"]),
+                        "target_name": target["name"],
+                        "target_type": target["type"],
+                        "template_id": _active_tmpl_id,
+                        "account_id": acc.id,
+                    }))
+
                 async with async_session_factory() as session:
                     if target.get("lead_id"):
                         db_lead = await session.get(Lead, target["lead_id"])
@@ -183,6 +196,12 @@ async def run_broadcast(
                     await session.commit()
                 if "block" in err.lower() or "spam" in err.lower():
                     await account_manager.mark_blocked(acc.phone)
+                    if user_owner_id:
+                        asyncio.create_task(dispatch_webhook(user_owner_id, "account_blocked", {
+                            "phone": acc.phone,
+                            "account_id": acc.id,
+                            "reason": err[:200],
+                        }))
 
             delay = random.uniform(settings.SEND_DELAY_SEC * 0.8, settings.SEND_DELAY_SEC * 1.2)
             await asyncio.sleep(delay)
@@ -191,6 +210,15 @@ async def run_broadcast(
         _broadcast_status["log"].append(f"КРИТИЧЕСКАЯ ОШИБКА: {e}")
     finally:
         _broadcast_status["running"] = False
+        # Webhook: campaign_completed
+        if user_owner_id:
+            asyncio.create_task(dispatch_webhook(user_owner_id, "campaign_completed", {
+                "sent": _broadcast_status["sent"],
+                "failed": _broadcast_status["failed"],
+                "total": _broadcast_status["total"],
+                "template_id": template_id,
+                "target_type": target_type,
+            }))
 
 
 def start_broadcast_background(template_id: int, limit: int, dry_run: bool,

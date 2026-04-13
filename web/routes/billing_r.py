@@ -1,3 +1,4 @@
+import asyncio
 """Биллинг через ЮKassa: выбор тарифа, создание платежа, webhook."""
 import uuid
 from datetime import datetime, timedelta
@@ -16,6 +17,7 @@ from max_client.invoice import generate_invoice_pdf
 from max_client.tg_notifier import on_payment_success, on_payment_created
 from db.models import Payment, PaymentStatus, SiteUser, UserPlan, RefCommission, async_session_factory
 from web.routes.auth_r import get_current_user
+from max_client.webhook_dispatcher import dispatch_webhook
 
 router = APIRouter(prefix="/billing")
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
@@ -199,6 +201,12 @@ async def webhook(request: Request):
                 from max_client.tg_notifier import notify_user_async
                 from max_client.webhook_sender import webhook_async
                 webhook_async(user.id, "payment.succeeded", {"plan": payment.plan.value, "amount": payment.amount})
+                asyncio.create_task(dispatch_webhook(user.id, "payment_success", {
+                    "plan": payment.plan.value,
+                    "amount": payment.amount,
+                    "payment_id": payment.yk_payment_id,
+                    "email": user.email,
+                }))
                 notify_user_async(user.id, "\U0001f4b0 <b>\u041f\u043b\u0430\u0442\u0451\u0436 \u0443\u0441\u043f\u0435\u0448\u0435\u043d</b>\n\n\u0422\u0430\u0440\u0438\u0444: <b>" + payment.plan.value + "</b>\n\u0421\u0443\u043c\u043c\u0430: <b>" + str(payment.amount) + "\u20bd</b>", pref_field="notify_on_payment")
 
                 # Реферальная комиссия (20% если юзер пришёл по рефералу)
