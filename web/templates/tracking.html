@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %} — Click Tracking{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Click Tracking</h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-0.5">Короткие ссылки с подсчётом кликов. Вставляйте в шаблоны для отслеживания CTR.</p>
+  </div>
+</div>
+{% if msg %}<div class="card mb-4" style="border-left:3px solid #10b981">{{ msg }}</div>{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="card">
+    <div class="card-header">Создать ссылку</div>
+    <form method="post" action="/app/tracking/create" class="p-4 space-y-3">
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Целевой URL</label>
+        <input type="url" name="target_url" required class="input w-full font-mono text-xs" placeholder="https://yoursite.com/landing">
+      </div>
+      <div>
+        <label class="text-xs" style="color:var(--text-muted)">Кампания (опц.)</label>
+        <input name="campaign_name" class="input w-full" placeholder="Рассылка апрель">
+      </div>
+      <button type="submit" class="btn-primary w-full">Создать</button>
+    </form>
+  </div>
+
+  <div class="lg:col-span-2 card">
+    <div class="card-header">Все ссылки</div>
+    {% if tracks %}
+    <table class="w-full text-sm">
+      <thead><tr style="color:var(--text-muted)"><th class="text-left py-2">Ссылка</th><th class="text-left">Кампания</th><th class="text-right">Клики</th><th class="text-right">Уник.</th><th class="text-right">Создана</th><th></th></tr></thead>
+      <tbody>
+        {% for t in tracks %}
+        <tr style="border-top:1px solid var(--border)">
+          <td class="py-2">
+            <div class="font-mono text-xs text-indigo-400 cursor-pointer" onclick="navigator.clipboard.writeText('https://maxsurge.ru/go/{{ t.short_code }}'); this.textContent='✓ copied'" title="Нажмите чтобы скопировать">maxsurge.ru/go/{{ t.short_code }}</div>
+            <div class="text-xs truncate max-w-[200px]" style="color:var(--text-muted)">→ {{ t.target_url }}</div>
+          </td>
+          <td class="text-xs">{{ t.campaign_name or "—" }}</td>
+          <td class="text-right font-bold" style="color:var(--text-primary)">{{ t.clicks }}</td>
+          <td class="text-right text-xs" style="color:var(--text-muted)">{{ t.unique_ips.split(',')|select|list|length if t.unique_ips else 0 }}</td>
+          <td class="text-right text-xs" style="color:var(--text-muted)">{{ t.created_at.strftime("%d.%m") }}</td>
+          <td><form method="post" action="/app/tracking/{{ t.id }}/delete" class="inline"><button class="text-xs" style="color:#ef4444">×</button></form></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="p-4" style="color:var(--text-muted)">Пока нет ссылок. Создайте первую.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

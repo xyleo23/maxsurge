@@ -593,3 +593,36 @@ class Blacklist(Base):
     type: Mapped[str] = mapped_column(String(16), default="phone")  # phone / user_id / email
     reason: Mapped[str | None] = mapped_column(String(256), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Кампании рассылки ────────────────────────────────
+class BroadcastCampaign(Base):
+    __tablename__ = "broadcast_campaigns"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+    name: Mapped[str] = mapped_column(String(256))
+    template_id: Mapped[int] = mapped_column(Integer, ForeignKey("templates.id"))
+    template_b_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    target_type: Mapped[str] = mapped_column(String(16), default="users")
+    limit: Mapped[int] = mapped_column(Integer, default=50)
+    typing_emulation: Mapped[bool] = mapped_column(Boolean, default=True)
+    cron_expression: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    last_run_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    total_runs: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+# ── Click tracking ────────────────────────────────────
+class ClickTrack(Base):
+    __tablename__ = "click_tracks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int] = mapped_column(Integer, ForeignKey("site_users.id"), index=True)
+    short_code: Mapped[str] = mapped_column(String(16), unique=True, index=True)
+    target_url: Mapped[str] = mapped_column(Text)
+    campaign_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    clicks: Mapped[int] = mapped_column(Integer, default=0)
+    unique_ips: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

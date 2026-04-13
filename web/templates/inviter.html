@@ -9,7 +9,36 @@
       <label class="text-gray-400 text-xs mb-1 block">Ссылка на чат (куда приглашаем)</label>
       <input name="chat_link" class="form-input mb-3" placeholder="https://max.ru/join/XXXX"/>
       <label class="text-gray-400 text-xs mb-1 block">ID пользователей (по одному на строку)</label>
-      <textarea name="user_ids_text" rows="6" class="form-input mb-3 font-mono text-xs" placeholder="123456789&#10;987654321&#10;..."></textarea>
+      <textarea name="user_ids_text" rows="6" class="form-input mb-3 font-mono text-xs" id="user_ids_text" placeholder="123456789&#10;987654321&#10;..."></textarea>
+      <div class="flex items-center gap-2 mb-3">
+        <label class="btn-ghost text-xs cursor-pointer" style="border:1px solid var(--border);padding:4px 12px;border-radius:6px">
+          📂 Загрузить из файла
+          <input type="file" accept=".txt,.csv" class="hidden" onchange="loadIds(this)">
+        </label>
+        <a href="/app/parser/export-ids" class="btn-ghost text-xs">📥 Экспорт из парсера</a>
+        <span id="id_count" class="text-xs" style="color:var(--text-muted)"></span>
+      </div>
+      <script>
+      function loadIds(inp){
+        var f=inp.files[0]; if(!f)return;
+        var r=new FileReader();
+        r.onload=function(){
+          var txt=r.result.trim();
+          var ta=document.getElementById("user_ids_text");
+          ta.value=(ta.value?ta.value+"
+":"")+txt;
+          var ids=ta.value.trim().split(/
+/).filter(x=>x.trim().match(/^\d+$/));
+          document.getElementById("id_count").textContent=ids.length+" ID";
+        };
+        r.readAsText(f);
+      }
+      document.getElementById("user_ids_text").addEventListener("input",function(){
+        var ids=this.value.trim().split(/
+/).filter(x=>x.trim().match(/^\d+$/));
+        document.getElementById("id_count").textContent=ids.length+" ID";
+      });
+      </script>
       <p class="text-xs text-gray-500 mb-3">Спарсено пользователей: {{ parsed_total }}. Экспортировать ID можно на странице сбора.</p>
       <div class="grid grid-cols-2 gap-3 mb-3">
         <div><label class="text-gray-400 text-xs mb-1 block">Размер пачки</label><input name="batch_size" type="number" value="50" class="form-input"/></div>
