@@ -252,3 +252,67 @@ async def errors_page(request: Request):
         name="admin_errors.html",
         context={"entries": entries, "total": total, "last_24h": last_24h, "top_types": top_types},
     )
+
+
+@router.post("/users/bulk-plan")
+async def bulk_plan(request: Request, user_ids: str = Form(""), plan: str = Form("trial")):
+    """Mass change plan for selected users."""
+    user = await _require_admin(request)
+    if not user:
+        return RedirectResponse("/app/admin/users", status_code=303)
+    ids = [int(x.strip()) for x in user_ids.split(",") if x.strip().isdigit()]
+    count = 0
+    async with async_session_factory() as s:
+        for uid in ids:
+            u = await s.get(SiteUser, uid)
+            if u:
+                u.plan = UserPlan(plan)
+                count += 1
+        await s.commit()
+    ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+    await log_audit(user, "bulk_plan_change", "users", None, f"{count} users -> {plan}, ids={user_ids[:200]}", ip)
+    return RedirectResponse(f"/app/admin/users?msg=Изменено+{count}+юзеров+на+{plan}", status_code=303)
+
+
+@router.get("/users/export-csv")
+async def export_users_csv(request: Request):
+    """Export all users as CSV."""
+    user = await _require_admin(request)
+    if not user:
+        return RedirectResponse("/app/admin/users", status_code=303)
+    import csv, io
+    from fastapi.responses import StreamingResponse
+    async with async_session_factory() as s:
+        users = (await s.execute(select(SiteUser).order_by(SiteUser.created_at.desc()))).scalars().all()
+    def gen():
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(["id","email","name","plan","is_active","is_superadmin","email_verified","created_at","last_login","plan_expires_at","ref_code","ref_balance"])
+        yield buf.getvalue()
+        for u in users:
+            buf.seek(0); buf.truncate()
+            w.writerow([u.id,u.email,u.name or "",u.plan.value,u.is_active,u.is_superadmin,u.email_verified,
+                        u.created_at.strftime("%Y-%m-%d %H:%M") if u.created_at else "",
+                        u.last_login.strftime("%Y-%m-%d %H:%M") if u.last_login else "",
+                        str(u.plan_expires_at) if u.plan_expires_at else "",
+                        u.ref_code or "",u.ref_balance])
+            yield buf.getvalue()
+    return StreamingResponse(gen(), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=users_export.csv"})
+
+
+@router.post("/users/bulk-toggle-active")
+async def bulk_toggle(request: Request, user_ids: str = Form(""), active: bool = Form(True)):
+    user = await _require_admin(request)
+    if not user:
+        return RedirectResponse("/app/admin/users", status_code=303)
+    ids = [int(x.strip()) for x in user_ids.split(",") if x.strip().isdigit()]
+    count = 0
+    async with async_session_factory() as s:
+        for uid in ids:
+            u = await s.get(SiteUser, uid)
+            if u:
+                u.is_active = active
+                count += 1
+        await s.commit()
+    action = "активированы" if active else "заблокированы"
+    return RedirectResponse(f"/app/admin/users?msg={count}+юзеров+{action}", status_code=303)

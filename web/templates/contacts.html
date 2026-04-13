@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MaxSurge — Контакты</title>
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+  <style>body{background:#0a0e1a;color:#e2e8f0}</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<header class="bg-[#0f172a] border-b border-gray-800 px-6 py-4">
+  <div class="max-w-4xl mx-auto flex items-center justify-between">
+    <a href="/" class="text-xl font-bold text-white">Max<span class="text-indigo-400">Surge</span></a>
+    <div class="flex gap-4 text-sm text-gray-400">
+      <a href="/" class="hover:text-white">Главная</a>
+      <a href="/changelog" class="hover:text-white">Changelog</a>
+      <a href="/login" class="hover:text-white">Вход</a>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1 px-6 py-16">
+  <div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold text-white mb-2">Свяжитесь с нами</h1>
+    <p class="text-gray-400 mb-8">Вопрос, предложение или баг? Напишите — ответим в Telegram или на email.</p>
+
+    {% if msg %}
+    <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-4 mb-6 text-indigo-300">{{ msg }}</div>
+    {% endif %}
+
+    <form method="post" action="/contacts/send" class="space-y-4">
+      <div>
+        <label class="text-sm text-gray-400">Имя</label>
+        <input name="name" class="w-full bg-[#0f172a] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none" placeholder="Ваше имя">
+      </div>
+      <div>
+        <label class="text-sm text-gray-400">Email (для ответа)</label>
+        <input name="email" type="email" class="w-full bg-[#0f172a] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none" placeholder="you@example.com">
+      </div>
+      <div>
+        <label class="text-sm text-gray-400">Сообщение</label>
+        <textarea name="message" rows="5" required class="w-full bg-[#0f172a] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none resize-none" placeholder="Расскажите о вашем вопросе или предложении..."></textarea>
+      </div>
+      <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-indigo-500 hover:to-purple-500 transition">Отправить</button>
+    </form>
+
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center text-sm text-gray-400">
+      <div class="bg-[#0f172a] border border-gray-800 rounded-xl p-6">
+        <div class="text-2xl mb-2">📧</div>
+        <div class="text-white font-medium">Email</div>
+        <div>support@maxsurge.ru</div>
+      </div>
+      <div class="bg-[#0f172a] border border-gray-800 rounded-xl p-6">
+        <div class="text-2xl mb-2">💬</div>
+        <div class="text-white font-medium">Telegram</div>
+        <div><a href="https://t.me/beliaevd" class="text-indigo-400 hover:text-indigo-300">@beliaevd</a></div>
+      </div>
+      <div class="bg-[#0f172a] border border-gray-800 rounded-xl p-6">
+        <div class="text-2xl mb-2">🏢</div>
+        <div class="text-white font-medium">Рабочие часы</div>
+        <div>ПН-ПТ, 09:00–18:00 МСК</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="bg-[#060912] border-t border-gray-800 py-6 text-center text-xs text-gray-500">
+  &copy; 2026 MaxSurge. Все права защищены.
+</footer>
+</body>
+</html>

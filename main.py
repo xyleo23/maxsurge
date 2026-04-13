@@ -290,6 +290,8 @@ app.add_middleware(ErrorMonitoringMiddleware)
 app.include_router(auth_router)
 app.include_router(legal_router)
 app.include_router(blog_router)
+from web.routes.contact_r import router as contact_router
+app.include_router(contact_router)
 app.include_router(api_ingest_router)
 app.include_router(tracking_router)
 app.include_router(changelog_router)

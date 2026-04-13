@@ -151,3 +151,51 @@ def send_password_reset_email(email: str, token: str) -> bool:
         "Восстановление пароля MaxSurge",
         _base_html("Восстановление пароля", content),
     )
+
+
+
+# ── Marketing email templates ────────────────────────
+def send_trial_ending_email(email: str, days_left: int, name: str | None = None) -> bool:
+    subject = f"MaxSurge: пробный период заканчивается через {days_left} д."
+    greeting = f"Привет, {name}!" if name else "Привет!"
+    body = (
+        "<h2 style='color:#1e293b;margin:0 0 16px'>" + greeting + "</h2>"
+        "<p>Ваш пробный период MaxSurge заканчивается через <strong>" + str(days_left) + " дн.</strong></p>"
+        "<p>Чтобы не потерять данные — выберите тариф:</p>"
+        "<p style='text-align:center;margin:24px 0'>"
+        "<a href='https://maxsurge.ru/app/billing/' style='background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Выбрать тариф</a>"
+        "</p>"
+        "<p style='color:#94a3b8;font-size:13px'>При оплате от 3000₽ — бонусные дни бесплатно.</p>"
+    )
+    return _send_email(email, subject, _wrap_html(body))
+
+
+def send_upsell_email(email: str, current_plan: str, name: str | None = None) -> bool:
+    subject = "MaxSurge: откройте больше возможностей"
+    greeting = f"Привет, {name}!" if name else "Привет!"
+    body = (
+        "<h2 style='color:#1e293b;margin:0 0 16px'>" + greeting + "</h2>"
+        "<p>Вы на тарифе <strong>" + current_plan + "</strong>. С апгрейдом вы получите:</p>"
+        "<ul><li>Больше аккаунтов</li><li>Нейрочаттинг AI</li><li>Страж чата</li><li>A/B тесты</li></ul>"
+        "<p style='text-align:center;margin:24px 0'>"
+        "<a href='https://maxsurge.ru/app/billing/' style='background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Посмотреть тарифы</a>"
+        "</p>"
+    )
+    return _send_email(email, subject, _wrap_html(body))
+
+
+def send_winback_email(email: str, name: str | None = None) -> bool:
+    subject = "MaxSurge: скучаем по вам"
+    greeting = f"Привет, {name}!" if name else "Привет!"
+    body = (
+        "<h2 style='color:#1e293b;margin:0 0 16px'>" + greeting + "</h2>"
+        "<p>Мы добавили много нового:</p>"
+        "<ul><li>Нейрочаттинг — AI маркетинг в чатах</li>"
+        "<li>MAX боты — лид/бонус/саппорт</li>"
+        "<li>Страж чата — автомодерация</li>"
+        "<li>Click tracking — CTR аналитика</li></ul>"
+        "<p style='text-align:center;margin:24px 0'>"
+        "<a href='https://maxsurge.ru/app/' style='background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Вернуться</a>"
+        "</p>"
+    )
+    return _send_email(email, subject, _wrap_html(body))

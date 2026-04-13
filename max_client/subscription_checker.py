@@ -37,6 +37,39 @@ async def check_expired_subscriptions():
         if users:
             await s.commit()
             logger.info("Откатили {} истекших подписок на TRIAL", len(users))
+
+        # Trial-ending warnings (3 and 1 day before)
+        try:
+            from datetime import timedelta
+            for days in [3, 1]:
+                warning_start = now + timedelta(days=days - 1)
+                warning_end = now + timedelta(days=days)
+                expiring = (await s.execute(
+                    select(SiteUser).where(
+                        and_(
+                            SiteUser.plan_expires_at.isnot(None),
+                            SiteUser.plan_expires_at >= warning_start,
+                            SiteUser.plan_expires_at < warning_end,
+                            SiteUser.plan.notin_([UserPlan.TRIAL, UserPlan.LIFETIME]),
+                        )
+                    )
+                )).scalars().all()
+                for u in expiring:
+                    try:
+                        from max_client.email_client import send_trial_ending_email
+                        send_trial_ending_email(u.email, days, u.name)
+                    except Exception:
+                        pass
+                    try:
+                        from max_client.tg_notifier import notify_user_async
+                        notify_user_async(u.id, f"⏰ Ваш тариф {u.plan.value} истекает через {days} дн. Продлите на /app/billing/", pref_field="notify_on_payment")
+                    except Exception:
+                        pass
+                if expiring:
+                    logger.info("Предупреждение за {} дн: {} юзеров", days, len(expiring))
+        except Exception as e:
+            logger.warning("Trial warning err: {}", e)
+
         return len(users)
 
 

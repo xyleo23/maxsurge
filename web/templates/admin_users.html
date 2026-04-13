@@ -6,7 +6,10 @@
     <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Пользователи <span style="color:var(--text-muted)" class="text-lg font-normal">({{ users|length }})</span></h1>
     <p style="color:var(--text-muted)" class="text-sm mt-0.5">Управление аккаунтами пользователей</p>
   </div>
-  <a href="/app/admin/" class="btn-ghost">&larr; Админ-панель</a>
+  <div class="flex items-center gap-2">
+    <a href="/app/admin/users/export-csv" class="btn-ghost text-xs">📤 CSV</a>
+    <a href="/app/admin/" class="btn-ghost">&larr; Админ-панель</a>
+  </div>
 </div>
 
 {% if msg %}

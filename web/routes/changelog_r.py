@@ -33,6 +33,54 @@ TAG_META = {
 # ── История обновлений ───────────────────────────────────────
 CHANGELOG = [
     {
+        "date": "2026-04-12",
+        "title": "PWA, кампании, tracking, блэклист, security hardening",
+        "groups": [
+            {"tag": "new", "items": [
+                "<strong>PWA</strong> — MaxSurge теперь устанавливается как приложение на телефон (manifest + service worker).",
+                "<strong>Кампании рассылки</strong> — сохраняйте конфиги (шаблон + аудитория + A/B) и запускайте повторно одним кликом.",
+                "<strong>Click Tracking</strong> — короткие ссылки с подсчётом кликов и unique IP. Вставляйте в шаблоны для CTR.",
+                "<strong>Блэклист</strong> — исключайте номера/user_id из рассылки и инвайтинга. Bulk add.",
+                "<strong>Mass import user_id</strong> — загрузка файла со списком ID на странице инвайтинга + live counter.",
+                "<strong>Дубли лидов</strong> — поиск по телефону + merge: оставляете одного, удаляете остальных.",
+                "<strong>Контакт-карточка лида</strong> — popup при клике на имя: все данные + история отправок.",
+                "<strong>User webhook URL</strong> — задайте URL в настройках, MaxSurge будет POST-ить события (лиды, платежи).",
+                "<strong>Экспорт парсенных ID</strong> — кнопка на парсере для вставки в инвайтер.",
+                "<strong>Расписание рассылок</strong> — кнопка «Запланировать» + datetime picker. Scheduler loop 60с.",
+                "<strong>Quick-reply кнопки</strong> — inline keyboard в саппорт-боте для готовых ответов.",
+            ]},
+            {"tag": "improve", "items": [
+                "Дашборд: Chart.js графики лидов и сообщений за 14 дней.",
+                "Маркетплейс шаблонов — публикация + копирование одним кликом.",
+                "Онбординг расширен до 9 шагов, ссылка на /app/settings/ исправлена.",
+                "Бонусные дни за крупные платежи (3000/5000/10000 -> +7/14/30д).",
+                "2-уровневая реферальная программа: 20% L1 + 5% L2.",
+            ]},
+            {"tag": "security", "items": [
+                "UFW firewall: default deny, только 22/80/443 открыты снаружи.",
+                "CSRF double-submit cookie на все формы (auto-inject JS).",
+                "Security HTTP headers: HSTS, CSP, X-Frame, X-Content, Referrer, Permissions.",
+                "IP ban за brute-force: 10 fails / 10min -> 1h ban с TG алертом.",
+                "Error rate spike detector: 20 ошибок за 5мин -> TG алерт.",
+                "Admin login notify: TG + audit log при входе суперадмина.",
+                "pip-audit еженедельный CVE скан (pip 24->26, закрыты 2 CVE).",
+                "Secrets audit: проверка прав .env, gitignore, hardcoded secrets.",
+            ]},
+            {"tag": "ops", "items": [
+                "/metrics Prometheus endpoint — 15 метрик для Grafana.",
+                "/health deep checks — DB ping, disk, workers, db size.",
+                "systemd watchdog 90s + Type=notify с sdnotify.",
+                "Graceful shutdown: drain bots/guards/neurochats на SIGTERM.",
+                "journald capped 500M + logrotate weekly.",
+                "age-encrypted offsite backups (30d retention).",
+                "Docker container monitor (traefik, postgres, redis) каждые 10мин.",
+                "Error tracking DB + /app/admin/errors viewer.",
+                "Weekly report (воскресенье 07:00 UTC): users/revenue/activity/errors.",
+                "Ingest API rate-limit: 50 POST/мин + 1000 leads/ч на юзера.",
+            ]},
+        ],
+    },
+    {
         "date": "2026-04-11",
         "title": "Help Center, ROI-калькулятор, email онбординг",
         "groups": [
