@@ -439,6 +439,20 @@ for r in [dashboard_router, leads_router, accounts_router, templates_router,
 
 
 
+from fastapi.responses import FileResponse as _FR
+
+
+@app.api_route("/favicon.ico", methods=["GET", "HEAD"], include_in_schema=False)
+async def favicon():
+    return _FR("web/static/favicon.ico", media_type="image/x-icon")
+
+
+@app.get("/apple-touch-icon.png", include_in_schema=False)
+@app.get("/apple-touch-icon-precomposed.png", include_in_schema=False)
+async def apple_icon():
+    return _FR("web/static/apple-touch-icon.png", media_type="image/png")
+
+
 @app.api_route("/health", methods=["GET", "HEAD"])
 async def health():
     """Deep health check: db ping, disk, accounts, uptime."""
