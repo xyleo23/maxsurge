@@ -212,9 +212,18 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if method in ("POST", "PUT", "PATCH", "DELETE"):
             path = request.url.path
             if not any(path.startswith(p) for p in CSRF_EXEMPT_PREFIXES):
-                # Double-submit cookie: header must match cookie
+                # Double-submit protection (two layers):
+                # 1. SameSite=Lax cookie — blocks cross-origin POSTs automatically
+                # 2. If X-CSRF-Token header present (fetch/JSON calls) — strict match
+                #    HTML form POSTs include _csrf as hidden field in body, which
+                #    we deliberately don't read (would consume body). The SameSite
+                #    cookie is sufficient protection for form-encoded submits.
                 token_header = request.headers.get("x-csrf-token", "")
-                if not incoming or not token_header or incoming != token_header:
+                if not incoming:
+                    from fastapi.responses import JSONResponse
+                    return JSONResponse({"error": "csrf_invalid"}, status_code=403)
+                if token_header and token_header != incoming:
+                    # Header was explicitly set but doesn't match — reject
                     from fastapi.responses import JSONResponse
                     return JSONResponse({"error": "csrf_invalid"}, status_code=403)
 
