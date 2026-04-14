@@ -439,7 +439,7 @@ for r in [dashboard_router, leads_router, accounts_router, templates_router,
 
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health():
     """Deep health check: db ping, disk, accounts, uptime."""
     import shutil as _sh
