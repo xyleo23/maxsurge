@@ -33,6 +33,47 @@ TAG_META = {
 # ── История обновлений ───────────────────────────────────────
 CHANGELOG = [
     {
+        "date": "2026-04-15",
+        "title": "Production hardening: SMTP, Яндекс.Метрика, UptimeRobot, favicon, mobile, webhook fix",
+        "groups": [
+            {"tag": "new", "items": [
+                "<strong>SMTP через Яндекс 360</strong> — welcome, verify, reset password, onboarding серия (4 письма), upsell/winback.",
+                "<strong>Яндекс.Метрика</strong> 108545615 — webvisor, clickmap, ecommerce.",
+                "<strong>UptimeRobot</strong> — внешний uptime monitor /health, 5-мин интервал, email алерт.",
+                "<strong>Favicon</strong> — .ico (6 размеров) + apple-touch-icon для iOS home screen.",
+                "<strong>OG image 1200x630</strong> — красивое превью в соцсетях (VK, TG, FB, Twitter).",
+                "<strong>Кастомные 404/500</strong> — с градиентом в стиле лендинга.",
+                "<strong>Backup Telegram offsite</strong> — ежедневная доставка бэкапа в TG (настоящий offsite).",
+                "<strong>Яндекс.Вебмастер</strong> — домен подтверждён, sitemap.xml в индексации.",
+                "<strong>Mobile sidebar</strong> — burger menu + slide-in drawer для телефонов.",
+            ]},
+            {"tag": "fix", "items": [
+                "<strong>Критический: ЮKassa webhook</strong> — был недоступен из-за AuthMiddleware (ни один платёж не обрабатывался). Добавлен exempt.",
+                "<strong>Scheduler</strong> — использовал несуществующий TaskStatus.PENDING (ошибка каждые 60с).",
+                "<strong>CSRF</strong> — middleware не сравнивал cookie с header, только проверял наличие.",
+                "<strong>/health HEAD</strong> — возвращал 405 на HEAD запросы (ломало UptimeRobot).",
+                "<strong>email_client._wrap_html</strong> — NameError в marketing шаблонах (trial_ending, upsell, winback).",
+                "<strong>SMTP_PASS → SMTP_PASSWORD</strong> — onboarding emails не читали пароль из .env.",
+                "<strong>passlib + bcrypt</strong> — trapped error (pin bcrypt==4.0.1).",
+            ]},
+            {"tag": "security", "items": [
+                "<strong>SECRET_KEY</strong> — заменён с дефолтного на 86-символьный случайный.",
+                "<strong>ADMIN_PASSWORD</strong> — заменён на сильный + хеш в БД обновлён.",
+                "<strong>SSH</strong> — отключена парольная авторизация (только ключи).",
+                "<strong>fail2ban persistence</strong> — баны сохраняются в db/ip_bans.json, выживают рестарт.",
+                "<strong>Пароль при регистрации</strong> — минимум 8 символов + цифра + буквы.",
+            ]},
+            {"tag": "ops", "items": [
+                "<strong>SQLite WAL mode</strong> + busy_timeout 5s + synchronous=NORMAL (concurrent reads).",
+                "<strong>lifespan context manager</strong> вместо deprecated @app.on_event.",
+                "<strong>GZipMiddleware</strong> — 77% сжатия HTML (87k → 20k).",
+                "<strong>Cache-Control</strong> — static max-age 7 дней immutable, HTML no-store.",
+                "<strong>EnvironmentFile</strong> в systemd unit — .env загружается в process env.",
+                "<strong>Backup restore drill</strong> — проверено восстановление через SQLAlchemy async.",
+            ]},
+        ],
+    },
+    {
         "date": "2026-04-12",
         "title": "PWA, кампании, tracking, блэклист, security hardening",
         "groups": [

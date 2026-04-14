@@ -87,8 +87,12 @@ async def register(request: Request, email: str = Form(...), password: str = For
         )
 
     email = email.strip().lower()
-    if len(password) < 6:
-        return RedirectResponse("/register?msg=Пароль+минимум+6+символов", status_code=303)
+    if len(password) < 8:
+        return RedirectResponse("/register?msg=Пароль+минимум+8+символов", status_code=303)
+    if not any(c.isdigit() for c in password):
+        return RedirectResponse("/register?msg=Пароль+должен+содержать+хотя+бы+одну+цифру", status_code=303)
+    if not any(c.isupper() for c in password) and not any(c.islower() for c in password):
+        return RedirectResponse("/register?msg=Пароль+должен+содержать+буквы", status_code=303)
 
     async with async_session_factory() as s:
         existing = (await s.execute(
@@ -290,7 +294,7 @@ async def reset_page(request: Request, token: str = "", msg: str = ""):
 
 @router.post("/auth/reset-password")
 async def reset_password(token: str = Form(...), new_password: str = Form(...)):
-    if len(new_password) < 6:
+    if len(new_password) < 8:
         return RedirectResponse(
             f"/reset-password?token={token}&msg=Пароль+минимум+6+символов",
             status_code=303,

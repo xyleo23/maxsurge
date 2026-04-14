@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -235,6 +236,14 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
+        # Long cache for static assets (7 days, immutable)
+        path = request.url.path
+        if path.startswith("/static/") or path in ("/favicon.ico", "/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"):
+            response.headers.setdefault("Cache-Control", "public, max-age=604800, immutable")
+        elif path in ("/robots.txt", "/sitemap.xml"):
+            response.headers.setdefault("Cache-Control", "public, max-age=3600")
+        else:
+            response.headers.setdefault("Cache-Control", "no-store")
         response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
@@ -394,9 +403,15 @@ class ErrorMonitoringMiddleware(BaseHTTPMiddleware):
 
 
 # ── Auth middleware: protect /app/* ──────────────────
+AUTH_EXEMPT_PATHS = (
+    "/app/billing/webhook",  # ЮKassa signed webhook — no auth needed
+)
+
+
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        if request.url.path.startswith("/app"):
+        path = request.url.path
+        if path.startswith("/app") and not any(path.startswith(p) for p in AUTH_EXEMPT_PATHS):
             user = await get_current_user(request)
             if not user:
                 return RedirectResponse("/login", status_code=303)
@@ -404,6 +419,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(CSRFMiddleware)
 app.add_middleware(AuthMiddleware)
@@ -518,6 +534,35 @@ async def health():
     }
 
 
+
+
+
+
+# ── Custom error pages ──────────────────────────
+from fastapi.responses import HTMLResponse as _HTMLResp
+
+_ERROR_404_HTML = """<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>404 — Страница не найдена | MaxSurge</title><link rel="icon" href="/favicon.ico"><style>body{margin:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.box{text-align:center;max-width:500px}.code{font-size:120px;font-weight:900;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:20px}h1{font-size:28px;margin:0 0 16px}p{color:#94a3b8;margin:0 0 30px;line-height:1.6}a{display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600}a:hover{opacity:0.9}</style></head><body><div class="box"><div class="code">404</div><h1>Страница не найдена</h1><p>Кажется, такой страницы нет. Возможно, адрес введён неверно или страница была удалена.</p><a href="/">← На главную</a></div></body></html>"""
+
+_ERROR_500_HTML = """<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>500 — Внутренняя ошибка | MaxSurge</title><link rel="icon" href="/favicon.ico"><style>body{margin:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.box{text-align:center;max-width:500px}.code{font-size:120px;font-weight:900;background:linear-gradient(135deg,#ef4444,#f97316);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:20px}h1{font-size:28px;margin:0 0 16px}p{color:#94a3b8;margin:0 0 30px;line-height:1.6}a{display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:600}a:hover{opacity:0.9}</style></head><body><div class="box"><div class="code">500</div><h1>Что-то пошло не так</h1><p>Произошла внутренняя ошибка сервера. Мы уже получили уведомление и работаем над решением.</p><a href="/">← На главную</a></div></body></html>"""
+
+
+from fastapi.exceptions import HTTPException as _HTTPExc
+from starlette.exceptions import HTTPException as _StarletteHTTPExc
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    if request.url.path.startswith("/api/") or request.headers.get("accept", "").startswith("application/json"):
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"error": "not_found"}, status_code=404)
+    return _HTMLResp(_ERROR_404_HTML, status_code=404)
+
+
+@app.exception_handler(500)
+async def server_error_handler(request: Request, exc):
+    if request.url.path.startswith("/api/") or request.headers.get("accept", "").startswith("application/json"):
+        from fastapi.responses import JSONResponse
+        return JSONResponse({"error": "internal_server_error"}, status_code=500)
+    return _HTMLResp(_ERROR_500_HTML, status_code=500)
 
 
 @app.get("/metrics")
