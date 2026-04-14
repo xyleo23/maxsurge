@@ -38,3 +38,5 @@ Thumbs.db
 *.bak
 *.bak2
 *.tar.gz
+max_leadfinder.db-shm
+max_leadfinder.db-wal

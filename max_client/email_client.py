@@ -167,7 +167,7 @@ def send_trial_ending_email(email: str, days_left: int, name: str | None = None)
         "</p>"
         "<p style='color:#94a3b8;font-size:13px'>При оплате от 3000₽ — бонусные дни бесплатно.</p>"
     )
-    return _send_email(email, subject, _wrap_html(body))
+    return _send_email(email, subject, _base_html("MaxSurge", body))
 
 
 def send_upsell_email(email: str, current_plan: str, name: str | None = None) -> bool:
@@ -181,7 +181,7 @@ def send_upsell_email(email: str, current_plan: str, name: str | None = None) ->
         "<a href='https://maxsurge.ru/app/billing/' style='background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Посмотреть тарифы</a>"
         "</p>"
     )
-    return _send_email(email, subject, _wrap_html(body))
+    return _send_email(email, subject, _base_html("MaxSurge", body))
 
 
 def send_winback_email(email: str, name: str | None = None) -> bool:
@@ -198,4 +198,4 @@ def send_winback_email(email: str, name: str | None = None) -> bool:
         "<a href='https://maxsurge.ru/app/' style='background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Вернуться</a>"
         "</p>"
     )
-    return _send_email(email, subject, _wrap_html(body))
+    return _send_email(email, subject, _base_html("MaxSurge", body))

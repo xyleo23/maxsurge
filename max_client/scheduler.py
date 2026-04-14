@@ -20,7 +20,7 @@ async def check_scheduled_tasks():
         q = select(Task).where(
             Task.scheduled_at.isnot(None),
             Task.scheduled_at <= now,
-            Task.status == TaskStatus.PENDING,
+            Task.status == TaskStatus.DRAFT,
         )
         tasks = (await s.execute(q)).scalars().all()
 

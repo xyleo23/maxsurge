@@ -30,7 +30,7 @@ DRY_RUN = _env("SMTP_DRY_RUN", "1") == "1"
 SMTP_HOST = _env("SMTP_HOST")
 SMTP_PORT = int(_env("SMTP_PORT", "465"))
 SMTP_USER = _env("SMTP_USER")
-SMTP_PASS = _env("SMTP_PASS")
+SMTP_PASS = _env("SMTP_PASSWORD")
 SMTP_FROM = _env("SMTP_FROM", "MaxSurge <noreply@maxsurge.ru>")
 SMTP_USE_SSL = _env("SMTP_USE_SSL", "1") == "1"
 

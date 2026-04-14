@@ -75,7 +75,106 @@ logger.remove()
 logger.add(sys.stderr, level="INFO", format="<green>{time:HH:mm:ss}</green> | <level>{level: <8}</level> | {message}")
 logger.add("logs/maxsurge.log", rotation="10 MB", retention="7 days", level="DEBUG")
 
-app = FastAPI(title="MaxSurge v3.0", docs_url="/api/docs")
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(application):
+    # ── STARTUP ──
+    await init_db()
+    try:
+        await account_manager.restore_all()
+        from max_client.neurochat import restore_running as restore_neurochat
+        from max_client.bot_runner import restore_running as restore_bots
+        from max_client.guard import restore_running as restore_guards
+        asyncio.create_task(restore_neurochat())
+        asyncio.create_task(restore_bots())
+        asyncio.create_task(restore_guards())
+    except Exception as e:
+        logger.warning("Сессии: {}", e)
+    # Auto-create superadmin from .env
+    if settings.ADMIN_EMAIL:
+        async with asf() as s:
+            existing = (await s.execute(select(SiteUser).where(SiteUser.email == settings.ADMIN_EMAIL))).scalar_one_or_none()
+            if not existing:
+                admin = SiteUser(
+                    email=settings.ADMIN_EMAIL,
+                    password_hash=bcrypt_hash.using(rounds=12).hash(settings.ADMIN_PASSWORD),
+                    name="Admin",
+                    plan=UserPlan.PRO,
+                    is_superadmin=True,
+                )
+                s.add(admin)
+                await s.commit()
+                logger.info("Суперадмин создан: {}", settings.ADMIN_EMAIL)
+            elif not existing.is_superadmin:
+                existing.is_superadmin = True
+                await s.commit()
+                logger.info("Суперадмин обновлён: {}", settings.ADMIN_EMAIL)
+    asyncio.create_task(run_periodic_check(3600))
+    from max_client.onboarding import run_onboarding_loop
+    asyncio.create_task(run_onboarding_loop())
+    from max_client.health_digest import run_periodic_digest, check_health
+    asyncio.create_task(run_periodic_digest())
+    asyncio.create_task(check_health())
+    from max_client.scheduler import run_scheduler_loop
+    asyncio.create_task(run_scheduler_loop())
+    from max_client.health_digest import run_periodic_weekly as _rpw
+    asyncio.create_task(_rpw())
+
+    # systemd watchdog notifier
+    try:
+        import sdnotify, os
+        wd_usec = int(os.environ.get("WATCHDOG_USEC", "0"))
+        if wd_usec > 0:
+            _notifier = sdnotify.SystemdNotifier()
+            _notifier.notify("READY=1")
+            interval = wd_usec / 2 / 1_000_000  # seconds
+            async def _wd_loop():
+                while True:
+                    try:
+                        _notifier.notify("WATCHDOG=1")
+                    except Exception:
+                        pass
+                    await asyncio.sleep(interval)
+            asyncio.create_task(_wd_loop())
+            logger.info("[watchdog] started interval={}s", interval)
+    except Exception as e:
+        logger.warning("[watchdog] init failed: {}", e)
+
+    logger.info("MaxSurge v3.0 на {}:{}", settings.WEB_HOST, settings.WEB_PORT)
+
+    yield
+
+    # ── SHUTDOWN ──
+    logger.info("[shutdown] draining workers...")
+    try:
+        from max_client.bot_runner import get_running_ids as _b, stop_bot as _sb
+        for bid in list(_b()):
+            await _sb(bid)
+    except Exception as e:
+        logger.warning("shutdown bots err: {}", e)
+    try:
+        from max_client.neurochat import get_running_ids as _n, stop_campaign as _sn
+        for cid in list(_n()):
+            await _sn(cid)
+    except Exception as e:
+        logger.warning("shutdown neuro err: {}", e)
+    try:
+        from max_client.guard import get_running_ids as _g, stop_guard as _sg
+        for gid in list(_g()):
+            await _sg(gid)
+    except Exception as e:
+        logger.warning("shutdown guard err: {}", e)
+    try:
+        from max_client.account import account_manager as _am
+        await _am.disconnect_all()
+    except Exception:
+        pass
+    logger.info("[shutdown] done")
+
+
+app = FastAPI(title="MaxSurge v3.0", docs_url="/api/docs", lifespan=lifespan)
 from pathlib import Path as _P
 _static_dir = _P(__file__).parent / "web" / "static"
 _static_dir.mkdir(parents=True, exist_ok=True)
@@ -92,7 +191,7 @@ import secrets as _csrf_secrets
 CSRF_COOKIE = "csrf_token"
 CSRF_EXEMPT_PREFIXES = (
     "/api/v1/",           # Bearer-auth API
-    "/billing/webhook",   # ЮKassa signed webhook
+      "/app/billing/webhook",   # ЮKassa signed webhook
     "/auth/login",        # first request has no cookie yet
     "/auth/register",
     "/auth/verify",
@@ -112,15 +211,9 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if method in ("POST", "PUT", "PATCH", "DELETE"):
             path = request.url.path
             if not any(path.startswith(p) for p in CSRF_EXEMPT_PREFIXES):
-                # Check X-CSRF-Token header (set by JS fetch interceptor)
-                # OR _csrf in query string as fallback for form posts
+                # Double-submit cookie: header must match cookie
                 token_header = request.headers.get("x-csrf-token", "")
-                # Note: we do NOT read request.form() here because that
-                # consumes the body and breaks FastAPI Form() downstream.
-                # The JS auto-patches fetch() with the header, and for
-                # form submits the _csrf hidden field is in the body
-                # which we skip checking — the cookie-header check is enough.
-                if not incoming or (not token_header and not incoming):
+                if not incoming or not token_header or incoming != token_header:
                     from fastapi.responses import JSONResponse
                     return JSONResponse({"error": "csrf_invalid"}, status_code=403)
 
@@ -157,13 +250,42 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
-# ── IP ban (fail2ban-style) ──────────────────────
+# ── IP ban (fail2ban-style) with file persistence ──────────────────────
 import time as _time_mod
+import json as _ban_json
 _failed_logins: dict[str, list[float]] = {}  # ip -> [timestamps]
 _banned_ips: dict[str, float] = {}             # ip -> ban_until_ts
 _FAIL_THRESHOLD = 10
 _FAIL_WINDOW = 600     # 10 min
 _BAN_DURATION = 3600   # 1 hour
+_BAN_FILE = Path(__file__).parent / "db" / "ip_bans.json"
+
+
+def _load_bans():
+    """Load persisted bans on startup."""
+    try:
+        if _BAN_FILE.exists():
+            data = _ban_json.loads(_BAN_FILE.read_text())
+            now = _time_mod.time()
+            for ip, until in data.items():
+                if until > now:
+                    _banned_ips[ip] = until
+            logger.info("[fail2ban] restored {} active bans", len(_banned_ips))
+    except Exception as e:
+        logger.warning("[fail2ban] load error: {}", e)
+
+
+def _save_bans():
+    """Persist current bans to file."""
+    try:
+        now = _time_mod.time()
+        active = {ip: until for ip, until in _banned_ips.items() if until > now}
+        _BAN_FILE.write_text(_ban_json.dumps(active))
+    except Exception:
+        pass
+
+
+_load_bans()
 
 
 def record_auth_failure(ip: str):
@@ -174,6 +296,7 @@ def record_auth_failure(ip: str):
     if len(_failed_logins[ip]) >= _FAIL_THRESHOLD:
         _banned_ips[ip] = now + _BAN_DURATION
         _failed_logins[ip] = []
+        _save_bans()
         logger.warning("[fail2ban] IP {} banned for {}s after {} failures", ip, _BAN_DURATION, _FAIL_THRESHOLD)
         try:
             from max_client.tg_notifier import notify_async
@@ -188,6 +311,7 @@ def is_ip_banned(ip: str) -> bool:
         return True
     if until:
         del _banned_ips[ip]
+        _save_bans()
     return False
 
 
@@ -311,101 +435,8 @@ for r in [dashboard_router, leads_router, accounts_router, templates_router,
     app.include_router(r, prefix="/app")
 
 
-@app.on_event("startup")
-async def startup():
-    await init_db()
-    try:
-        await account_manager.restore_all()
-        from max_client.neurochat import restore_running as restore_neurochat
-        from max_client.bot_runner import restore_running as restore_bots
-        from max_client.guard import restore_running as restore_guards
-        asyncio.create_task(restore_neurochat())
-        asyncio.create_task(restore_bots())
-        asyncio.create_task(restore_guards())
-    except Exception as e:
-        logger.warning("Сессии: {}", e)
-    # Auto-create superadmin from .env
-    if settings.ADMIN_EMAIL:
-        async with asf() as s:
-            existing = (await s.execute(select(SiteUser).where(SiteUser.email == settings.ADMIN_EMAIL))).scalar_one_or_none()
-            if not existing:
-                admin = SiteUser(
-                    email=settings.ADMIN_EMAIL,
-                    password_hash=bcrypt_hash.using(rounds=12).hash(settings.ADMIN_PASSWORD),
-                    name="Admin",
-                    plan=UserPlan.PRO,
-                    is_superadmin=True,
-                )
-                s.add(admin)
-                await s.commit()
-                logger.info("Суперадмин создан: {}", settings.ADMIN_EMAIL)
-            elif not existing.is_superadmin:
-                existing.is_superadmin = True
-                await s.commit()
-                logger.info("Суперадмин обновлён: {}", settings.ADMIN_EMAIL)
-    asyncio.create_task(run_periodic_check(3600))
-    from max_client.onboarding import run_onboarding_loop
-    asyncio.create_task(run_onboarding_loop())
-    from max_client.health_digest import run_periodic_digest, check_health
-    asyncio.create_task(run_periodic_digest())
-    asyncio.create_task(check_health())
-    from max_client.scheduler import run_scheduler_loop
-    asyncio.create_task(run_scheduler_loop())
-    from max_client.health_digest import run_periodic_weekly as _rpw
-    asyncio.create_task(_rpw())
-
-    # systemd watchdog notifier
-    try:
-        import sdnotify, os
-        wd_usec = int(os.environ.get("WATCHDOG_USEC", "0"))
-        if wd_usec > 0:
-            _notifier = sdnotify.SystemdNotifier()
-            _notifier.notify("READY=1")
-            interval = wd_usec / 2 / 1_000_000  # seconds
-            async def _wd_loop():
-                while True:
-                    try:
-                        _notifier.notify("WATCHDOG=1")
-                    except Exception:
-                        pass
-                    await asyncio.sleep(interval)
-            asyncio.create_task(_wd_loop())
-            logger.info("[watchdog] started interval={}s", interval)
-    except Exception as e:
-        logger.warning("[watchdog] init failed: {}", e)
-
-    logger.info("MaxSurge v3.0 на {}:{}", settings.WEB_HOST, settings.WEB_PORT)
 
 
-@app.on_event("shutdown")
-async def graceful_shutdown():
-    """Drain background workers on SIGTERM."""
-    logger.info("[shutdown] draining workers...")
-    import asyncio as _a
-    try:
-        from max_client.bot_runner import get_running_ids as _b, stop_bot as _sb
-        for bid in list(_b()):
-            await _sb(bid)
-    except Exception as e:
-        logger.warning("shutdown bots err: {}", e)
-    try:
-        from max_client.neurochat import get_running_ids as _n, stop_campaign as _sn
-        for cid in list(_n()):
-            await _sn(cid)
-    except Exception as e:
-        logger.warning("shutdown neuro err: {}", e)
-    try:
-        from max_client.guard import get_running_ids as _g, stop_guard as _sg
-        for gid in list(_g()):
-            await _sg(gid)
-    except Exception as e:
-        logger.warning("shutdown guard err: {}", e)
-    try:
-        from max_client.account import account_manager
-        await account_manager.disconnect_all()
-    except Exception:
-        pass
-    logger.info("[shutdown] done")
 
 
 @app.get("/health")
