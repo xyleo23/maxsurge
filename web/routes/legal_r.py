@@ -261,6 +261,7 @@ async def sitemap():
   <url><loc>https://maxsurge.ru/contacts</loc><priority>0.5</priority></url>
   <url><loc>https://maxsurge.ru/about</loc><priority>0.7</priority></url>
   <url><loc>https://maxsurge.ru/blog/</loc><priority>0.8</priority></url>
+  <url><loc>https://maxsurge.ru/blog/automated-messaging-max-2026</loc><priority>0.7</priority></url>
   <url><loc>https://maxsurge.ru/blog/messenger-max-business-guide-2026</loc><priority>0.7</priority></url>
   <url><loc>https://maxsurge.ru/blog/lead-generation-crm-small-business</loc><priority>0.7</priority></url>
   <url><loc>https://maxsurge.ru/blog/2gis-parser-how-to</loc><priority>0.7</priority></url>

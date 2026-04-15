@@ -78,7 +78,7 @@
   <div class="px-5 py-4 border-b border-[var(--border)]">
     <h2 class="font-semibold text-[color:var(--text-primary)]">Аккаунты ({{ accounts|length }})</h2>
   </div>
-  <table>
+  <div class="overflow-x-auto -mx-4 md:mx-0"><table>
     <thead><tr>
       <th>Телефон</th><th>Имя</th><th>MAX ID</th><th>Статус</th><th>Отправлено сегодня</th><th>Всего</th><th>Последняя активность</th><th></th>
     </tr></thead>
@@ -112,6 +112,6 @@
       <tr><td colspan="8" class="text-center text-gray-500 py-10">Аккаунты не добавлены</td></tr>
       {% endfor %}
     </tbody>
-  </table>
+  </table></div>
 </div>
 {% endblock %}

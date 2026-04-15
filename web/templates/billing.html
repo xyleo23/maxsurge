@@ -178,7 +178,7 @@
 <div class="card">
   <div class="card-header">История платежей</div>
   {% if payments %}
-  <table>
+  <div class="overflow-x-auto -mx-4 md:mx-0"><table>
     <thead>
       <tr><th>Дата</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>ЮKassa ID</th><th class="text-right"></th></tr>
     </thead>
@@ -209,7 +209,7 @@
       </tr>
       {% endfor %}
     </tbody>
-  </table>
+  </table></div>
   {% else %}
   <p class="text-sm" style="color:var(--text-muted)">Платежей ещё не было. Выберите тариф выше.</p>
   {% endif %}
