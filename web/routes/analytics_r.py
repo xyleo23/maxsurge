@@ -71,8 +71,9 @@ async def analytics_page(request: Request):
     })
 
 @router.get("/data")
-async def analytics_data():
+async def analytics_data(request: Request):
     """JSON API для графиков."""
+    user = await get_request_user(request)
     month_ago = datetime.utcnow() - timedelta(days=30)
     async with async_session_factory() as s:
         daily = (await s.execute(
