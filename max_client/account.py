@@ -7,6 +7,44 @@ from loguru import logger
 from sqlalchemy import select
 
 from db.models import MaxAccount, AccountStatus, async_session_factory
+
+# ── vkmax WebSocket fix: MAX server requires Origin + User-Agent headers ──
+# Without these headers the server rejects the WebSocket handshake with HTTP 403.
+# Patch vkmax.client.MaxClient.connect to always pass them.
+import websockets as _ws
+import vkmax.client as _vkmax_client
+
+_WS_HEADERS = {
+    "Origin": "https://web.max.ru",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+}
+
+
+async def _patched_connect(self):
+    """Connect to MAX WebSocket with required headers and optional proxy.
+
+    MAX rejects WS handshake with HTTP 403 if Origin header is missing.
+    MAX also blocks authorization requests from datacenter IPs — use a
+    residential proxy via MAX_PROXY_URL env var (socks5:// or http://).
+    """
+    import os
+    if self._connection:
+        raise Exception("Already connected")
+    proxy_url = os.getenv("MAX_PROXY_URL", "").strip() or None
+    kwargs = {"additional_headers": _WS_HEADERS}
+    if proxy_url:
+        kwargs["proxy"] = proxy_url
+        logger.info("[vkmax] connecting via proxy {}", proxy_url)
+    else:
+        logger.debug("[vkmax] connecting directly (no MAX_PROXY_URL)")
+    self._connection = await _ws.connect(_vkmax_client.WS_HOST, **kwargs)
+    self._recv_task = asyncio.create_task(self._recv_loop())
+    logger.debug("[vkmax] connected")
+    return self._connection
+
+
+_vkmax_client.MaxClient.connect = _patched_connect
+
 from vkmax.client import MaxClient
 
 
