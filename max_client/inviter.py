@@ -9,7 +9,7 @@ from sqlalchemy import select
 
 from db.models import async_session_factory
 from max_client.account import account_manager
-from vkmax.functions.groups import invite_users
+from max_client.ops import invite_users
 
 _invite_status: dict = {"running": False, "invited": 0, "failed": 0, "total": 0, "paused": False, "log": []}
 

@@ -170,7 +170,7 @@ async def _handle_message(campaign_id: int, packet: dict):
     # Отправка
     client = runtime.get("client")
     try:
-        from vkmax.functions.messages import send_message
+        from max_client.ops import send_message
         await send_message(client, chat_id, reply)
     except Exception as e:
         logger.error("[neurochat] send_message error: {}", e)

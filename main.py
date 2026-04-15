@@ -247,7 +247,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         # Long cache for static assets (7 days, immutable)
         path = request.url.path
-        if path.startswith("/static/") or path in ("/favicon.ico", "/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"):
+        if path.startswith("/static/qr_login/"):
+            response.headers.setdefault("Cache-Control", "no-store")
+        elif path.startswith("/static/") or path in ("/favicon.ico", "/apple-touch-icon.png", "/apple-touch-icon-precomposed.png"):
             response.headers.setdefault("Cache-Control", "public, max-age=604800, immutable")
         elif path in ("/robots.txt", "/sitemap.xml"):
             response.headers.setdefault("Cache-Control", "public, max-age=3600")

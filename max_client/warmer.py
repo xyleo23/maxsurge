@@ -8,9 +8,9 @@ from sqlalchemy import select
 
 from db.models import MaxAccount, AccountStatus, WarmingLog, async_session_factory
 from max_client.account import account_manager
-from vkmax.functions.messages import send_message
-from vkmax.functions.channels import join_channel
-from vkmax.functions.profile import change_profile
+from max_client.ops import send_message
+from max_client.ops import join_channel
+from max_client.ops import change_profile
 
 _warm_status: dict = {"running": False, "actions_done": 0, "total_actions": 0, "log": []}
 

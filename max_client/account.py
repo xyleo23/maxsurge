@@ -1,99 +1,397 @@
-"""Управление MAX аккаунтами — авторизация, хранение токенов."""
-import asyncio
-from datetime import datetime
-from typing import Optional
+"""Управление MAX аккаунтами через PyMax — QR login, token import, per-account proxy.
 
+Architecture:
+- Каждому MaxAccount соответствует PyMax MaxClient с изолированной work_dir.
+- Сессия хранится в БД: (login_token, device_id) на аккаунт.
+- Прокси per-account: берётся из MaxAccount.proxy или из MAX_PROXY_URL env fallback.
+- QR login: генерирует QR, polls status, сохраняет token в БД.
+- Token import: принимает готовый token+device_id, валидирует через sync, сохраняет.
+
+Note: vkmax снят с поддержки потому что MAX отключил phone-auth через WS API (25.12.13+).
+Рабочие методы: QR auth (web.max.ru flow) и token-based restore.
+"""
+import asyncio
+import os
+import shutil
+import time
+import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Optional
+from uuid import UUID
+
+import qrcode
 from loguru import logger
 from sqlalchemy import select
 
 from db.models import MaxAccount, AccountStatus, async_session_factory
 
-# ── vkmax WebSocket fix: MAX server requires Origin + User-Agent headers ──
-# Without these headers the server rejects the WebSocket handshake with HTTP 403.
-# Patch vkmax.client.MaxClient.connect to always pass them.
-import websockets as _ws
-import vkmax.client as _vkmax_client
-
-_WS_HEADERS = {
-    "Origin": "https://web.max.ru",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-}
+from pymax import MaxClient, Opcode
+from pymax.payloads import UserAgentPayload
 
 
-async def _patched_connect(self):
-    """Connect to MAX WebSocket with required headers and optional proxy.
+# ── Константы ─────────────────────────────────────
+SESSIONS_ROOT = Path("/root/max_leadfinder/sessions_pymax")
+SESSIONS_ROOT.mkdir(parents=True, exist_ok=True)
 
-    MAX rejects WS handshake with HTTP 403 if Origin header is missing.
-    MAX also blocks authorization requests from datacenter IPs — use a
-    residential proxy via MAX_PROXY_URL env var (socks5:// or http://).
+# Минимальная версия для QR login (PyMax требование)
+MIN_APP_VERSION = "25.12.13"
+
+# Глобальный дефолтный прокси (если у аккаунта нет своего)
+DEFAULT_PROXY = os.getenv("MAX_PROXY_URL", "").strip() or None
+
+# QR login активные сессии в памяти (phone → state)
+_qr_sessions: dict[str, dict[str, Any]] = {}
+
+
+def _get_work_dir(phone: str) -> Path:
+    """Отдельная work_dir для каждого аккаунта — изоляция sqlite session.db."""
+    safe = phone.replace("+", "").replace(":", "_").replace("/", "_")
+    d = SESSIONS_ROOT / safe
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _make_user_agent(app_version: str = MIN_APP_VERSION) -> UserAgentPayload:
+    return UserAgentPayload(
+        device_type="WEB",
+        app_version=app_version,
+        os_version="macOS",
+        device_name="Chrome",
+        device_locale="ru-RU",
+        header_user_agent=(
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        ),
+        locale="ru_RU",
+        screen="1920x1080 1.0x",
+        timezone="Europe/Moscow",
+    )
+
+
+def _make_client(
+    phone: str,
+    proxy: str | None = None,
+    token: str | None = None,
+    device_id: str | None = None,
+    app_version: str = MIN_APP_VERSION,
+) -> MaxClient:
+    """Создаёт PyMax клиент с правильной конфигурацией.
+
+    :param phone: телефон аккаунта (используется как ключ)
+    :param proxy: per-account proxy URL (http:// or socks5://), fallback на DEFAULT_PROXY
+    :param token: existing login_token (для восстановления сессии)
+    :param device_id: existing device UUID (требуется вместе с token)
+    :param app_version: версия клиента (>= 25.12.13)
     """
-    import os
-    if self._connection:
-        raise Exception("Already connected")
-    proxy_url = os.getenv("MAX_PROXY_URL", "").strip() or None
-    kwargs = {"additional_headers": _WS_HEADERS}
-    if proxy_url:
-        kwargs["proxy"] = proxy_url
-        logger.info("[vkmax] connecting via proxy {}", proxy_url)
-    else:
-        logger.debug("[vkmax] connecting directly (no MAX_PROXY_URL)")
-    self._connection = await _ws.connect(_vkmax_client.WS_HOST, **kwargs)
-    self._recv_task = asyncio.create_task(self._recv_loop())
-    logger.debug("[vkmax] connected")
-    return self._connection
+    work_dir = str(_get_work_dir(phone))
+    ua = _make_user_agent(app_version)
+    effective_proxy = proxy or DEFAULT_PROXY
+
+    dev_id = None
+    if device_id:
+        try:
+            dev_id = UUID(device_id)
+        except (ValueError, TypeError):
+            logger.warning("Invalid device_id {}, generating new", device_id)
+
+    client = MaxClient(
+        phone=phone,
+        work_dir=work_dir,
+        headers=ua,
+        proxy=effective_proxy,
+        token=token,
+        device_id=dev_id,
+        reconnect=False,  # управляем reconnect сами
+    )
+    return client
 
 
-_vkmax_client.MaxClient.connect = _patched_connect
-
-from vkmax.client import MaxClient
-
-
+# ════════════════════════════════════════════════════════════════════
+#  MaxAccountManager — главный менеджер
+# ════════════════════════════════════════════════════════════════════
 class MaxAccountManager:
     """Менеджер MAX аккаунтов. Один экземпляр на приложение."""
 
     def __init__(self):
-        # phone -> (client, login_token)
-        self._clients: dict[str, tuple[MaxClient, str]] = {}
+        # phone → active PyMax client
+        self._clients: dict[str, MaxClient] = {}
 
-    # ------------------------------------------------------------------ #
-    #  Шаг 1: запросить SMS-код                                           #
-    # ------------------------------------------------------------------ #
-    async def request_sms(self, phone: str) -> str:
-        """Отправляет SMS и возвращает sms_token (хранить до verify_sms)."""
-        client = MaxClient()
-        await client.connect()
-        sms_token = await client.send_code(phone)
-        # Сохраняем client временно (ключ = phone)
-        self._clients[f"pending_{phone}"] = (client, sms_token)
-        logger.info("SMS отправлен на {}", phone)
-        return sms_token
+    # ─────────────────────────────────────────────────────────────
+    #  QR LOGIN (self-service: юзер сканирует QR с телефона)
+    # ─────────────────────────────────────────────────────────────
 
-    # ------------------------------------------------------------------ #
-    #  Шаг 2: подтвердить SMS-код → получить login_token                  #
-    # ------------------------------------------------------------------ #
-    async def verify_sms(self, phone: str, sms_code: str) -> dict:
+    async def start_qr_login(
+        self,
+        phone: str,
+        proxy: str | None = None,
+    ) -> dict[str, Any]:
         """
-        Подтверждает SMS-код. Возвращает {'login_token': ..., 'profile': ...}.
-        Сохраняет аккаунт в БД.
+        Начинает QR login flow. Создаёт клиент, запрашивает QR у MAX.
+
+        :return: {'qr_link', 'track_id', 'qr_png_path', 'expires_at', 'poll_interval'}
         """
-        pending_key = f"pending_{phone}"
-        if pending_key not in self._clients:
-            raise ValueError(f"Нет ожидающего SMS для {phone}. Сначала вызови request_sms.")
+        # Отмена старой сессии если была
+        if phone in _qr_sessions:
+            try:
+                old = _qr_sessions.pop(phone)
+                if old.get("client"):
+                    await old["client"]._ws.close()
+            except Exception:
+                pass
 
-        client, sms_token = self._clients.pop(pending_key)
+        client = _make_client(phone, proxy=proxy)
+        ua = _make_user_agent()
+        await client.connect(user_agent=ua)
+        logger.info("[qr] connected for {}", phone)
 
-        resp = await client.sign_in(sms_token, int(sms_code))
-        payload = resp.get("payload", {})
-        login_token = payload.get("tokenAttrs", {}).get("LOGIN", {}).get("token") or \
-                      payload.get("token", "")
-        profile = payload.get("profile", {})
-        profile_name = f"{profile.get('firstName', '')} {profile.get('lastName', '')}".strip()
-        max_user_id = profile.get("userId") or profile.get("id")
+        qr_data = await client._request_qr_login()
+        qr_link = qr_data["qrLink"]
+        track_id = qr_data["trackId"]
+        poll_interval = qr_data["pollingInterval"]
+        expires_at = qr_data["expiresAt"]
 
-        # Сохраняем клиент как активный
-        self._clients[phone] = (client, login_token)
+        # Генерим QR PNG
+        qr_dir = Path("/root/max_leadfinder/web/static/qr_login")
+        qr_dir.mkdir(parents=True, exist_ok=True)
+        fname = f"qr_{track_id}.png"
+        img = qrcode.make(qr_link)
+        img.save(qr_dir / fname)
 
-        # Записываем/обновляем в БД
+        _qr_sessions[phone] = {
+            "client": client,
+            "track_id": track_id,
+            "qr_link": qr_link,
+            "qr_png": f"/static/qr_login/{fname}",
+            "expires_at": expires_at,
+            "poll_interval": poll_interval,
+            "started_at": time.time(),
+            "proxy": proxy,
+            "status": "waiting",
+        }
+        logger.info("[qr] QR ready for {} (expires in {}s)", phone, int((expires_at/1000) - time.time()))
+
+        return {
+            "track_id": track_id,
+            "qr_link": qr_link,
+            "qr_png": f"/static/qr_login/{fname}",
+            "expires_at": expires_at,
+            "poll_interval": poll_interval,
+        }
+
+    async def poll_qr_login(self, phone: str) -> dict[str, Any]:
+        """
+        Проверяет статус QR login. Если подтверждён — получает токен и сохраняет в БД.
+
+        :return: {'status': 'waiting'|'confirmed'|'expired', 'profile'?, 'token'?}
+        """
+        state = _qr_sessions.get(phone)
+        if not state:
+            return {"status": "not_started"}
+
+        now_ms = time.time() * 1000
+        if now_ms >= state["expires_at"]:
+            state["status"] = "expired"
+            return {"status": "expired"}
+
+        client: MaxClient = state["client"]
+        try:
+            data = await client._send_and_wait(
+                opcode=Opcode.GET_QR_STATUS,
+                payload={"trackId": state["track_id"]},
+            )
+            payload = data.get("payload", {})
+            status = payload.get("status", {})
+
+            if status.get("loginAvailable"):
+                # Получаем финальный токен
+                login_data = await client._get_qr_login_data(state["track_id"])
+                token = login_data.get("tokenAttrs", {}).get("LOGIN", {}).get("token")
+                profile = login_data.get("profile", {})
+
+                if not token:
+                    return {"status": "error", "error": "no_token_in_response"}
+
+                profile_phone = str(profile.get("phone") or phone)
+                profile_name = f"{profile.get('firstName', '')} {profile.get('lastName', '')}".strip()
+                max_user_id = profile.get("userId") or profile.get("id")
+                device_id_str = str(client._device_id) if hasattr(client, '_device_id') and client._device_id else None
+
+                # Сохраняем в БД
+                await self._save_account(
+                    phone=profile_phone,
+                    login_token=token,
+                    device_id=device_id_str,
+                    profile_name=profile_name,
+                    max_user_id=max_user_id,
+                    proxy=state.get("proxy"),
+                )
+
+                # Сохраняем клиент как активный
+                self._clients[profile_phone] = client
+
+                # Убираем из pending
+                _qr_sessions.pop(phone, None)
+
+                logger.info("[qr] SUCCESS {} ({})", profile_phone, profile_name)
+                return {
+                    "status": "confirmed",
+                    "profile": {
+                        "phone": profile_phone,
+                        "name": profile_name,
+                        "user_id": max_user_id,
+                    },
+                }
+
+            return {"status": "waiting"}
+
+        except Exception as e:
+            logger.exception("[qr] poll error for {}: {}", phone, e)
+            return {"status": "error", "error": str(e)[:200]}
+
+    async def cancel_qr_login(self, phone: str) -> None:
+        """Отменяет активный QR login flow."""
+        state = _qr_sessions.pop(phone, None)
+        if state and state.get("client"):
+            try:
+                client = state["client"]
+                if client._ws:
+                    await client._ws.close()
+            except Exception:
+                pass
+
+    # ─────────────────────────────────────────────────────────────
+    #  TOKEN IMPORT (для купленных аккаунтов)
+    # ─────────────────────────────────────────────────────────────
+
+    async def add_by_token(
+        self,
+        phone: str,
+        login_token: str,
+        device_id: str | None = None,
+        proxy: str | None = None,
+        app_version: str = MIN_APP_VERSION,
+        owner_id: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        Импортирует аккаунт по готовому токену (куплен на marketplace).
+
+        :param phone: телефон
+        :param login_token: PyMax auth token (JWT)
+        :param device_id: UUID устройства (из session продавца)
+        :param proxy: прокси для этого аккаунта
+        :param app_version: версия клиента
+        :param owner_id: id владельца (MaxSurge юзера)
+        """
+        if not device_id:
+            # Генерим новый device_id — может работать, но есть риск что token привязан
+            device_id = str(uuid.uuid4())
+            logger.warning("add_by_token: device_id не указан, сгенерирован новый {}", device_id)
+
+        # Создаём клиент с импортированными credentials
+        client = _make_client(
+            phone=phone,
+            proxy=proxy,
+            token=login_token,
+            device_id=device_id,
+            app_version=app_version,
+        )
+
+        # Подключаемся и делаем sync для валидации токена
+        try:
+            ua = _make_user_agent(app_version)
+            await client.connect(user_agent=ua)
+            await client._sync(ua)
+
+            me = client.me
+            profile_name = f"{me.first_name or ''} {me.last_name or ''}".strip() if me else phone
+            max_user_id = me.id if me else None
+            logger.info("[token_import] valid token for {} ({})", phone, profile_name)
+        except Exception as e:
+            try:
+                if client._ws:
+                    await client._ws.close()
+            except Exception:
+                pass
+            raise ValueError(f"Token validation failed: {str(e)[:200]}")
+
+        # Сохраняем
+        await self._save_account(
+            phone=phone,
+            login_token=login_token,
+            device_id=device_id,
+            profile_name=profile_name,
+            max_user_id=max_user_id,
+            proxy=proxy,
+            owner_id=owner_id,
+            app_version=app_version,
+        )
+        self._clients[phone] = client
+
+        return {
+            "phone": phone,
+            "profile_name": profile_name,
+            "max_user_id": max_user_id,
+        }
+
+    # ─────────────────────────────────────────────────────────────
+    #  SESSION FILE IMPORT (.db файл от Max Sheiker / PyMax)
+    # ─────────────────────────────────────────────────────────────
+
+    async def add_by_session_file(
+        self,
+        phone: str,
+        session_db_bytes: bytes,
+        proxy: str | None = None,
+        owner_id: int | None = None,
+    ) -> dict[str, Any]:
+        """
+        Импортирует аккаунт из готового session.db файла.
+        Парсит файл, извлекает token+device_id, валидирует и сохраняет.
+        """
+        import tempfile
+        import sqlite3
+
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+            tmp.write(session_db_bytes)
+            tmp_path = tmp.name
+
+        try:
+            conn = sqlite3.connect(tmp_path)
+            row = conn.execute("SELECT token, device_id FROM auth LIMIT 1").fetchone()
+            conn.close()
+            if not row or not row[0]:
+                raise ValueError("Session file doesn't contain auth token")
+            login_token, device_id = row[0], str(row[1]) if row[1] else None
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except Exception:
+                pass
+
+        return await self.add_by_token(
+            phone=phone,
+            login_token=login_token,
+            device_id=device_id,
+            proxy=proxy,
+            owner_id=owner_id,
+        )
+
+    # ─────────────────────────────────────────────────────────────
+    #  SAVE / RESTORE
+    # ─────────────────────────────────────────────────────────────
+
+    async def _save_account(
+        self,
+        phone: str,
+        login_token: str,
+        device_id: str | None,
+        profile_name: str | None,
+        max_user_id: int | None,
+        proxy: str | None = None,
+        owner_id: int | None = None,
+        app_version: str = MIN_APP_VERSION,
+    ):
         async with async_session_factory() as session:
             existing = (await session.execute(
                 select(MaxAccount).where(MaxAccount.phone == phone)
@@ -101,105 +399,67 @@ class MaxAccountManager:
 
             if existing:
                 existing.login_token = login_token
-                existing.status = AccountStatus.ACTIVE
+                existing.device_id = device_id
                 existing.profile_name = profile_name
                 existing.max_user_id = max_user_id
+                existing.status = AccountStatus.ACTIVE
+                existing.app_version = app_version
+                if proxy is not None:
+                    existing.proxy = proxy
+                if owner_id is not None:
+                    existing.owner_id = owner_id
             else:
                 acc = MaxAccount(
                     phone=phone,
                     login_token=login_token,
+                    device_id=device_id,
                     profile_name=profile_name,
                     max_user_id=max_user_id,
                     status=AccountStatus.ACTIVE,
+                    proxy=proxy,
+                    owner_id=owner_id,
+                    app_version=app_version,
                 )
                 session.add(acc)
             await session.commit()
 
-        logger.info("Аккаунт {} авторизован: {} (max_id={})", phone, profile_name, max_user_id)
-        return {"login_token": login_token, "profile_name": profile_name, "max_user_id": max_user_id}
-
-# ------------------------------------------------------------------ #
-    #  Добавить аккаунт по готовому login_token (без SMS)                #
-    # ------------------------------------------------------------------ #
-    async def add_by_token(self, login_token: str, phone: str | None = None) -> dict:
-        """
-        Авторизует клиент по готовому login_token и сохраняет в БД.
-        Если phone не передан, берёт из профиля после логина.
-        """
-        client = MaxClient()
-        await client.connect()
-        resp = await client.login_by_token(login_token)
-        payload = resp.get("payload", {})
-        profile = payload.get("profile", {})
-
-        profile_phone = profile.get("phone") or phone
-        if not profile_phone:
-            raise ValueError("Не удалось получить телефон из профиля. Укажите phone вручную.")
-        profile_phone = str(profile_phone)
-
-        profile_name = f"{profile.get('firstName', '')} {profile.get('lastName', '')}".strip()
-        max_user_id = profile.get("userId") or profile.get("id")
-
-        self._clients[profile_phone] = (client, login_token)
-
-        async with async_session_factory() as session:
-            existing = (await session.execute(
-                select(MaxAccount).where(MaxAccount.phone == profile_phone)
-            )).scalar_one_or_none()
-            if existing:
-                existing.login_token = login_token
-                existing.status = AccountStatus.ACTIVE
-                existing.profile_name = profile_name
-                existing.max_user_id = max_user_id
-            else:
-                acc = MaxAccount(
-                    phone=profile_phone,
-                    login_token=login_token,
-                    profile_name=profile_name,
-                    max_user_id=max_user_id,
-                    status=AccountStatus.ACTIVE,
-                )
-                session.add(acc)
-            await session.commit()
-
-        logger.info("Аккаунт {} добавлен по токену: {} (max_id={})", profile_phone, profile_name, max_user_id)
-        return {"phone": profile_phone, "profile_name": profile_name, "max_user_id": max_user_id}
-
-    # ------------------------------------------------------------------ #
-    #  Восстановить сессию по сохранённому токену                         #
-    # ------------------------------------------------------------------ #
-    async def restore_session(self, phone: str, login_token: str) -> MaxClient | None:
-        """Восстанавливает сессию из сохранённого login_token."""
+    async def restore_session(self, phone: str) -> MaxClient | None:
+        """Восстанавливает клиент из БД записи."""
         if phone in self._clients:
-            return self._clients[phone][0]
-        try:
-            client = MaxClient()
-            await client.connect()
-            await client.login_by_token(login_token)
-            self._clients[phone] = (client, login_token)
-            logger.info("Сессия {} восстановлена", phone)
-            return client
-        except Exception as e:
-            logger.warning("Не удалось восстановить сессию {}: {}", phone, e)
-            return None
+            return self._clients[phone]
 
-    # ------------------------------------------------------------------ #
-    #  Получить активный клиент                                           #
-    # ------------------------------------------------------------------ #
-    async def get_client(self, phone: str) -> MaxClient | None:
-        if phone in self._clients:
-            return self._clients[phone][0]
-        # Попробуем восстановить из БД
         async with async_session_factory() as session:
             acc = (await session.execute(
                 select(MaxAccount).where(MaxAccount.phone == phone)
             )).scalar_one_or_none()
-        if acc and acc.login_token:
-            return await self.restore_session(phone, acc.login_token)
-        return None
+
+        if not acc or not acc.login_token:
+            return None
+
+        try:
+            client = _make_client(
+                phone=phone,
+                proxy=acc.proxy,
+                token=acc.login_token,
+                device_id=acc.device_id,
+                app_version=acc.app_version or MIN_APP_VERSION,
+            )
+            ua = _make_user_agent(acc.app_version or MIN_APP_VERSION)
+            await client.connect(user_agent=ua)
+            await client._sync(ua)
+            self._clients[phone] = client
+            logger.info("[restore] {} OK", phone)
+            return client
+        except Exception as e:
+            logger.warning("[restore] {} FAILED: {}", phone, str(e)[:200])
+            return None
+
+    async def get_client(self, phone: str) -> MaxClient | None:
+        if phone in self._clients:
+            return self._clients[phone]
+        return await self.restore_session(phone)
 
     async def get_all_active_clients(self) -> list[tuple[MaxAccount, MaxClient]]:
-        """Возвращает список (account, client) для всех активных аккаунтов."""
         result = []
         async with async_session_factory() as session:
             accounts = (await session.execute(
@@ -221,23 +481,48 @@ class MaxAccountManager:
                 acc.status = AccountStatus.BLOCKED
                 await session.commit()
         if phone in self._clients:
+            try:
+                client = self._clients[phone]
+                if client._ws:
+                    await client._ws.close()
+            except Exception:
+                pass
             del self._clients[phone]
 
     async def delete_account(self, account_id: int):
         async with async_session_factory() as session:
             acc = await session.get(MaxAccount, account_id)
             if acc:
-                if acc.phone in self._clients:
+                phone = acc.phone
+                if phone in self._clients:
                     try:
-                        await self._clients[acc.phone][0].disconnect()
+                        client = self._clients[phone]
+                        if client._ws:
+                            await client._ws.close()
                     except Exception:
                         pass
-                    del self._clients[acc.phone]
+                    del self._clients[phone]
+                # Удалить work_dir для чистоты
+                work_dir = _get_work_dir(phone)
+                try:
+                    shutil.rmtree(work_dir, ignore_errors=True)
+                except Exception:
+                    pass
                 await session.delete(acc)
                 await session.commit()
 
+    async def disconnect_all(self):
+        """Закрыть все активные клиенты (для graceful shutdown)."""
+        for phone, client in list(self._clients.items()):
+            try:
+                if client._ws:
+                    await client._ws.close()
+            except Exception:
+                pass
+        self._clients.clear()
+
     async def restore_all(self):
-        """Восстановить все сессии при старте приложения."""
+        """Восстановить все активные сессии при старте приложения."""
         async with async_session_factory() as session:
             accounts = (await session.execute(
                 select(MaxAccount).where(
@@ -246,9 +531,29 @@ class MaxAccountManager:
                 )
             )).scalars().all()
 
+        count = 0
         for acc in accounts:
-            await self.restore_session(acc.phone, acc.login_token)
-        logger.info("Восстановлено {} MAX сессий", len(accounts))
+            client = await self.restore_session(acc.phone)
+            if client:
+                count += 1
+        logger.info("Восстановлено {}/{} MAX сессий", count, len(accounts))
+
+    # ─────────────────────────────────────────────────────────────
+    #  LEGACY SMS methods (DEPRECATED — MAX отключил phone-auth)
+    # ─────────────────────────────────────────────────────────────
+
+    async def request_sms(self, phone: str) -> str:
+        """DEPRECATED — MAX закрыл phone-auth (25.6.8+). Используйте start_qr_login."""
+        raise NotImplementedError(
+            "MAX отключил авторизацию по SMS. Используйте QR login или импорт по токену. "
+            "См. /app/accounts → 'Добавить аккаунт' → QR или Token."
+        )
+
+    async def verify_sms(self, phone: str, sms_code: str) -> dict:
+        """DEPRECATED — MAX закрыл phone-auth."""
+        raise NotImplementedError(
+            "MAX отключил авторизацию по SMS. Используйте QR login или импорт по токену."
+        )
 
 
 # Глобальный синглтон

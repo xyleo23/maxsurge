@@ -9,7 +9,7 @@ from sqlalchemy import select, update
 from db.models import Lead, LeadStatus, MaxAccount, MessageTemplate, TemplateStatus, SendLog, ChatCatalog, async_session_factory, AccountStatus
 from max_client.account import account_manager
 from max_client.spintax import render_template_with_spintax
-from vkmax.functions.messages import send_message
+from max_client.ops import send_message
 from config import get_settings
 from max_client.webhook_dispatcher import dispatch_webhook
 

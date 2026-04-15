@@ -10,7 +10,7 @@ from sqlalchemy import select
 from db.models import async_session_factory
 from max_client.account import account_manager
 from max_client.spintax import process_spintax
-from vkmax.functions.messages import send_message
+from max_client.ops import send_message
 
 _responder_status: dict = {
     "running": False,

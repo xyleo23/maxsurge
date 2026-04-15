@@ -7,7 +7,7 @@ from sqlalchemy import select, update
 
 from db.models import Lead, LeadStatus, async_session_factory
 from max_client.account import account_manager
-from vkmax.functions.users import resolve_users, add_to_contacts
+from max_client.ops import resolve_users, add_to_contacts
 
 _check_status: dict = {"running": False, "found": 0, "not_found": 0, "total": 0, "log": []}
 

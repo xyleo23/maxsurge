@@ -40,3 +40,4 @@ Thumbs.db
 *.tar.gz
 max_leadfinder.db-shm
 max_leadfinder.db-wal
+web/static/qr_login/

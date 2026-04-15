@@ -2,7 +2,7 @@
 import asyncio
 from loguru import logger
 from max_client.account import account_manager
-from vkmax.functions.profile import change_profile, change_online_status_visibility, set_is_findable_by_phone, invite_privacy
+from max_client.ops import change_profile, set_online_status_visibility as change_online_status_visibility, set_findable_by_phone as set_is_findable_by_phone, set_invite_privacy as invite_privacy
 
 _profile_status: dict = {"running": False, "done": 0, "total": 0, "log": []}
 

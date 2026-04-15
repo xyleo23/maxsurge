@@ -5,82 +5,224 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
   <!-- Добавить аккаунт -->
-  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5" x-data="{ mode: 'sms', step: '{{ 'sms' if pending_phones else 'phone' }}', phone: '{{ pending_phones[0] if pending_phones else '' }}' }">
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5"
+       x-data="{
+         mode: 'qr',
+         qrActive: false,
+         qrPng: '',
+         qrLink: '',
+         qrPhone: '',
+         qrExpiresAt: 0,
+         qrStatus: '',
+         pollTimer: null,
+         countdownTimer: null,
+         countdown: 0,
+         async startQr() {
+           this.qrStatus = 'Подключение к MAX...';
+           const fd = new FormData();
+           const phoneInput = document.getElementById('qr_phone_input');
+           const proxyInput = document.getElementById('qr_proxy_input');
+           fd.append('phone', phoneInput.value);
+           fd.append('proxy', proxyInput.value || '');
+           const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrf_token='));
+           try {
+             const r = await fetch('/app/accounts/qr/start', {
+               method: 'POST', body: fd,
+               headers: csrf ? {'X-CSRF-Token': csrf.split('=')[1]} : {}
+             });
+             const data = await r.json();
+             if (data.error) { this.qrStatus = '❌ ' + data.error; return; }
+             this.qrPng = data.qr_png;
+             this.qrLink = data.qr_link;
+             this.qrPhone = data.phone;
+             this.qrExpiresAt = data.expires_at;
+             this.qrActive = true;
+             this.qrStatus = 'Отсканируйте QR с телефона...';
+             this.startPolling(data.poll_interval || 5000);
+             this.startCountdown();
+           } catch(e) { this.qrStatus = '❌ ' + e.message; }
+         },
+         startCountdown() {
+           clearInterval(this.countdownTimer);
+           this.countdownTimer = setInterval(() => {
+             this.countdown = Math.max(0, Math.floor((this.qrExpiresAt - Date.now())/1000));
+             if (this.countdown <= 0) {
+               this.qrStatus = '⏱ QR истёк, нажмите ещё раз';
+               this.stopPolling();
+             }
+           }, 1000);
+         },
+         startPolling(interval) {
+           this.stopPolling();
+           this.pollTimer = setInterval(async () => {
+             const fd = new FormData();
+             fd.append('phone', this.qrPhone);
+             const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrf_token='));
+             try {
+               const r = await fetch('/app/accounts/qr/poll', {
+                 method: 'POST', body: fd,
+                 headers: csrf ? {'X-CSRF-Token': csrf.split('=')[1]} : {}
+               });
+               const d = await r.json();
+               if (d.status === 'confirmed') {
+                 this.qrStatus = '✅ ' + (d.profile && d.profile.name ? d.profile.name : 'Подключено!');
+                 this.stopPolling();
+                 setTimeout(() => location.reload(), 1500);
+               } else if (d.status === 'expired') {
+                 this.qrStatus = '⏱ QR истёк';
+                 this.stopPolling();
+               } else if (d.status === 'error') {
+                 this.qrStatus = '❌ ' + (d.error || 'Ошибка');
+                 this.stopPolling();
+               }
+             } catch(e) {}
+           }, interval);
+         },
+         stopPolling() {
+           clearInterval(this.pollTimer);
+           clearInterval(this.countdownTimer);
+           this.qrActive = false;
+         },
+         async cancelQr() {
+           this.stopPolling();
+           const fd = new FormData();
+           fd.append('phone', this.qrPhone);
+           const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrf_token='));
+           await fetch('/app/accounts/qr/cancel', { method: 'POST', body: fd, headers: csrf?{'X-CSRF-Token': csrf.split('=')[1]}:{} });
+           this.qrPng = '';
+           this.qrStatus = 'Отменено';
+         }
+       }">
     <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Добавить аккаунт</h2>
 
     <!-- Tabs -->
-    <div class="flex gap-2 mb-4 p-1 rounded-lg" style="background:var(--bg-input)">
-      <button @click="mode='sms'" :class="mode==='sms' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">Через SMS</button>
-      <button @click="mode='token'" :class="mode==='token' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">По токену</button>
+    <div class="flex gap-1 mb-4 p-1 rounded-lg" style="background:var(--bg-input)">
+      <button @click="mode='qr'" :class="mode==='qr' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📱 QR</button>
+      <button @click="mode='token'" :class="mode==='token' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">🔑 Токен</button>
+      <button @click="mode='session'" :class="mode==='session' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📂 Session</button>
+      <button @click="mode='bulk'" :class="mode==='bulk' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📦 Bulk</button>
     </div>
 
-    <!-- SMS mode -->
-    <div x-show="mode === 'sms'">
-      <!-- Шаг 1: телефон -->
-      <div x-show="step === 'phone'">
-        <form method="post" action="/app/accounts/request-sms">
-          <label class="block text-gray-400 text-xs mb-1">Номер телефона</label>
-          <input name="phone" placeholder="+79001234567" class="form-input mb-3"/>
-          <button type="submit" class="btn-primary w-full">Получить SMS-код</button>
-        </form>
-        {% if pending_phones %}
-        <button @click="step='sms'" class="mt-3 text-indigo-400 hover:text-indigo-300 text-sm w-full text-center">
-          Уже жду код для {{ pending_phones[0] }} →
-        </button>
-        {% endif %}
+    <!-- QR mode -->
+    <div x-show="mode === 'qr'">
+      <div x-show="!qrActive || !qrPng">
+        <label class="block text-gray-400 text-xs mb-1">Номер телефона</label>
+        <input id="qr_phone_input" placeholder="+79001234567" class="form-input mb-2"/>
+        <label class="block text-gray-400 text-xs mb-1">Прокси (опционально, KZ/AM/UZ mobile)</label>
+        <input id="qr_proxy_input" placeholder="http://user:pass@host:port" class="form-input mb-3 text-xs font-mono"/>
+        <button @click="startQr()" class="btn-primary w-full">📱 Получить QR-код</button>
+        <p class="mt-2 text-xs text-gray-500">SMS-авторизация отключена MAX. Используйте QR: отсканируйте код из мобильного приложения MAX, где вы уже залогинены.</p>
       </div>
 
-      <!-- Шаг 2: SMS-код -->
-      <div x-show="step === 'sms'" x-cloak>
-        <form method="post" action="/app/accounts/verify-sms">
-          <label class="block text-gray-400 text-xs mb-1">Телефон</label>
-          <input name="phone" x-model="phone" placeholder="+79001234567" class="form-input mb-3"/>
-          <label class="block text-gray-400 text-xs mb-1">Код из SMS</label>
-          <input name="code" placeholder="123456" class="form-input mb-3" autofocus/>
-          <button type="submit" class="btn-primary w-full">Подтвердить</button>
-        </form>
-        <button @click="step='phone'" class="mt-3 text-gray-500 hover:text-gray-300 text-sm w-full text-center">
-          ← Изменить номер
-        </button>
+      <div x-show="qrActive && qrPng" class="text-center">
+        <img :src="qrPng + '?t=' + Date.now()" class="mx-auto w-48 h-48 bg-white p-2 rounded-lg mb-2" alt="QR"/>
+        <p class="text-xs text-gray-400 mb-2" x-text="qrStatus"></p>
+        <p class="text-xs text-gray-500 mb-3" x-show="countdown > 0">⏱ <span x-text="countdown"></span>с осталось</p>
+        <div class="flex gap-2">
+          <button @click="cancelQr()" class="flex-1 btn-secondary text-xs">Отменить</button>
+        </div>
+        <details class="mt-3 text-left">
+          <summary class="text-xs text-gray-500 cursor-pointer">Как отсканировать?</summary>
+          <ol class="mt-2 space-y-1 text-xs text-gray-400 pl-4 list-decimal">
+            <li>Откройте MAX на телефоне где вы залогинены</li>
+            <li>Настройки → MAX на компьютере / Устройства</li>
+            <li>Нажмите "Подключить устройство" / "Сканировать QR"</li>
+            <li>Наведите камеру на QR-код</li>
+          </ol>
+        </details>
       </div>
     </div>
 
     <!-- Token mode -->
     <div x-show="mode === 'token'" x-cloak>
       <form method="post" action="/app/accounts/add-by-token">
-        <label class="block text-gray-400 text-xs mb-1">Login Token</label>
-        <textarea name="login_token" rows="3" placeholder="Вставьте login_token сохранённой сессии MAX" class="form-input mb-3 font-mono text-xs" required></textarea>
-        <label class="block text-gray-400 text-xs mb-1">Телефон (опционально, если нет в профиле)</label>
-        <input name="phone" placeholder="+79001234567" class="form-input mb-3"/>
-        <button type="submit" class="btn-primary w-full">Импортировать аккаунт</button>
+        <label class="block text-gray-400 text-xs mb-1">Телефон</label>
+        <input name="phone" placeholder="+79001234567" class="form-input mb-2" required/>
+        <label class="block text-gray-400 text-xs mb-1">Login Token (JWT)</label>
+        <textarea name="login_token" rows="3" placeholder="eyJhbGciOiJIUzI1NiI..." class="form-input mb-2 font-mono text-xs" required></textarea>
+        <label class="block text-gray-400 text-xs mb-1">Device ID (UUID, опционально)</label>
+        <input name="device_id" placeholder="550e8400-e29b-41d4-a716-446655440000" class="form-input mb-2 font-mono text-xs"/>
+        <label class="block text-gray-400 text-xs mb-1">Прокси (рекомендуется)</label>
+        <input name="proxy" placeholder="http://user:pass@host:port" class="form-input mb-3 font-mono text-xs"/>
+        <button type="submit" class="btn-primary w-full">🔑 Импортировать</button>
       </form>
-      <p class="mt-3 text-xs text-gray-500">Подходит если у вас уже есть сохранённый токен авторизации MAX. SMS не требуется.</p>
+      <p class="mt-2 text-xs text-gray-500">Для купленных аккаунтов или экспортированных из другого софта. Формат совместим с PyMax / Max Sheiker Manager.</p>
+    </div>
+
+    <!-- Session file mode -->
+    <div x-show="mode === 'session'" x-cloak>
+      <form method="post" action="/app/accounts/add-by-session" enctype="multipart/form-data">
+        <label class="block text-gray-400 text-xs mb-1">Телефон</label>
+        <input name="phone" placeholder="+79001234567" class="form-input mb-2" required/>
+        <label class="block text-gray-400 text-xs mb-1">Прокси (рекомендуется)</label>
+        <input name="proxy" placeholder="http://user:pass@host:port" class="form-input mb-2 font-mono text-xs"/>
+        <label class="block text-gray-400 text-xs mb-1">session.db файл</label>
+        <input type="file" name="session_file" accept=".db,.sqlite" class="form-input mb-3" required/>
+        <button type="submit" class="btn-primary w-full">📂 Загрузить session.db</button>
+      </form>
+      <p class="mt-2 text-xs text-gray-500">PyMax/Max Sheiker формат: SQLite с таблицей auth (token, device_id).</p>
+    </div>
+
+    <!-- Bulk CSV mode -->
+    <div x-show="mode === 'bulk'" x-cloak>
+      <form method="post" action="/app/accounts/bulk-import" enctype="multipart/form-data">
+        <label class="block text-gray-400 text-xs mb-1">CSV файл</label>
+        <input type="file" name="csv_file" accept=".csv" class="form-input mb-2" required/>
+        <label class="block text-gray-400 text-xs mb-1">Дефолтный прокси (если не задан в CSV)</label>
+        <input name="default_proxy" placeholder="http://user:pass@host:port" class="form-input mb-3 font-mono text-xs"/>
+        <button type="submit" class="btn-primary w-full">📦 Массовый импорт</button>
+      </form>
+      <div class="mt-3 p-3 bg-[var(--bg-input)] rounded-lg text-xs text-gray-400">
+        <div class="font-semibold mb-1 text-gray-300">Формат CSV:</div>
+        <pre class="text-xs overflow-x-auto">phone,login_token,device_id,proxy
++79001234567,eyJhbGc...,uuid-here,http://u:p@host:p
++79002345678,eyJhbGc...,uuid-here,</pre>
+      </div>
     </div>
   </div>
 
   <!-- Инструкция -->
   <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
     <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Как добавить аккаунт</h2>
-    <ol class="space-y-2 text-sm text-gray-400">
-      <li class="flex gap-3"><span class="text-indigo-400 font-bold">1.</span> Введите номер телефона от аккаунта MAX</li>
-      <li class="flex gap-3"><span class="text-indigo-400 font-bold">2.</span> MAX пришлёт SMS с кодом</li>
-      <li class="flex gap-3"><span class="text-indigo-400 font-bold">3.</span> Введите код — сессия сохранится в БД</li>
-      <li class="flex gap-3"><span class="text-indigo-400 font-bold">4.</span> Лимит сообщения: настраивается в config</li>
-    </ol>
+
+    <div class="mb-4 p-3 bg-red-900/20 border border-red-800/50 rounded-lg">
+      <p class="text-red-300 text-xs font-semibold mb-1">⚠ Важно</p>
+      <p class="text-red-200 text-xs">MAX отключил авторизацию по SMS. Теперь работают только QR login и импорт готовых токенов.</p>
+    </div>
+
+    <div class="space-y-3 text-sm">
+      <div>
+        <div class="text-indigo-400 font-semibold mb-1">📱 QR login</div>
+        <p class="text-gray-400 text-xs">Самый простой способ. У вас должен быть МАХ на телефоне. Откройте MAX → Настройки → "Устройства" или "MAX на компьютере" → Сканировать QR.</p>
+      </div>
+      <div>
+        <div class="text-indigo-400 font-semibold mb-1">🔑 Токен</div>
+        <p class="text-gray-400 text-xs">Для купленных аккаунтов с маркетплейса (maxmarket.cc, bestmaxshop.com). Продавец отдаёт login_token + device_id.</p>
+      </div>
+      <div>
+        <div class="text-indigo-400 font-semibold mb-1">📂 Session file</div>
+        <p class="text-gray-400 text-xs">SQLite файл session.db от PyMax или Max Sheiker Manager. Содержит token + device_id.</p>
+      </div>
+      <div>
+        <div class="text-indigo-400 font-semibold mb-1">📦 Bulk CSV</div>
+        <p class="text-gray-400 text-xs">Массовый импорт купленных аккаунтов. Столбцы: phone, login_token, device_id, proxy.</p>
+      </div>
+    </div>
+
     <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
-      <p class="text-yellow-300 text-xs">⚠ Не превышайте 30-50 сообщений в день на аккаунт. Используйте несколько аккаунтов для масштабирования.</p>
+      <p class="text-yellow-300 text-xs">⚠ Не превышайте 30-50 сообщений в день на аккаунт. Используйте мобильный прокси (RU/KZ/AM beeline/altel) для обхода блокировок.</p>
     </div>
   </div>
 </div>
 
 <!-- Список аккаунтов -->
 <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden">
-  <div class="px-5 py-4 border-b border-[var(--border)]">
-    <h2 class="font-semibold text-[color:var(--text-primary)]">Аккаунты ({{ accounts|length }})</h2>
+  <div class="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between">
+    <h2 class="font-semibold text-[color:var(--text-primary)]">Аккаунты ({{ accounts|length }}/{{ limit if limit != 99999 else '∞' }})</h2>
   </div>
   <div class="overflow-x-auto -mx-4 md:mx-0"><table>
     <thead><tr>
-      <th>Телефон</th><th>Имя</th><th>MAX ID</th><th>Статус</th><th>Отправлено сегодня</th><th>Всего</th><th>Последняя активность</th><th></th>
+      <th>Телефон</th><th>Имя</th><th>MAX ID</th><th>Прокси</th><th>Статус</th><th>Сегодня</th><th>Всего</th><th>Последняя активность</th><th></th>
     </tr></thead>
     <tbody>
       {% for acc in accounts %}
@@ -88,6 +230,7 @@
         <td class="font-mono text-sm">{{ acc.phone }}</td>
         <td>{{ acc.profile_name or "—" }}</td>
         <td class="font-mono text-xs text-gray-400">{{ acc.max_user_id or "—" }}</td>
+        <td class="text-xs text-gray-500">{{ "✅" if acc.proxy else "—" }}</td>
         <td>
           <span class="px-2 py-0.5 rounded text-xs
             {{ 'bg-green-900 text-green-300' if acc.status.value == 'active' else
@@ -101,15 +244,15 @@
         <td class="text-gray-500 text-xs">{{ acc.last_used_at.strftime('%d.%m %H:%M') if acc.last_used_at else "—" }}</td>
         <td class="flex gap-2">
           <form method="post" action="/app/accounts/{{ acc.id }}/reset-counter">
-            <button class="text-xs text-gray-500 hover:text-gray-300">↺</button>
+            <button class="text-xs text-gray-500 hover:text-gray-300" title="Сбросить счётчик">↺</button>
           </form>
-          <form method="post" action="/app/accounts/{{ acc.id }}/delete" onsubmit="return confirm('Удалить аккаунт?')">
-            <button class="text-xs text-red-500 hover:text-red-400">✕</button>
+          <form method="post" action="/app/accounts/{{ acc.id }}/delete" onsubmit="return confirm('Удалить аккаунт {{ acc.phone }}?')">
+            <button class="text-xs text-red-500 hover:text-red-400" title="Удалить">✕</button>
           </form>
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="8" class="text-center text-gray-500 py-10">Аккаунты не добавлены</td></tr>
+      <tr><td colspan="9" class="text-center text-gray-500 py-10">Аккаунты не добавлены. Нажмите "QR" выше чтобы подключить первый.</td></tr>
       {% endfor %}
     </tbody>
   </table></div>

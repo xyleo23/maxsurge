@@ -109,14 +109,14 @@ async def _apply_action(client, guard: ChatGuard, message_id: int, user_id: int,
     chat_id = guard.chat_id
     try:
         if action == GuardAction.DELETE:
-            from vkmax.functions.messages import delete_message
+            from max_client.ops import delete_message
             await delete_message(client, chat_id, [str(message_id)])
         elif action == GuardAction.WARN:
-            from vkmax.functions.messages import send_message
+            from max_client.ops import send_message
             await send_message(client, chat_id, f"⚠️ Предупреждение: {reason}")
         elif action == GuardAction.BAN:
-            from vkmax.functions.messages import delete_message
-            from vkmax.functions.groups import remove_users
+            from max_client.ops import delete_message
+            from max_client.ops import remove_users
             await delete_message(client, chat_id, [str(message_id)])
             await remove_users(client, chat_id, [user_id], delete_messages=True)
     except Exception as e:
@@ -155,7 +155,7 @@ async def _handle_message(guard_id: int, packet: dict):
     # Новый участник?
     if msg.get("type") == "service" and guard.welcome_enabled and guard.welcome_text:
         try:
-            from vkmax.functions.messages import send_message
+            from max_client.ops import send_message
             await send_message(runtime["client"], chat_id, guard.welcome_text)
         except Exception:
             pass

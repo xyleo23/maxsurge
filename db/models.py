@@ -76,6 +76,8 @@ class MaxAccount(Base):
     owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
     phone: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     login_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    device_id: Mapped[str | None] = mapped_column(String(64), nullable=True)  # UUID from PyMax
+    app_version: Mapped[str] = mapped_column(String(16), default="25.12.13")  # min 25.12.13 for QR
     sms_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     profile_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
     max_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)

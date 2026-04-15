@@ -8,9 +8,9 @@ from sqlalchemy import select
 
 from db.models import ParsedUser, ChatCatalog, async_session_factory
 from max_client.account import account_manager
-from vkmax.functions.groups import get_group_members, join_group_by_link, resolve_group_by_link
-from vkmax.functions.channels import join_channel, resolve_channel_username
-from vkmax.functions.users import resolve_users
+from max_client.ops import fetch_all_members as get_group_members, join_group as join_group_by_link, resolve_chat_by_link as resolve_group_by_link
+from max_client.ops import join_channel, resolve_chat_by_link as resolve_channel_username
+from max_client.ops import resolve_users
 from max_client.webhook_dispatcher import dispatch_webhook
 
 _parse_status: dict = {"running": False, "parsed": 0, "chats_done": 0, "total_chats": 0, "log": []}

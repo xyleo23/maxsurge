@@ -105,7 +105,7 @@ async def _handle_incoming(client, packet: dict):
         reply_text = process_spintax(cfg.get("text", "Здравствуйте!"))
 
     try:
-        from vkmax.functions.messages import send_message
+        from max_client.ops import send_message
         await send_message(client, chat_id, reply_text)
         cfg["responded_today"] = cfg.get("responded_today", 0) + 1
         _responder_status["responded"] += 1
