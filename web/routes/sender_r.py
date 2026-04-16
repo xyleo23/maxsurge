@@ -29,10 +29,11 @@ async def sender_page(request: Request, msg: str = ""):
     })
 
 @router.post("/start")
-async def start_broadcast(template_id: int = Form(...), limit: int = Form(50),
+async def start_broadcast(request: Request, template_id: int = Form(...), limit: int = Form(50),
                            dry_run: bool = Form(False), account_ids: list[int] = Form([]),
                            target_type: str = Form("users"), typing_emulation: bool = Form(True),
-                           template_b_id: int = Form(0)):
+                           template_b_id: int = Form(0),
+                           schedule: bool = Form(False), scheduled_at: str = Form("")):
     # Scheduled?
     if schedule and scheduled_at:
         from datetime import datetime as _dt
@@ -47,7 +48,7 @@ async def start_broadcast(template_id: int = Form(...), limit: int = Form(50),
             _s.add(Task(
                 name=f"Рассылка (запланировано на {scheduled_at})",
                 task_type=TaskType.BROADCAST,
-                status=TaskStatus.PENDING,
+                status=TaskStatus.DRAFT,
                 owner_id=user.id if user else None,
                 scheduled_at=sched_time,
                 broadcast_config=_json.dumps({

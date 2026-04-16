@@ -309,6 +309,59 @@ async def bulk_import(
 
 
 # ════════════════════════════════════════════════════════════════════
+#  TEST SEND — send a test message to self
+# ════════════════════════════════════════════════════════════════════
+
+@router.post("/{account_id}/test-send")
+async def test_send(request: Request, account_id: int, text: str = Form("🧪 MaxSurge test")):
+    """Send a test message to self (own dialog)."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        acc = await s.get(MaxAccount, account_id)
+        if not acc:
+            return JSONResponse({"error": "not_found"}, 404)
+        if user and not user.is_superadmin and acc.owner_id != user.id:
+            return JSONResponse({"error": "forbidden"}, 403)
+    try:
+        client = await account_manager.get_client(acc.phone)
+        if not client:
+            return JSONResponse({"error": "not_connected"}, 400)
+
+        me_id = client.me.id if client.me else None
+        if not me_id:
+            return JSONResponse({"error": "no_me_id"}, 500)
+
+        # Find self dialog (dialog where id == me.id)
+        self_dialog = None
+        for d in (client.dialogs or []):
+            if d.id == me_id:
+                self_dialog = d
+                break
+
+        # If no self dialog, use first available dialog
+        if not self_dialog and client.dialogs:
+            self_dialog = client.dialogs[0]
+            logger.info("[test-send] no self dialog, using first: {}", self_dialog.id)
+
+        if not self_dialog:
+            return JSONResponse({"error": "no_dialogs_available"}, 400)
+
+        from max_client.ops import send_message
+        result = await send_message(client, chat_id=self_dialog.id, text=text[:500])
+        msg_id = getattr(result, "id", None) if result else None
+        return JSONResponse({
+            "status": "sent",
+            "chat_id": self_dialog.id,
+            "message_id": msg_id,
+            "text": text[:500],
+        })
+    except Exception as e:
+        err = str(e)[:200]
+        logger.exception("test-send failed")
+        return JSONResponse({"error": err}, 500)
+
+
+# ════════════════════════════════════════════════════════════════════
 #  HEALTH CHECK — Validity + Restrictions
 # ════════════════════════════════════════════════════════════════════
 
