@@ -501,9 +501,11 @@ class MaxAccountManager:
             ua = _make_user_agent(acc.app_version or MIN_APP_VERSION)
             await client.connect(user_agent=ua)
             await client._sync(ua)
+            # CRITICAL: start keepalive + scheduled tasks so WS stays open
+            await client._post_login_tasks(sync=False)
             self._clients[phone] = client
             _flood_cooldown.pop(phone, None)
-            logger.info("[restore] {} OK", phone)
+            logger.info("[restore] {} OK (keepalive started)", phone)
             return client
         except Exception as e:
             err = str(e)[:200]
