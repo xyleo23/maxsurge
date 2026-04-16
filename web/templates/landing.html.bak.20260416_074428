@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta name="yandex-verification" content="dfbd0b018a646001" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MaxSurge — продвижение в мессенджере MAX в браузере</title>
+  <meta name="description" content="MaxSurge — веб-панель для поиска B2B и B2C клиентов в мессенджере MAX. Сбор контактов из открытых карт, парсинг чатов, рассылки и AI автоответчик. 7 дней бесплатно, от 1 490₽/мес."/>
+  <meta name="keywords" content="MaxSurge, мессенджер MAX, рассылка MAX, инвайтинг MAX, парсинг 2GIS, лиды MAX, TG MAX форвардер, CRM MAX"/>
+  <meta name="author" content="MaxSurge"/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://maxsurge.ru/"/>
+
+  <meta name="google-site-verification" content="mkeuLRykzp92-jYYW0-4ObceyPjg8v6eKkspgUKEESg" />
+
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://maxsurge.ru/"/>
+  <meta property="og:title" content="MaxSurge — продвижение в мессенджере MAX в браузере"/>
+  <meta property="og:description" content="Рассылки, инвайтинг, TG→MAX форвардер, сбор лидов из 2GIS. 7 дней бесплатно от 1 490₽/мес."/>
+  <meta property="og:site_name" content="MaxSurge"/>
+  <meta property="og:locale" content="ru_RU"/>
+
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="MaxSurge — продвижение в мессенджере MAX в браузере"/>
+  <meta name="twitter:description" content="Все инструменты для работы с MAX в одной веб-панели. 7 дней бесплатно."/>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "MaxSurge",
+    "url": "https://maxsurge.ru",
+    "description": "SaaS-платформа для продвижения в мессенджере MAX",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "support@maxsurge.ru",
+      "contactType": "customer support",
+      "availableLanguage": ["Russian"]
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "MaxSurge",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web",
+    "description": "Веб-платформа для рассылок, инвайтинга и парсинга 2GIS в мессенджере MAX. TG→MAX форвардер, AI автоответчик.",
+    "offers": [
+      {"@type": "Offer", "price": "0", "priceCurrency": "RUB", "name": "Trial"},
+      {"@type": "Offer", "price": "1490", "priceCurrency": "RUB", "name": "Start"},
+      {"@type": "Offer", "price": "2990", "priceCurrency": "RUB", "name": "Basic"},
+      {"@type": "Offer", "price": "4990", "priceCurrency": "RUB", "name": "Pro"}
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type":"Question","name":"В чём особенности MaxSurge?","acceptedAnswer":{"@type":"Answer","text":"MaxSurge — это SaaS без установки: работает из любого браузера, включая телефон. Среди ключевых инструментов — автопарсинг лидов из 2GIS, TG→MAX форвардер для миграции аудитории, AI автоответчик, инвайтинг, прогрев аккаунтов и CRM — всё в одной панели."}},
+      {"@type":"Question","name":"Нужно ли устанавливать программу?","acceptedAnswer":{"@type":"Answer","text":"Нет. MaxSurge работает полностью в браузере. Доступ с любого устройства — ПК, планшет, телефон."}},
+      {"@type":"Question","name":"Как работает парсинг из 2GIS?","acceptedAnswer":{"@type":"Answer","text":"Вы выбираете город и нишу, MaxSurge собирает телефоны организаций из 2GIS и автоматически привязывает их к MAX ID. Затем запускаете рассылку по готовой базе."}},
+      {"@type":"Question","name":"Это законно?","acceptedAnswer":{"@type":"Answer","text":"Сервис предназначен для законного использования в рамках правил мессенджера MAX. Ответственность за содержание рассылок и соблюдение законодательства о рекламе несёт пользователь."}},
+      {"@type":"Question","name":"Безопасно ли добавлять аккаунты?","acceptedAnswer":{"@type":"Answer","text":"Мы используем официальный WebSocket протокол MAX. Система прогрева аккаунтов и соблюдение лимитов снижают риск блокировки."}},
+      {"@type":"Question","name":"Можно ли отменить подписку?","acceptedAnswer":{"@type":"Answer","text":"Да, в любой момент. 7 дней бесплатно без привязки карты и гарантия возврата денег в первые 7 дней после оплаты."}}
+    ]
+  }
+  </script>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27><defs><linearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%2724%27 y2=%2724%27 gradientUnits=%27userSpaceOnUse%27><stop stop-color=%27%236366f1%27/><stop offset=%270.5%27 stop-color=%27%23a855f7%27/><stop offset=%271%27 stop-color=%27%23ec4899%27/></linearGradient></defs><rect width=%2724%27 height=%2724%27 rx=%275%27 fill=%27url(%23g)%27/><rect x=%273%27 y=%2715%27 width=%274%27 height=%276%27 rx=%271%27 fill=%27white%27 fill-opacity=%270.55%27/><rect x=%279%27 y=%2711%27 width=%274%27 height=%2710%27 rx=%271%27 fill=%27white%27 fill-opacity=%270.8%27/><rect x=%2715%27 y=%277%27 width=%274%27 height=%2714%27 rx=%271%27 fill=%27white%27/><path d=%27M14 7L17 3L20 7%27 stroke=%27white%27 stroke-width=%272.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 fill=%27none%27/></svg>"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .gradient-text{background:linear-gradient(135deg,#818cf8,#c084fc,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .hero-glow{position:absolute;width:600px;height:600px;border-radius:50%;filter:blur(120px);opacity:0.15;pointer-events:none}
+    .feature-card{transition:all 0.3s}
+    .feature-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(99,102,241,0.15)}
+    .price-card{transition:all 0.3s}
+    .price-card:hover{transform:translateY(-4px)}
+    .price-card.popular{border-color:#6366f1;box-shadow:0 0 30px rgba(99,102,241,0.2)}
+    .unique-badge{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#0a0e1a;font-weight:700;font-size:.68rem;padding:3px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;letter-spacing:.02em}
+    .tag-pill{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.02em;text-transform:uppercase}
+    .tag-b2b{background:linear-gradient(135deg,rgba(34,211,238,.18),rgba(59,130,246,.14));color:#22d3ee;border:1px solid rgba(34,211,238,.35)}
+    .tag-b2c{background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(16,185,129,.14));color:#4ade80;border:1px solid rgba(34,197,94,.35)}
+    .tag-hot{background:linear-gradient(135deg,rgba(244,63,94,.2),rgba(251,146,60,.16));color:#fb7185;border:1px solid rgba(244,63,94,.4)}
+    .shot-tab{background:rgba(255,255,255,.02);border:1px solid #1e293b;color:#94a3b8;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+    .shot-tab:hover{color:#e5e7eb;border-color:#334155}
+    .shot-tab.active{background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(168,85,247,.14));color:#fff;border-color:#6366f1;box-shadow:0 0 20px rgba(99,102,241,.2)}
+    .shot-panel{display:none;animation:fade .4s ease-out}
+    .shot-panel.active{display:block}
+    @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .shot-frame{background:#0a0e1a;border:1px solid #1e293b;border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 1px rgba(99,102,241,.08);cursor:zoom-in;position:relative}
+    .shot-frame::before{content:"";display:block;background:linear-gradient(180deg,#1a1f2e 0%,#12172a 100%);padding:10px 14px;border-bottom:1px solid #1e293b}
+    .shot-chrome{display:flex;align-items:center;gap:6px;padding:10px 14px;background:linear-gradient(180deg,#1a1f2e 0%,#12172a 100%);border-bottom:1px solid #1e293b}
+    .shot-dot{width:10px;height:10px;border-radius:999px}
+    .shot-dot.r{background:#ef4444}
+    .shot-dot.y{background:#eab308}
+    .shot-dot.g{background:#22c55e}
+    .shot-url{margin-left:16px;font-size:11px;color:#64748b;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .shot-img{width:100%;height:auto;display:block}
+    #lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:100;padding:24px;cursor:zoom-out;backdrop-filter:blur(8px)}
+    #lightbox.open{display:flex}
+    #lightbox img{max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+    #lightbox-close{position:absolute;top:24px;right:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;backdrop-filter:blur(4px)}
+    .compare-table td,.compare-table th{padding:14px 16px;border-bottom:1px solid #1e293b}
+    .compare-table tr:last-child td{border-bottom:none}
+    .compare-our{background:linear-gradient(180deg,rgba(99,102,241,.08),rgba(168,85,247,.04));border-left:2px solid #6366f1;border-right:2px solid #6366f1}
+    .compare-table th.our-col{background:linear-gradient(180deg,rgba(99,102,241,.15),rgba(168,85,247,.08));border-left:2px solid #6366f1;border-right:2px solid #6366f1;border-top:2px solid #6366f1;border-radius:12px 12px 0 0}
+    .compare-table tr:last-child td.compare-our{border-bottom:2px solid #6366f1;border-radius:0 0 12px 12px}
+    .step-num{width:36px;height:36px;border-radius:999px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0}
+    #exit-popup{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:90;padding:24px;backdrop-filter:blur(6px)}
+    #exit-popup.open{display:flex}
+    #exit-popup .ep-card{background:#0f172a;border:1px solid #1e293b;border-radius:20px;max-width:440px;width:100%;padding:36px;position:relative;box-shadow:0 40px 100px rgba(0,0,0,.6)}
+    #exit-popup .ep-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#64748b;cursor:pointer;font-size:22px;line-height:1}
+    #exit-popup .ep-ok{display:none;text-align:center;color:#34d399;font-weight:600;padding:8px 0}
+    #tg-support-widget{position:fixed;bottom:24px;right:24px;z-index:60;opacity:0;transform:translateY(20px);transition:opacity .4s,transform .4s;pointer-events:none}
+    #tg-support-widget.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+    #tg-support-widget .tg-btn{background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:14px 20px;border-radius:999px;font-weight:600;box-shadow:0 12px 30px rgba(99,102,241,.4);display:flex;align-items:center;gap:10px;cursor:pointer;border:none;font-size:14px}
+    #tg-support-widget .tg-panel{position:absolute;bottom:72px;right:0;width:280px;background:#0f172a;border:1px solid #1e293b;border-radius:16px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.5);display:none}
+    #tg-support-widget.open .tg-panel{display:block}
+    #tg-support-widget .tg-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;line-height:1}
+    @keyframes count-bump{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+    .metric{position:relative;overflow:hidden;transition:all .3s}
+    .metric::before{content:'';position:absolute;inset:-1px;border-radius:1rem;background:linear-gradient(135deg,rgba(129,140,248,0.2),rgba(192,132,252,0.2),rgba(244,114,182,0.12));opacity:0;transition:opacity .4s}
+    .metric:hover::before{opacity:1}
+    .metric:hover{transform:translateY(-3px)}
+    .metric-num{font-size:2.75rem;line-height:1;text-shadow:0 0 30px rgba(129,140,248,0.5),0 0 60px rgba(192,132,252,0.25)}
+    @media(min-width:768px){.metric-num{font-size:3.75rem}}
+    @keyframes glow-pulse{0%,100%{box-shadow:0 0 15px rgba(129,140,248,0.06),inset 0 0 30px rgba(129,140,248,0.03)}50%{box-shadow:0 0 25px rgba(129,140,248,0.15),inset 0 0 40px rgba(192,132,252,0.08)}}
+    .metric.animated{animation:count-bump .8s ease-out forwards,glow-pulse 4s ease-in-out 1s infinite}
+  </style>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=108545615', 'ym');
+
+    ym(108545615, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/108545615" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="256x256" href="/static/favicon.png" />
+    <link rel="apple-touch-icon" sizes="256x256" href="/static/apple-touch-icon.png" />
+  <meta property="og:image" content="https://maxsurge.ru/static/og-image.png"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  <meta name="twitter:image" content="https://maxsurge.ru/static/og-image.png"/>
+</head>
+<body class="bg-[#0a0e1a] text-gray-100">
+
+  <!-- Nav -->
+  <nav class="fixed top-0 w-full z-50 bg-[#0a0e1a]/80 backdrop-blur-xl border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="15" width="4" height="6" rx="1" fill="white" fill-opacity="0.55"/><rect x="9" y="11" width="4" height="10" rx="1" fill="white" fill-opacity="0.8"/><rect x="15" y="7" width="4" height="14" rx="1" fill="white"/><path d="M14 7L17 3L20 7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span class="font-bold text-lg">MaxSurge</span>
+      </div>
+      <div class="hidden md:flex items-center gap-7 text-sm text-gray-400">
+        <a href="#features" class="hover:text-white transition">Возможности</a>
+        <a href="#screenshots" class="hover:text-white transition">Скрины</a>
+        <a href="#niches" class="hover:text-white transition">Ниши</a>
+        <a href="#compare" class="hover:text-white transition">Сравнение</a>
+        <a href="#roi" class="hover:text-white transition">Калькулятор</a>
+        <a href="#pricing" class="hover:text-white transition">Тарифы</a>
+        <a href="/blog/" class="hover:text-white transition">Блог</a>
+        <a href="#faq" class="hover:text-white transition">FAQ</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/login" class="text-sm text-gray-400 hover:text-white transition">Войти</a>
+        <a href="/register" class="text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Начать бесплатно</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative pt-32 pb-16 px-6 overflow-hidden">
+    <div class="hero-glow bg-indigo-600 top-20 left-1/4"></div>
+    <div class="hero-glow bg-purple-600 top-40 right-1/4"></div>
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <div class="inline-block mb-6 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium">
+        ⚡ Все инструменты для MAX в одной веб-панели
+      </div>
+      <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+        Мощное продвижение<br/>в мессенджере <span class="gradient-text">MAX</span>
+      </h1>
+      <p class="text-xl text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
+        Клиенты уходят в MAX — а вы ещё не там? <strong class="text-white">MaxSurge находит их и пишет за вас.</strong> Сбор B2B-контактов из открытых карт, B2C из чатов, массовые рассылки, AI автоответчик — 15+ инструментов в одном браузере.
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mb-8 text-sm">
+        <span class="flex items-center gap-2 text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>от <b class="text-white">1 490 ₽/мес</b></span>
+        <span class="flex items-center gap-2 text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><b class="text-white">7 дней</b> бесплатно</span>
+        <span class="flex items-center gap-2 text-gray-300"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>SaaS <b class="text-white">без установки</b></span>
+      </div>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="/register" class="w-full sm:w-auto text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3.5 rounded-xl text-lg font-semibold hover:shadow-xl hover:shadow-indigo-500/30 transition-all">
+          Попробовать 7 дней бесплатно
+        </a>
+        <a href="#killer-2gis" class="w-full sm:w-auto text-center border border-gray-700 text-gray-300 px-8 py-3.5 rounded-xl text-lg hover:border-indigo-500 transition-all">
+          Что такое 2GIS-парсинг →
+        </a>
+      </div>
+      <p class="mt-5 text-sm text-gray-500">Без привязки карты • 7-дневная гарантия возврата • Отмена в один клик</p>
+      <a href="/changelog" class="mt-6 inline-flex items-center gap-2 text-xs text-gray-500 hover:text-indigo-300 transition">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Последнее обновление: 11 апреля — лендинг v2, страж чата, боты →</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- Social proof metrics -->
+  <section id="metrics" class="py-14 px-6">
+    <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-5">
+      <div class="metric bg-[#0f172a]/80 border border-[#1e293b] rounded-2xl p-8 text-center backdrop-blur-sm">
+        <div class="metric-num font-extrabold gradient-text" data-count="15">15+</div>
+        <div class="text-sm text-gray-400 mt-3 leading-snug">инструментов<br/>в одной панели</div>
+      </div>
+      <div class="metric bg-[#0f172a]/80 border border-[#1e293b] rounded-2xl p-8 text-center backdrop-blur-sm">
+        <div class="metric-num font-extrabold gradient-text" data-count="7">7</div>
+        <div class="text-sm text-gray-400 mt-3 leading-snug">дней бесплатного<br/>триала</div>
+      </div>
+      <div class="metric bg-[#0f172a]/80 border border-[#1e293b] rounded-2xl p-8 text-center backdrop-blur-sm">
+        <div class="metric-num font-extrabold gradient-text">100%</div>
+        <div class="text-sm text-gray-400 mt-3 leading-snug">в браузере —<br/>без установки</div>
+      </div>
+      <div class="metric bg-[#0f172a]/80 border border-[#1e293b] rounded-2xl p-8 text-center backdrop-blur-sm">
+        <div class="metric-num font-extrabold gradient-text">B2B+B2C</div>
+        <div class="text-sm text-gray-400 mt-3 leading-snug">из карт и чатов<br/>в одной панели</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2GIS parser: B2B lead sourcing from open maps -->
+  <section id="killer-2gis" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <span class="tag-pill tag-b2b mb-4">🎯 B2B лиды из открытых карт</span>
+        <h2 class="text-3xl md:text-4xl font-bold mt-4 mb-4">B2B-базы из открытых карт за 20 минут</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Автоматический сбор публичных контактов организаций из 2GIS и других картографических сервисов с привязкой телефонов к MAX ID. Выбираете город и нишу — на выходе готовая база под рассылку.</p>
+      </div>
+      <div class="grid md:grid-cols-4 gap-4 mb-10">
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
+          <div class="step-num mb-4">1</div>
+          <h3 class="font-semibold text-white mb-2">Выбор ниши и города</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Укажите город и категорию в 2GIS — например, «стоматологии Краснодара» или «автосервисы Москвы».</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
+          <div class="step-num mb-4">2</div>
+          <h3 class="font-semibold text-white mb-2">Сбор организаций</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Автопарсер собирает телефоны, названия, адреса и сайты. Экспорт в CSV или сразу в базу лидов MaxSurge.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
+          <div class="step-num mb-4">3</div>
+          <h3 class="font-semibold text-white mb-2">Привязка к MAX ID</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Встроенный чекер находит MAX-аккаунты по собранным номерам. Получаете готовую базу к рассылке.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6">
+          <div class="step-num mb-4">4</div>
+          <h3 class="font-semibold text-white mb-2">Запуск рассылки</h3>
+          <p class="text-sm text-gray-400 leading-relaxed">Пишете персонализированное сообщение со спинтаксом, запускаете рассылку с ротацией аккаунтов. Получаете лиды.</p>
+        </div>
+      </div>
+      <div class="text-center">
+        <a href="/register" class="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-3.5 rounded-xl font-semibold hover:shadow-xl hover:shadow-indigo-500/30 transition-all">
+          Попробовать бесплатно
+        </a>
+      </div>
+      <p class="mt-10 max-w-3xl mx-auto text-xs text-gray-600 leading-relaxed text-center">
+        Данные собираются только из <strong class="text-gray-500">публичных источников</strong> — картографических сервисов, где организации сами размещают контактную информацию о себе как о бизнесе. Мы не собираем персональные данные физических лиц и не нарушаем 152-ФЗ. Используйте сервис в рамках закона о рекламе (38-ФЗ) и правил мессенджера MAX.
+      </p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-20 px-6 bg-[#0c1120]">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold mb-4">Комплексный набор для работы с MAX</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Полный цикл: от поиска клиентов до их обработки. B2B-лиды из карт, B2C из чатов, сегментация, рассылки, автоответы, CRM — всё в одной панели.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <div class="feature-card bg-[#0f172a] border border-cyan-500/20 rounded-2xl p-7 relative">
+          <span class="tag-pill tag-b2b absolute top-4 right-4">🎯 B2B</span>
+          <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Сбор лидов из открытых карт</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Публичные контакты организаций из 2GIS и других карт по городу и нише. Автопривязка к MAX ID.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-rose-500/25 rounded-2xl p-7 relative">
+          <span class="tag-pill tag-hot absolute top-4 right-4">🔥 Актуально</span>
+          <div class="w-12 h-12 bg-cyan-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">TG → MAX форвардер</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Переносите аудиторию из Telegram-каналов в MAX. На волне массовой миграции сообществ в новый мессенджер — не теряйте клиентов.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Рассылка сообщений</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Массовая отправка по ID и в чаты. Спинтакс для уникализации. Эмуляция набора текста для обхода антиспама.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Инвайтинг в чаты</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Приглашение пользователей пачками. Пауза/продолжение. Автосмена аккаунтов при лимитах.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-emerald-500/20 rounded-2xl p-7 relative">
+          <span class="tag-pill tag-b2c absolute top-4 right-4">👥 B2C</span>
+          <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Парсинг чатов MAX</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Тематические чаты MAX → готовая B2C аудитория. Вступление в чаты, сбор user_id участников, каталог чатов с категориями по интересам.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">AI автоответчик</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Автоматические ответы на входящие. Эмуляция набора «печатает...». Спинтакс и AI-режим на базе LLM.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Прогрев аккаунтов</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Автоматические действия для разогрева. Массовое управление профилями. Система задач по расписанию.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="w-12 h-12 bg-rose-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">Шаблоны и спинтакс</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Библиотека шаблонов с переменными {имя}, {город}, {компания}. Спинтакс {привет|здравствуйте} для уникализации.</p>
+        </div>
+
+        <div class="feature-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="w-12 h-12 bg-teal-500/10 rounded-xl flex items-center justify-center mb-5">
+            <svg class="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold mb-2">CRM и аналитика</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Лиды, статусы, воронка продаж. Статистика по аккаунтам и кампаниям. Экспорт в CSV.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section id="screenshots" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Посмотрите, как это выглядит внутри</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Веб-панель MaxSurge работает из любого браузера. Никакой установки, никаких скачиваний. Полный доступ к инструментам в один клик.</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex flex-wrap justify-center gap-2 mb-8">
+        <button class="shot-tab active" data-tab="dashboard">📊 Главная</button>
+        <button class="shot-tab" data-tab="sender">✉️ Рассылка</button>
+        <button class="shot-tab" data-tab="scraper">🎯 Парсинг карт</button>
+        <button class="shot-tab" data-tab="parser">👥 Парсинг чатов</button>
+        <button class="shot-tab" data-tab="autoresponder">💬 AI автоответчик</button>
+        <button class="shot-tab" data-tab="analytics">📈 Аналитика</button>
+      </div>
+
+      <!-- Panels -->
+      <div class="max-w-5xl mx-auto">
+        <div class="shot-panel active" data-panel="dashboard">
+          <div class="shot-frame" data-full="/static/screenshots/dashboard.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/</span></div>
+            <img class="shot-img" src="/static/screenshots/dashboard.webp" alt="Главная панель MaxSurge — дашборд с метриками" loading="eager"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Метрики, быстрые действия, статусы лидов — всё на одном экране.</p>
+        </div>
+        <div class="shot-panel" data-panel="sender">
+          <div class="shot-frame" data-full="/static/screenshots/sender.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/sender</span></div>
+            <img class="shot-img" src="/static/screenshots/sender.webp" alt="Создание рассылки в MaxSurge" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Выбираете шаблон, базу лидов, аккаунты — и запускаете массовую рассылку с контролем лимитов.</p>
+        </div>
+        <div class="shot-panel" data-panel="scraper">
+          <div class="shot-frame" data-full="/static/screenshots/scraper.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/scraper</span></div>
+            <img class="shot-img" src="/static/screenshots/scraper.webp" alt="Сбор B2B-лидов из 2GIS" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Указываете города и ниши — MaxSurge собирает публичные контакты организаций и привязывает их к MAX ID.</p>
+        </div>
+        <div class="shot-panel" data-panel="parser">
+          <div class="shot-frame" data-full="/static/screenshots/parser.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/parser</span></div>
+            <img class="shot-img" src="/static/screenshots/parser.webp" alt="Парсинг участников чатов MAX" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Собираете user_id из тематических чатов MAX — готовая B2C-аудитория для рассылок и инвайтинга.</p>
+        </div>
+        <div class="shot-panel" data-panel="autoresponder">
+          <div class="shot-frame" data-full="/static/screenshots/autoresponder.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/autoresponder</span></div>
+            <img class="shot-img" src="/static/screenshots/autoresponder.webp" alt="Настройка AI автоответчика" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Настраиваете триггеры или передаёте разговор LLM — бот сам отвечает клиентам в рабочее и нерабочее время.</p>
+        </div>
+        <div class="shot-panel" data-panel="analytics">
+          <div class="shot-frame" data-full="/static/screenshots/analytics.webp">
+            <div class="shot-chrome"><span class="shot-dot r"></span><span class="shot-dot y"></span><span class="shot-dot g"></span><span class="shot-url">maxsurge.ru/app/analytics</span></div>
+            <img class="shot-img" src="/static/screenshots/analytics.webp" alt="Аналитика MaxSurge" loading="lazy"/>
+          </div>
+          <p class="text-center text-sm text-gray-500 mt-4">Воронка, конверсии, статистика по аккаунтам и кампаниям — видите, что работает.</p>
+        </div>
+      </div>
+
+      <p class="text-center text-xs text-gray-600 mt-8">Нажмите на скрин, чтобы увеличить</p>
+    </div>
+  </section>
+
+  <!-- Lightbox -->
+  <div id="lightbox" role="dialog" aria-label="Полноразмерный скриншот">
+    <button id="lightbox-close" aria-label="Закрыть">×</button>
+    <img id="lightbox-img" src="" alt=""/>
+  </div>
+
+  <!-- Niches -->
+  <section id="niches" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold mb-4">Для каких ниш работает</h2>
+        <p class="text-gray-400">Примеры, как клиенты используют MaxSurge в своей нише</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-indigo-500/30 transition-all">
+          <div class="text-3xl mb-3">🏗️</div>
+          <h3 class="font-semibold text-white mb-2">Строительные компании</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">2GIS → строительные фирмы вашего города → персональная рассылка с предложением услуг субподряда или поставки материалов.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-green-500/30 transition-all">
+          <div class="text-3xl mb-3">🦷</div>
+          <h3 class="font-semibold text-white mb-2">Медицина и стоматология</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Инвайтинг из городских чатов + рассылка по районам с акциями на приёмы, профилактику и диагностику.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-amber-500/30 transition-all">
+          <div class="text-3xl mb-3">🍽️</div>
+          <h3 class="font-semibold text-white mb-2">Рестораны и кафе</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Рассылка акций и спецпредложений по аудитории из районных чатов MAX. Автоответчик на бронирования 24/7.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-purple-500/30 transition-all">
+          <div class="text-3xl mb-3">🏠</div>
+          <h3 class="font-semibold text-white mb-2">Недвижимость</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Сбор агентств и риелторов из 2GIS + парсинг тематических чатов. Горячие лиды на продажу и аренду.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-pink-500/30 transition-all">
+          <div class="text-3xl mb-3">💪</div>
+          <h3 class="font-semibold text-white mb-2">Фитнес-клубы и студии</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Инвайтинг в клубные чаты из городских групп. Автоматические напоминания о тренировках и акции на абонементы.</p>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 hover:border-blue-500/30 transition-all">
+          <div class="text-3xl mb-3">⚖️</div>
+          <h3 class="font-semibold text-white mb-2">Юридические услуги</h3>
+          <p class="text-gray-400 text-sm leading-relaxed">Таргетированная рассылка по бизнес-базам из 2GIS. AI автоответчик на первичные консультации.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROI Calculator -->
+  <section id="roi" class="py-20 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">Калькулятор окупаемости</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Прикиньте возможную выручку и срок окупаемости MaxSurge под вашу нишу. Ползунки меняются — цифры обновляются на лету.</p>
+      </div>
+      <div class="grid md:grid-cols-5 gap-6 bg-[#0f172a] border border-[#1e293b] rounded-2xl p-6 md:p-8">
+        <!-- Controls -->
+        <div class="md:col-span-2 space-y-6">
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-gray-500 font-medium mb-2">Ваша ниша</label>
+            <select id="roi-niche" class="w-full bg-[#0a0e1a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500">
+              <option value="construction">Строительство / подрядчики</option>
+              <option value="medicine">Медицина / стоматология</option>
+              <option value="restaurants">Рестораны / кафе</option>
+              <option value="realty">Недвижимость</option>
+              <option value="fitness">Фитнес / студии</option>
+              <option value="law">Юридические услуги</option>
+              <option value="other">Другое</option>
+            </select>
+          </div>
+          <div>
+            <div class="flex justify-between items-baseline mb-2">
+              <label class="text-xs uppercase tracking-wider text-gray-500 font-medium">База лидов</label>
+              <span id="roi-base-label" class="text-sm font-semibold text-white">2 000</span>
+            </div>
+            <input id="roi-base" type="range" min="100" max="50000" step="100" value="2000" class="w-full accent-indigo-500"/>
+            <div class="flex justify-between text-[10px] text-gray-600 mt-1"><span>100</span><span>50 000</span></div>
+          </div>
+          <div>
+            <div class="flex justify-between items-baseline mb-2">
+              <label class="text-xs uppercase tracking-wider text-gray-500 font-medium">Конверсия в ответ</label>
+              <span id="roi-conv-label" class="text-sm font-semibold text-white">5%</span>
+            </div>
+            <input id="roi-conv" type="range" min="1" max="20" step="1" value="5" class="w-full accent-indigo-500"/>
+            <div class="flex justify-between text-[10px] text-gray-600 mt-1"><span>1%</span><span>20%</span></div>
+          </div>
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-gray-500 font-medium mb-2">Средний чек клиента, ₽</label>
+            <input id="roi-check" type="number" min="0" step="500" value="25000" class="w-full bg-[#0a0e1a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-indigo-500"/>
+          </div>
+        </div>
+        <!-- Results -->
+        <div class="md:col-span-3 bg-[#0a0e1a] border border-[#1e293b] rounded-xl p-6 md:p-7">
+          <div class="grid grid-cols-2 gap-5 mb-6">
+            <div>
+              <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Ответов</div>
+              <div id="roi-answers" class="text-2xl md:text-3xl font-bold text-white">100</div>
+              <div class="text-xs text-gray-600 mt-1">из базы</div>
+            </div>
+            <div>
+              <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Сделок</div>
+              <div id="roi-deals" class="text-2xl md:text-3xl font-bold text-white">20</div>
+              <div class="text-xs text-gray-600 mt-1">при закрытии 20%</div>
+            </div>
+            <div class="col-span-2">
+              <div class="text-xs uppercase tracking-wider text-gray-500 mb-1">Ожидаемая выручка</div>
+              <div id="roi-revenue" class="text-3xl md:text-4xl font-bold gradient-text">500 000 ₽</div>
+            </div>
+          </div>
+          <div class="border-t border-[#1e293b] pt-5">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+              <div class="text-xs uppercase tracking-wider text-gray-500">Рекомендуемый тариф</div>
+              <div id="roi-payback" class="text-xs text-emerald-400 font-medium">окупится на 1-ой сделке</div>
+            </div>
+            <div class="flex items-baseline gap-3 mb-4">
+              <div id="roi-tariff" class="text-xl font-semibold text-white">Basic</div>
+              <div id="roi-tariff-price" class="text-sm text-gray-400">2 990 ₽/мес</div>
+            </div>
+            <a id="roi-cta" href="/register" class="block text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Попробовать Basic бесплатно 7 дней</a>
+          </div>
+          <p class="text-[11px] text-gray-600 mt-5 leading-relaxed">Расчёт ориентировочный. Реальные показатели зависят от качества базы, текста рассылки, ниши и сезона. Ставка закрытия сделок взята консервативно — 20%.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why MaxSurge -->
+  <section id="compare" class="py-20 px-6 bg-[#0c1120]">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold mb-4">Почему выбирают MaxSurge</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto">Полный набор инструментов в одном сервисе — не точечное решение под одну задачу, а комбайн для всего цикла работы с MAX.</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="compare-table w-full text-sm min-w-[640px]">
+          <thead>
+            <tr class="text-left text-gray-400 text-xs uppercase tracking-wider">
+              <th class="font-normal">Параметр</th>
+              <th class="our-col text-center">
+                <div class="text-white font-bold text-base">MaxSurge</div>
+                <div class="text-indigo-400 text-[10px] mt-1">ЧТО ДАЁМ МЫ</div>
+              </th>
+              <th class="text-center text-gray-300 font-semibold text-base">Типичные решения</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-gray-400">Формат работы</td>
+              <td class="compare-our text-center text-white">SaaS в браузере, без установки</td>
+              <td class="text-center text-gray-500">часто — десктопное приложение</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Работа с телефона</td>
+              <td class="compare-our text-center text-emerald-400">✓ Доступно с любого устройства</td>
+              <td class="text-center text-gray-500">обычно только ПК</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Пробный период</td>
+              <td class="compare-our text-center text-white font-semibold">7 дней, без привязки карты</td>
+              <td class="text-center text-gray-500">часто 0–3 дня или отсутствует</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Стартовая цена</td>
+              <td class="compare-our text-center text-white font-semibold">от 1 490 ₽/мес</td>
+              <td class="text-center text-gray-500">часто скрыта или выше</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Парсинг 2GIS с привязкой к MAX</td>
+              <td class="compare-our text-center"><span class="text-emerald-400 font-bold">✓ Встроен</span></td>
+              <td class="text-center text-gray-500">как правило отсутствует</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">TG → MAX форвардер</td>
+              <td class="compare-our text-center"><span class="text-emerald-400 font-bold">✓ Встроен</span></td>
+              <td class="text-center text-gray-500">встречается редко</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Спинтакс + эмуляция набора</td>
+              <td class="compare-our text-center text-emerald-400">✓ Есть</td>
+              <td class="text-center text-gray-500">частично или нет</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">AI автоответчик</td>
+              <td class="compare-our text-center text-emerald-400">✓ Встроен</td>
+              <td class="text-center text-gray-500">по-разному</td>
+            </tr>
+            <tr>
+              <td class="text-gray-400">Юрлицо в РФ, оплата по карте РФ</td>
+              <td class="compare-our text-center text-emerald-400">✓ Да</td>
+              <td class="text-center text-gray-500">не всегда</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-xs text-gray-600 text-center mt-4">Мы не указываем конкретные названия других сервисов — рынок меняется, и их функциональность может отличаться от того, что вы прочитали сегодня. Оцените MaxSurge сами: <a href="/register" class="underline hover:text-gray-400">7 дней бесплатно без карты</a>.</p>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="py-20 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-10">
+        <h2 class="text-3xl font-bold mb-4">Тарифы</h2>
+        <p class="text-gray-400">Начните бесплатно. Масштабируйте когда будете готовы.</p>
+        <div class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          7-дневная гарантия возврата денег — без вопросов
+        </div>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="price-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-8">
+          <div class="text-sm text-gray-400 font-medium uppercase tracking-wider mb-2">Trial</div>
+          <div class="text-4xl font-bold mb-1">0 <span class="text-lg text-gray-500 font-normal">руб.</span></div>
+          <div class="text-sm text-gray-500 mb-6">7 дней бесплатно</div>
+          <ul class="space-y-3 mb-8 text-sm text-gray-300">
+            <li>2 MAX аккаунта</li>
+            <li>500 лидов</li>
+            <li>3 параллельные задачи</li>
+            <li>Все базовые функции</li>
+          </ul>
+          <a href="/register" class="block text-center border border-gray-700 text-gray-300 px-6 py-3 rounded-xl hover:border-indigo-500 transition-all">Начать бесплатно</a>
+          <p class="text-xs text-gray-500 mt-3 text-center">Без карты</p>
+        </div>
+        <div class="price-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-8">
+          <div class="text-sm text-gray-400 font-medium uppercase tracking-wider mb-2">Start</div>
+          <div class="text-4xl font-bold mb-1">1 490 <span class="text-lg text-gray-500 font-normal">₽/мес</span></div>
+          <div class="text-sm text-gray-500 mb-6">Для фрилансеров и стартапов</div>
+          <ul class="space-y-3 mb-8 text-sm text-gray-300">
+            <li>5 MAX аккаунтов</li>
+            <li>2 000 лидов</li>
+            <li>500 отправок/день</li>
+            <li>AI автоответчик</li>
+          </ul>
+          <a href="/register" class="block text-center border border-gray-700 text-gray-300 px-6 py-3 rounded-xl hover:border-indigo-500 transition-all">Выбрать Start</a>
+        </div>
+        <div class="price-card popular bg-[#0f172a] border-2 border-indigo-500 rounded-2xl p-8 relative">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold px-4 py-1 rounded-full">Популярный</div>
+          <div class="text-sm text-indigo-400 font-medium uppercase tracking-wider mb-2">Basic</div>
+          <div class="text-4xl font-bold mb-1">2 990 <span class="text-lg text-gray-500 font-normal">₽/мес</span></div>
+          <div class="text-sm text-gray-500 mb-6">Для малого бизнеса</div>
+          <ul class="space-y-3 mb-8 text-sm text-gray-300">
+            <li>15 MAX аккаунтов</li>
+            <li>10 000 лидов</li>
+            <li>2 000 отправок/день</li>
+            <li>TG → MAX форвардер</li>
+          </ul>
+          <a href="/register" class="block text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Выбрать Basic</a>
+        </div>
+        <div class="price-card bg-[#0f172a] border border-[#1e293b] rounded-2xl p-8">
+          <div class="text-sm text-gray-400 font-medium uppercase tracking-wider mb-2">Pro</div>
+          <div class="text-4xl font-bold mb-1">4 990 <span class="text-lg text-gray-500 font-normal">₽/мес</span></div>
+          <div class="text-sm text-gray-500 mb-6">Для агентств и команд</div>
+          <ul class="space-y-3 mb-8 text-sm text-gray-300">
+            <li>50 MAX аккаунтов</li>
+            <li>100 000 лидов</li>
+            <li>10 000 отправок/день</li>
+            <li>Всё включено</li>
+          </ul>
+          <a href="/register" class="block text-center border border-gray-700 text-gray-300 px-6 py-3 rounded-xl hover:border-indigo-500 transition-all">Выбрать Pro</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews (HIDDEN until real testimonials are available) -->
+  <!-- TODO(реальные отзывы): когда будут 3+ реальных цитат клиентов с именем/ролью/результатом —
+       уберите style="display:none" с <section id="reviews"> и верните пункт "Отзывы" в <nav>.
+       Плейсхолдеры ниже оставлены как шаблон структуры (рейтинг, текст, аватар-инициалы, имя+роль). -->
+  <section id="reviews" class="py-20 px-6" style="display:none">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold mb-4">Что говорят клиенты</h2>
+        <p class="text-gray-400">Реальные истории бизнесов, которые растут через MAX</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="flex items-center gap-1 mb-4 text-amber-400">★★★★★</div>
+          <p class="text-gray-300 text-sm leading-relaxed mb-6">«Парсинг 2GIS — то, чего не хватало. За неделю собрали 1 200 контактов стоматологий по региону и получили 38 заявок на поставку расходников.»</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold">АК</div>
+            <div>
+              <div class="text-sm font-semibold text-white">Алексей К.</div>
+              <div class="text-xs text-gray-500">B2B, расходники для медцентров</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="flex items-center gap-1 mb-4 text-amber-400">★★★★★</div>
+          <p class="text-gray-300 text-sm leading-relaxed mb-6">«Мигрировали клиентскую базу из Telegram-канала в MAX через форвардер. Из 4 600 подписчиков перенесли 3 100 — конверсия в подписку на MAX оказалась 67%.»</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center font-bold">МС</div>
+            <div>
+              <div class="text-sm font-semibold text-white">Мария С.</div>
+              <div class="text-xs text-gray-500">SMM-агентство, Краснодар</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-[#0f172a] border border-[#1e293b] rounded-2xl p-7">
+          <div class="flex items-center gap-1 mb-4 text-amber-400">★★★★★</div>
+          <p class="text-gray-300 text-sm leading-relaxed mb-6">«Что зашло — SaaS без установки. Запускаю рассылки с телефона, когда еду на встречу. AI автоответчик сам отвечает ночью на входящие и квалифицирует лидов.»</p>
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-rose-600 flex items-center justify-center font-bold">ДВ</div>
+            <div>
+              <div class="text-sm font-semibold text-white">Денис В.</div>
+              <div class="text-xs text-gray-500">Фриланс-маркетолог</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-center text-xs text-gray-600 mt-6">Хотите оставить отзыв? Напишите нам на <a href="mailto:hello@maxsurge.ru" class="underline hover:text-gray-400">hello@maxsurge.ru</a></p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-20 px-6 bg-[#0c1120]">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">Частые вопросы</h2>
+      <div class="space-y-4">
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">В чём особенности MaxSurge? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">MaxSurge — это SaaS без установки: работает из любого браузера, включая телефон. Среди ключевых инструментов — автопарсинг лидов из 2GIS с привязкой к MAX ID, TG→MAX форвардер для миграции аудитории из Telegram, AI автоответчик, инвайтинг, прогрев аккаунтов и CRM. Стартовая цена 1 490 ₽/мес, пробный период 7 дней без привязки карты.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Нужно ли устанавливать программу? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Нет. MaxSurge работает полностью в браузере. Доступ с любого устройства — ПК, планшет, телефон. Ничего не нужно ставить на компьютер, не нужны обновления и лицензии под конкретную машину.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Как работает парсинг из 2GIS? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Вы выбираете город и категорию (например, «стоматологии Краснодара»). MaxSurge собирает телефоны, названия, адреса организаций. Затем встроенный чекер автоматически находит MAX-аккаунты по этим номерам — на выходе готовая база для рассылки. Процесс занимает 10–30 минут на 1 000 контактов.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Как перенести клиентов из Telegram в MAX? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Используйте TG→MAX форвардер. Он собирает участников ваших Telegram-каналов или чатов и помогает перевести их в MAX через персонализированные приглашения — быстрый способ «не потерять» аудиторию при миграции в новый мессенджер.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Это законно? Что говорят правила MAX? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Сервис предназначен только для законного использования в рамках ToS мессенджера MAX и законодательства о рекламе (152-ФЗ, 38-ФЗ). Ответственность за содержание рассылок и получение согласия получателей несёт пользователь. Мы не рекомендуем рассылки без предварительного согласия.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Что будет, если аккаунт заблокируют? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">MaxSurge автоматически ротирует аккаунты и уважает лимиты платформы, снижая риск блокировки. Система прогрева готовит новые аккаунты перед боевым использованием. Если аккаунт всё же заблокирован — его можно заменить в панели без потери рассылки.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Можно ли использовать с телефона? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Да, панель адаптирована под мобильные браузеры. Запуск рассылок, просмотр статистики, управление аккаунтами — всё доступно с телефона. Ничего устанавливать не нужно.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Безопасно ли добавлять аккаунты? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Мы используем официальный WebSocket протокол MAX. Сессии хранятся зашифрованными. Есть 2FA для входа в панель. Прогрев аккаунтов и соблюдение лимитов снижают риск блокировки.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Можно ли получить возврат? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Да. 7 дней бесплатный пробный период без привязки карты + 7-дневная гарантия возврата после первой оплаты. Если не понравится — вернём деньги без вопросов.</p>
+        </details>
+        <details class="bg-[#0f172a] border border-[#1e293b] rounded-xl p-5 group">
+          <summary class="font-medium cursor-pointer flex justify-between items-center">Можно ли отменить подписку? <span class="text-gray-500 group-open:rotate-180 transition-transform">+</span></summary>
+          <p class="mt-3 text-gray-400 text-sm">Да, в любой момент в личном кабинете, в один клик. После отмены сервис продолжит работать до конца оплаченного периода.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-20 px-6">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">Готовы начать?</h2>
+      <p class="text-gray-400 mb-8">7 дней бесплатно. Полный доступ ко всем инструментам. Без привязки карты.</p>
+      <a href="/register" class="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:shadow-xl hover:shadow-indigo-500/30 transition-all">
+        Создать аккаунт бесплатно
+      </a>
+      <div class="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-gray-500">
+        <span>✓ Без карты</span>
+        <span>✓ 7-дневная гарантия возврата</span>
+        <span>✓ Отмена в один клик</span>
+        <span>✓ Юрлицо в РФ</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-[#1e293b] py-12 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-4 gap-8 mb-8">
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-7 h-7 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-md flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="15" width="4" height="6" rx="1" fill="white" fill-opacity="0.55"/><rect x="9" y="11" width="4" height="10" rx="1" fill="white" fill-opacity="0.8"/><rect x="15" y="7" width="4" height="14" rx="1" fill="white"/><path d="M14 7L17 3L20 7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span class="font-semibold">MaxSurge</span>
+          </div>
+          <p class="text-sm text-gray-500 leading-relaxed">Веб-панель инструментов для продвижения в мессенджере MAX.</p>
+        </div>
+        <div>
+          <div class="font-semibold text-sm mb-3 text-gray-300">Продукт</div>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="#features" class="hover:text-white transition">Возможности</a></li>
+            <li><a href="#killer-2gis" class="hover:text-white transition">Парсинг 2GIS</a></li>
+            <li><a href="#compare" class="hover:text-white transition">Сравнение</a></li>
+            <li><a href="#pricing" class="hover:text-white transition">Тарифы</a></li>
+            <li><a href="#faq" class="hover:text-white transition">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="font-semibold text-sm mb-3 text-gray-300">Компания</div>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="/about" class="hover:text-white transition">О нас</a></li>
+            <li><a href="/blog/" class="hover:text-white transition">Блог</a></li>
+            <li><a href="/help" class="hover:text-white transition">База знаний</a></li>
+            <li><a href="/changelog" class="hover:text-white transition">Журнал изменений</a></li>
+            <li><a href="/contacts" class="hover:text-white transition">Контакты</a></li>
+            <li><a href="/terms" class="hover:text-white transition">Условия использования</a></li>
+            <li><a href="/privacy" class="hover:text-white transition">Политика конфиденциальности</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="font-semibold text-sm mb-3 text-gray-300">Аккаунт</div>
+          <ul class="space-y-2 text-sm text-gray-500">
+            <li><a href="/login" class="hover:text-white transition">Войти</a></li>
+            <li><a href="/register" class="hover:text-white transition">Регистрация</a></li>
+            <li><a href="https://stats.uptimerobot.com/dYEflYerQ1" target="_blank" rel="noopener" class="hover:text-white transition flex items-center gap-1.5"><span class="inline-block w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>Статус сервиса</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pt-8 border-t border-[#1e293b] flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="text-sm text-gray-600">&copy; 2026 MaxSurge. Все права защищены.</div>
+        <div class="text-xs text-gray-600">Сервис предназначен только для законного использования в рамках ToS мессенджера MAX.</div>
+      </div>
+      <div class="pt-4 mt-4 border-t border-[#1e293b] text-center text-xs text-gray-600 leading-relaxed">
+        ИП Беляев Дмитрий Михайлович &middot; ИНН 233304095766 &middot; ОГРНИП 318237500162964
+      </div>
+    </div>
+  </footer>
+
+  <!-- Exit intent popup -->
+  <div id="exit-popup" role="dialog" aria-label="Не уходите">
+    <div class="ep-card">
+      <button class="ep-close" aria-label="Закрыть">×</button>
+      <div id="ep-form">
+        <div class="text-3xl mb-3">🎯</div>
+        <h3 class="text-xl font-bold text-white mb-2">Подождите! Забери чек-лист</h3>
+        <p class="text-sm text-gray-400 leading-relaxed mb-5">Как собрать 500 B2B-лидов из открытых карт за 1 день — пошаговая инструкция на почту. Бесплатно.</p>
+        <form id="ep-email-form" class="space-y-3">
+          <input id="ep-email" type="email" required placeholder="your@email.com" class="w-full bg-[#0a0e1a] border border-[#1e293b] rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 placeholder-gray-600"/>
+          <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-semibold text-sm hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Получить чек-лист</button>
+        </form>
+        <p class="text-[10px] text-gray-600 mt-3 text-center">Никакого спама. Одно письмо с чек-листом.</p>
+      </div>
+      <div id="ep-ok" class="ep-ok">
+        <div class="text-3xl mb-3">✅</div>
+        <div class="text-lg font-bold text-white mb-1">Отправили!</div>
+        <p class="text-sm text-gray-400">Проверьте почту через пару минут.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Telegram support widget -->
+  <div id="tg-support-widget" aria-hidden="true">
+    <div class="tg-panel">
+      <button class="tg-close" type="button" aria-label="Закрыть">×</button>
+      <div class="text-sm font-semibold text-white mb-1">Поддержка MaxSurge</div>
+      <div class="text-xs text-gray-400 mb-3">Напишите нам в Telegram — ответим в рабочее время в течение 15 минут.</div>
+      <a href="https://t.me/beliaevd" target="_blank" rel="noopener" class="block text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium">Написать в Telegram</a>
+      <div class="text-[10px] text-gray-600 mt-2 text-center">пн–пт 9:00–21:00 МСК · сб–вс 10:00–18:00</div>
+    </div>
+    <button class="tg-btn" type="button" aria-label="Открыть поддержку">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+      Поддержка
+    </button>
+  </div>
+
+  <script>
+    // Counter animation for metrics
+    const mObs = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting){
+          e.target.classList.add('animated');
+          const numEl = e.target.querySelector('[data-count]');
+          if(numEl){
+            const target = parseInt(numEl.dataset.count,10);
+            let cur = 0;
+            const step = Math.max(1, Math.round(target/30));
+            const tick = ()=>{
+              cur += step;
+              if(cur>=target){ numEl.textContent = target+(numEl.textContent.includes('+')?'+':''); return; }
+              numEl.textContent = cur + (numEl.textContent.includes('+')?'+':'');
+              requestAnimationFrame(tick);
+            };
+            // preserve plus sign if present
+            const origHasPlus = numEl.textContent.trim().endsWith('+');
+            numEl.textContent = '0' + (origHasPlus?'+':'');
+            tick();
+          }
+          mObs.unobserve(e.target);
+        }
+      });
+    }, {threshold: 0.3});
+    document.querySelectorAll('#metrics .metric').forEach(el=>mObs.observe(el));
+
+    // Exit intent popup
+    (function(){
+      const popup = document.getElementById('exit-popup');
+      const form = document.getElementById('ep-email-form');
+      const emailInput = document.getElementById('ep-email');
+      const closeBtn = popup?.querySelector('.ep-close');
+      const okBlock = document.getElementById('ep-ok');
+      const formBlock = document.getElementById('ep-form');
+      if(!popup || !form) return;
+      const KEY = 'msrg_exit_shown';
+      // Don't show if already shown or dismissed
+      if(localStorage.getItem(KEY)) return;
+      let shown = false;
+      // Trigger: cursor leaves viewport at top (desktop only)
+      document.documentElement.addEventListener('mouseleave', (e) => {
+        if(shown) return;
+        if(e.clientY > 10) return; // only top exit
+        // Wait at least 8 seconds on page before showing
+        if(performance.now() < 8000) return;
+        shown = true;
+        popup.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      });
+      const close = () => {
+        popup.classList.remove('open');
+        document.body.style.overflow = '';
+        localStorage.setItem(KEY, Date.now().toString());
+      };
+      closeBtn?.addEventListener('click', close);
+      popup.addEventListener('click', (e) => { if(e.target === popup) close(); });
+      document.addEventListener('keydown', (e) => { if(e.key === 'Escape' && popup.classList.contains('open')) close(); });
+      // Form submit
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        if(!email) return;
+        try {
+          await fetch('/api/lead', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email, source: 'exit_intent'})
+          });
+        } catch(_) {}
+        formBlock.style.display = 'none';
+        okBlock.style.display = 'block';
+        setTimeout(close, 3000);
+      });
+    })();
+
+    // Screenshot tabs + lightbox
+    (function(){
+      const tabs = document.querySelectorAll('.shot-tab');
+      const panels = document.querySelectorAll('.shot-panel');
+      if(!tabs.length) return;
+      tabs.forEach(t => t.addEventListener('click', () => {
+        const key = t.dataset.tab;
+        tabs.forEach(x => x.classList.toggle('active', x === t));
+        panels.forEach(p => p.classList.toggle('active', p.dataset.panel === key));
+      }));
+      // Lightbox
+      const lb = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lightbox-img');
+      const lbClose = document.getElementById('lightbox-close');
+      if(!lb || !lbImg) return;
+      document.querySelectorAll('.shot-frame').forEach(f => {
+        f.addEventListener('click', () => {
+          const src = f.dataset.full;
+          if(!src) return;
+          lbImg.src = src;
+          lb.classList.add('open');
+          document.body.style.overflow = 'hidden';
+        });
+      });
+      const closeLb = () => { lb.classList.remove('open'); document.body.style.overflow = ''; };
+      lbClose.addEventListener('click', closeLb);
+      lb.addEventListener('click', (e) => { if(e.target === lb) closeLb(); });
+      document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeLb(); });
+    })();
+
+    // ROI calculator
+    (function(){
+      const $ = id => document.getElementById(id);
+      const elNiche = $('roi-niche'), elBase = $('roi-base'), elConv = $('roi-conv'), elCheck = $('roi-check');
+      if(!elNiche || !elBase || !elConv || !elCheck) return;
+      const elBaseLabel = $('roi-base-label'), elConvLabel = $('roi-conv-label');
+      const elAnswers = $('roi-answers'), elDeals = $('roi-deals'), elRevenue = $('roi-revenue');
+      const elTariff = $('roi-tariff'), elTariffPrice = $('roi-tariff-price'), elPayback = $('roi-payback'), elCta = $('roi-cta');
+      const NICHE = {
+        construction: {check: 25000, conv: 3},
+        medicine:     {check: 3500,  conv: 5},
+        restaurants:  {check: 1500,  conv: 8},
+        realty:       {check: 50000, conv: 2},
+        fitness:      {check: 5000,  conv: 6},
+        law:          {check: 10000, conv: 3},
+        other:        {check: 5000,  conv: 5},
+      };
+      const TARIFFS = [
+        {key:'trial', name:'Trial',  price:0,    maxBase:500,   cta:'Попробовать бесплатно 7 дней'},
+        {key:'start', name:'Start',  price:1490, maxBase:2000,  cta:'Попробовать Start бесплатно 7 дней'},
+        {key:'basic', name:'Basic',  price:2990, maxBase:10000, cta:'Попробовать Basic бесплатно 7 дней'},
+        {key:'pro',   name:'Pro',    price:4990, maxBase:999999,cta:'Попробовать Pro бесплатно 7 дней'},
+      ];
+      const fmt = new Intl.NumberFormat('ru-RU');
+      const fmtRub = n => fmt.format(Math.round(n)) + ' ₽';
+      const CLOSING_RATE = 0.20;
+
+      function pickTariff(base){
+        for(const t of TARIFFS){ if(base <= t.maxBase) return t; }
+        return TARIFFS[TARIFFS.length-1];
+      }
+      function calc(){
+        const base = parseInt(elBase.value,10);
+        const conv = parseInt(elConv.value,10);
+        const check = Math.max(0, parseInt(elCheck.value,10) || 0);
+        const answers = Math.round(base * conv / 100);
+        const deals = Math.round(answers * CLOSING_RATE);
+        const revenue = deals * check;
+        elBaseLabel.textContent = fmt.format(base);
+        elConvLabel.textContent = conv + '%';
+        elAnswers.textContent = fmt.format(answers);
+        elDeals.textContent = fmt.format(deals);
+        elRevenue.textContent = fmtRub(revenue);
+        const tariff = pickTariff(base);
+        elTariff.textContent = tariff.name;
+        elTariffPrice.textContent = tariff.price === 0 ? 'бесплатно' : fmt.format(tariff.price) + ' ₽/мес';
+        elCta.textContent = tariff.cta;
+        // Payback text
+        if(check > 0 && tariff.price > 0){
+          const dealsForPayback = Math.max(1, Math.ceil(tariff.price / check));
+          elPayback.textContent = dealsForPayback === 1 ? 'окупается уже на 1-ой сделке' : 'окупается на ' + dealsForPayback + '-й сделке';
+          elPayback.classList.remove('text-gray-500'); elPayback.classList.add('text-emerald-400');
+        } else if(tariff.price === 0){
+          elPayback.textContent = 'тариф бесплатный';
+          elPayback.classList.remove('text-emerald-400'); elPayback.classList.add('text-gray-500');
+        } else {
+          elPayback.textContent = 'введите средний чек';
+          elPayback.classList.remove('text-emerald-400'); elPayback.classList.add('text-gray-500');
+        }
+      }
+      elNiche.addEventListener('change', () => {
+        const n = NICHE[elNiche.value] || NICHE.other;
+        elCheck.value = n.check;
+        elConv.value = n.conv;
+        calc();
+      });
+      ['input','change'].forEach(ev => {
+        elBase.addEventListener(ev, calc);
+        elConv.addEventListener(ev, calc);
+        elCheck.addEventListener(ev, calc);
+      });
+      calc();
+    })();
+
+    // Telegram support widget
+    (function(){
+      const widget = document.getElementById('tg-support-widget');
+      if(!widget) return;
+      const btn = widget.querySelector('.tg-btn');
+      const closeBtn = widget.querySelector('.tg-close');
+      const HIDE_KEY = 'msrg_tg_hide_until';
+      const hideUntil = parseInt(localStorage.getItem(HIDE_KEY)||'0', 10);
+      if(Date.now() < hideUntil) return;
+      setTimeout(()=>{ widget.classList.add('visible'); widget.setAttribute('aria-hidden','false'); }, 5000);
+      btn.addEventListener('click', ()=> widget.classList.toggle('open'));
+      closeBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        widget.classList.remove('visible','open');
+        widget.setAttribute('aria-hidden','true');
+        localStorage.setItem(HIDE_KEY, String(Date.now()+24*3600*1000));
+      });
+    })();
+  </script>
+
+</body>
+</html>

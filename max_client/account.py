@@ -53,19 +53,44 @@ def _get_work_dir(phone: str) -> Path:
 
 
 def _make_user_agent(app_version: str = MIN_APP_VERSION) -> UserAgentPayload:
+    """Randomized device fingerprint to reduce pattern-based bans.
+    
+    MAX Sheiker Manager v1.0.5 added this, and it's important for anti-ban:
+    if all sessions have identical fingerprints, MAX can detect automation.
+    """
+    import random
+
+    os_variants = [
+        ("macOS", "Macintosh; Intel Mac OS X 10_15_7"),
+        ("Windows 10", "Windows NT 10.0; Win64; x64"),
+        ("Windows 11", "Windows NT 10.0; Win64; x64"),
+        ("Linux", "X11; Linux x86_64"),
+        ("ChromeOS", "X11; CrOS x86_64 14541.0.0"),
+    ]
+    device_names = ["Chrome", "Yandex", "Edge", "Opera", "Vivaldi", "Brave", "Arc"]
+    chrome_versions = ["131.0.0.0", "130.0.0.0", "129.0.0.0", "128.0.0.0", "127.0.0.0", "132.0.0.0"]
+    screens = ["1920x1080 1.0x", "1440x900 2.0x", "2560x1440 1.0x", "1366x768 1.0x", "1536x864 1.25x", "1680x1050 1.0x"]
+    timezones = ["Europe/Moscow", "Europe/Samara", "Asia/Yekaterinburg", "Asia/Novosibirsk", "Asia/Almaty"]
+
+    os_name, os_ua = random.choice(os_variants)
+    device = random.choice(device_names)
+    chrome_ver = random.choice(chrome_versions)
+    screen = random.choice(screens)
+    tz = random.choice(timezones)
+
     return UserAgentPayload(
         device_type="WEB",
         app_version=app_version,
-        os_version="macOS",
-        device_name="Chrome",
+        os_version=os_name,
+        device_name=device,
         device_locale="ru-RU",
         header_user_agent=(
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+            f"Mozilla/5.0 ({os_ua}) AppleWebKit/537.36 "
+            f"(KHTML, like Gecko) Chrome/{chrome_ver} Safari/537.36"
         ),
         locale="ru_RU",
-        screen="1920x1080 1.0x",
-        timezone="Europe/Moscow",
+        screen=screen,
+        timezone=tz,
     )
 
 
