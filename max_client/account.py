@@ -242,6 +242,23 @@ class MaxAccountManager:
                 max_user_id = profile.get("userId") or profile.get("id")
                 device_id_str = str(client._device_id) if hasattr(client, '_device_id') and client._device_id else None
 
+                # Fallback: after QR login, do sync and extract profile from client.me
+                if not profile_name or not max_user_id:
+                    try:
+                        ua = _make_user_agent()
+                        client._token = token  # ensure token is set
+                        await client._sync(ua)
+                        if client.me:
+                            if not max_user_id:
+                                max_user_id = client.me.id
+                            if not profile_phone.lstrip("+"):
+                                profile_phone = "+" + str(client.me.phone) if client.me.phone else profile_phone
+                            if not profile_name and client.me.names:
+                                n = client.me.names[0]
+                                profile_name = f"{n.first_name or ''} {n.last_name or ''}".strip()
+                    except Exception as _e:
+                        logger.warning("[qr] post-login sync failed: {}", _e)
+
                 # Сохраняем в БД
                 await self._save_account(
                     phone=profile_phone,
