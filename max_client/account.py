@@ -43,6 +43,11 @@ DEFAULT_PROXY = os.getenv("MAX_PROXY_URL", "").strip() or None
 # QR login активные сессии в памяти (phone → state)
 _qr_sessions: dict[str, dict[str, Any]] = {}
 
+# Rate limit cooldown: phone -> unix_ts_until_allowed
+# Set when MAX returns login.flood, prevents restore retries for 30 min
+_flood_cooldown: dict[str, float] = {}
+FLOOD_COOLDOWN_SEC = 30 * 60  # 30 minutes
+
 
 def _get_work_dir(phone: str) -> Path:
     """Отдельная work_dir для каждого аккаунта — изоляция sqlite session.db."""
@@ -127,7 +132,7 @@ def _make_client(
         proxy=effective_proxy,
         token=token,
         device_id=dev_id,
-        reconnect=False,  # управляем reconnect сами
+        reconnect=True,  # PyMax auto-reconnect with backoff
     )
     return client
 
@@ -467,8 +472,15 @@ class MaxAccountManager:
 
     async def restore_session(self, phone: str) -> MaxClient | None:
         """Восстанавливает клиент из БД записи."""
+        import time as _t
         if phone in self._clients:
             return self._clients[phone]
+
+        # Check rate limit cooldown
+        until = _flood_cooldown.get(phone, 0)
+        if until and _t.time() < until:
+            logger.debug("[restore] {} in cooldown for {}s more", phone, int(until - _t.time()))
+            return None
 
         async with async_session_factory() as session:
             acc = (await session.execute(
@@ -490,15 +502,36 @@ class MaxAccountManager:
             await client.connect(user_agent=ua)
             await client._sync(ua)
             self._clients[phone] = client
+            _flood_cooldown.pop(phone, None)
             logger.info("[restore] {} OK", phone)
             return client
         except Exception as e:
-            logger.warning("[restore] {} FAILED: {}", phone, str(e)[:200])
+            err = str(e)[:200]
+            logger.warning("[restore] {} FAILED: {}", phone, err)
+            # Rate limit from MAX — cooldown to avoid hammering
+            if "login.flood" in err or "rate limit" in err.lower():
+                _flood_cooldown[phone] = _t.time() + FLOOD_COOLDOWN_SEC
+                logger.warning("[restore] {} entering {}m cooldown", phone, FLOOD_COOLDOWN_SEC // 60)
             return None
 
     async def get_client(self, phone: str) -> MaxClient | None:
+        # Return cached client if connected, else reconnect
         if phone in self._clients:
-            return self._clients[phone]
+            client = self._clients[phone]
+            # Check if WebSocket is still alive
+            try:
+                if client._ws and not getattr(client._ws, "closed", False) and getattr(client, "is_connected", True):
+                    return client
+            except Exception:
+                pass
+            # WS dead — drop cache and restore
+            logger.info("[get_client] WS dead for {}, reconnecting", phone)
+            try:
+                if client._ws:
+                    await client._ws.close()
+            except Exception:
+                pass
+            del self._clients[phone]
         return await self.restore_session(phone)
 
     async def get_all_active_clients(self) -> list[tuple[MaxAccount, MaxClient]]:
