@@ -85,8 +85,15 @@ async def qr_start(request: Request, phone: str = Form(...), proxy: str = Form("
             "phone": phone,
         })
     except Exception as e:
-        logger.exception("qr_start failed for {}", phone)
-        return JSONResponse({"error": f"Ошибка: {str(e)[:200]}"}, status_code=500)
+        err_msg = str(e)[:200]
+        logger.warning("qr_start failed for {}: {}", phone, err_msg)
+        # Rate limit from MAX — return 429 not 500
+        if "no.attempts" in err_msg or "too many" in err_msg.lower() or "попыток" in err_msg.lower():
+            return JSONResponse({"error": "Слишком много попыток. Подождите 10-15 минут и попробуйте снова."}, status_code=429)
+        # Connection error — proxy or network issue
+        if "ConnectionRefused" in err_msg or "Connection refused" in err_msg:
+            return JSONResponse({"error": "Не удалось подключиться к MAX. Проверьте прокси или подождите."}, status_code=502)
+        return JSONResponse({"error": f"Ошибка: {err_msg}"}, status_code=400)
 
 
 @router.post("/qr/poll")
