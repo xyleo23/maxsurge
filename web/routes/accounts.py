@@ -302,6 +302,176 @@ async def bulk_import(
 
 
 # ════════════════════════════════════════════════════════════════════
+#  HEALTH CHECK — Validity + Restrictions
+# ════════════════════════════════════════════════════════════════════
+
+@router.post("/{account_id}/check-validity")
+async def check_validity(request: Request, account_id: int):
+    """Check if account is alive (can connect + sync)."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        acc = await s.get(MaxAccount, account_id)
+        if not acc:
+            return JSONResponse({"error": "not_found"}, 404)
+        if user and not user.is_superadmin and acc.owner_id != user.id:
+            return JSONResponse({"error": "forbidden"}, 403)
+    try:
+        client = await account_manager.restore_session(acc.phone)
+        if client:
+            return JSONResponse({"status": "valid", "phone": acc.phone})
+        else:
+            return JSONResponse({"status": "invalid", "phone": acc.phone, "error": "restore_failed"})
+    except Exception as e:
+        return JSONResponse({"status": "invalid", "phone": acc.phone, "error": str(e)[:200]})
+
+
+@router.post("/{account_id}/check-restrictions")
+async def check_restrictions(request: Request, account_id: int):
+    """Check if account can send messages."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        acc = await s.get(MaxAccount, account_id)
+        if not acc:
+            return JSONResponse({"error": "not_found"}, 404)
+        if user and not user.is_superadmin and acc.owner_id != user.id:
+            return JSONResponse({"error": "forbidden"}, 403)
+    try:
+        client = await account_manager.get_client(acc.phone)
+        if not client:
+            return JSONResponse({"status": "error", "error": "not_connected"})
+        from max_client.ops import fetch_chats
+        chats = await fetch_chats(client)
+        return JSONResponse({"status": "ok", "phone": acc.phone, "chats_count": len(chats) if chats else 0, "can_send": True})
+    except Exception as e:
+        err = str(e)[:200]
+        restricted = any(w in err.lower() for w in ("restricted", "banned", "limit", "forbidden"))
+        return JSONResponse({"status": "restricted" if restricted else "error", "phone": acc.phone, "error": err, "can_send": False})
+
+
+# ════════════════════════════════════════════════════════════════════
+#  ACCOUNT CHATS/CHANNELS LIST
+# ════════════════════════════════════════════════════════════════════
+
+@router.get("/{account_id}/chats")
+async def account_chats(request: Request, account_id: int):
+    """List all chats/channels/dialogs for a specific account."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        acc = await s.get(MaxAccount, account_id)
+        if not acc:
+            return JSONResponse({"error": "not_found"}, 404)
+        if user and not user.is_superadmin and acc.owner_id != user.id:
+            return JSONResponse({"error": "forbidden"}, 403)
+    try:
+        client = await account_manager.get_client(acc.phone)
+        if not client:
+            return JSONResponse({"error": "not_connected"}, 400)
+        result = {
+            "phone": acc.phone,
+            "chats": [{"id": c.id, "name": getattr(c, "title", getattr(c, "name", "?")), "type": "chat"} for c in (client.chats or [])],
+            "channels": [{"id": c.id, "name": getattr(c, "title", getattr(c, "name", "?")), "type": "channel"} for c in (client.channels or [])],
+            "dialogs": [{"id": d.id, "name": getattr(d, "title", getattr(d, "name", str(d.id))), "type": "dialog"} for d in (client.dialogs or [])],
+        }
+        return JSONResponse(result)
+    except Exception as e:
+        return JSONResponse({"error": str(e)[:200]}, 500)
+
+
+# ════════════════════════════════════════════════════════════════════
+#  ACCOUNT ROLES/TAGS
+# ════════════════════════════════════════════════════════════════════
+
+@router.post("/{account_id}/set-role")
+async def set_role(request: Request, account_id: int, role: str = Form("")):
+    """Set custom role/tag for account."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        acc = await s.get(MaxAccount, account_id)
+        if not acc:
+            return RedirectResponse("/app/accounts/?msg=Не+найден", status_code=303)
+        if user and not user.is_superadmin and acc.owner_id != user.id:
+            return RedirectResponse("/app/accounts/?msg=Нет+доступа", status_code=303)
+        acc.role = role.strip()[:32]
+        await s.commit()
+    return RedirectResponse("/app/accounts/?msg=Роль+обновлена", status_code=303)
+
+
+# ════════════════════════════════════════════════════════════════════
+#  EXPORT ACCOUNTS (JSON/CSV)
+# ════════════════════════════════════════════════════════════════════
+
+@router.get("/export/json")
+async def export_json(request: Request):
+    """Export all accounts as JSON."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        q = scope_query(select(MaxAccount), MaxAccount, user)
+        accounts = (await s.execute(q)).scalars().all()
+    data = [
+        {"phone": a.phone, "login_token": a.login_token or "", "device_id": a.device_id or "",
+         "proxy": a.proxy or "", "role": getattr(a, "role", ""), "profile_name": a.profile_name or "",
+         "max_user_id": a.max_user_id, "status": a.status.value}
+        for a in accounts
+    ]
+    return JSONResponse(data, headers={"Content-Disposition": "attachment; filename=max_accounts.json"})
+
+
+@router.get("/export/csv")
+async def export_csv(request: Request):
+    """Export all accounts as CSV."""
+    import io, csv as _csv
+    from fastapi.responses import StreamingResponse
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        q = scope_query(select(MaxAccount), MaxAccount, user)
+        accounts = (await s.execute(q)).scalars().all()
+    output = io.StringIO()
+    writer = _csv.writer(output)
+    writer.writerow(["phone", "login_token", "device_id", "proxy", "role", "profile_name", "max_user_id", "status"])
+    for a in accounts:
+        writer.writerow([a.phone, a.login_token or "", a.device_id or "", a.proxy or "",
+                         getattr(a, "role", ""), a.profile_name or "", a.max_user_id or "", a.status.value])
+    output.seek(0)
+    return StreamingResponse(iter([output.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=max_accounts.csv"})
+
+
+# ════════════════════════════════════════════════════════════════════
+#  BULK JOIN GROUPS (Max Master 1.4.0 inspired)
+# ════════════════════════════════════════════════════════════════════
+
+@router.post("/bulk-join")
+async def bulk_join_groups(request: Request, account_id: int = Form(...), links: str = Form(...)):
+    """Join multiple groups/channels by invite links. One link per line."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        acc = await s.get(MaxAccount, account_id)
+        if not acc:
+            return RedirectResponse("/app/accounts/?msg=Аккаунт+не+найден", status_code=303)
+        if user and not user.is_superadmin and acc.owner_id != user.id:
+            return RedirectResponse("/app/accounts/?msg=Нет+доступа", status_code=303)
+    client = await account_manager.get_client(acc.phone)
+    if not client:
+        return RedirectResponse("/app/accounts/?msg=Аккаунт+не+подключён", status_code=303)
+    import asyncio as _aio
+    from max_client.ops import join_group, join_channel
+    link_list = [l.strip() for l in links.strip().split("\n") if l.strip()]
+    joined, errors = 0, 0
+    for link in link_list[:50]:
+        try:
+            try:
+                await join_group(client, link)
+            except Exception:
+                await join_channel(client, link)
+            joined += 1
+            await _aio.sleep(2)
+        except Exception as e:
+            logger.debug("bulk_join failed for {}: {}", link, e)
+            errors += 1
+    return RedirectResponse(f"/app/accounts/?msg=Вступлено+{joined},+ошибок+{errors}+из+{len(link_list)}", status_code=303)
+
+
+# ════════════════════════════════════════════════════════════════════
 #  LEGACY SMS endpoints — удалены (MAX отключил phone-auth)
 #  Оставлены заглушки чтобы формы не падали на 404
 # ════════════════════════════════════════════════════════════════════
