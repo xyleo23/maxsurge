@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %} — Аккаунты MAX{% endblock %}
+
 {% block content %}
 <h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Аккаунты MAX</h1>
 
@@ -7,91 +8,7 @@
   <!-- Добавить аккаунт -->
   <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5"
        x-data="{
-         mode: 'qr',
-         qrActive: false,
-         qrPng: '',
-         qrLink: '',
-         qrPhone: '',
-         qrExpiresAt: 0,
-         qrStatus: '',
-         pollTimer: null,
-         countdownTimer: null,
-         countdown: 0,
-         async startQr() {
-           this.qrStatus = 'Подключение к MAX...';
-           const fd = new FormData();
-           const phoneInput = document.getElementById('qr_phone_input');
-           const proxyInput = document.getElementById('qr_proxy_input');
-           fd.append('phone', phoneInput.value);
-           fd.append('proxy', proxyInput.value || '');
-           const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrf_token='));
-           try {
-             const r = await fetch('/app/accounts/qr/start', {
-               method: 'POST', body: fd,
-               headers: csrf ? {'X-CSRF-Token': csrf.split('=')[1]} : {}
-             });
-             const data = await r.json();
-             if (data.error) { this.qrStatus = '❌ ' + data.error; return; }
-             this.qrPng = data.qr_png;
-             this.qrLink = data.qr_link;
-             this.qrPhone = data.phone;
-             this.qrExpiresAt = data.expires_at;
-             this.qrActive = true;
-             this.qrStatus = 'Отсканируйте QR с телефона...';
-             this.startPolling(data.poll_interval || 5000);
-             this.startCountdown();
-           } catch(e) { this.qrStatus = '❌ ' + e.message; }
-         },
-         startCountdown() {
-           clearInterval(this.countdownTimer);
-           this.countdownTimer = setInterval(() => {
-             this.countdown = Math.max(0, Math.floor((this.qrExpiresAt - Date.now())/1000));
-             if (this.countdown <= 0) {
-               this.qrStatus = '⏱ QR истёк, нажмите ещё раз';
-               this.stopPolling();
-             }
-           }, 1000);
-         },
-         startPolling(interval) {
-           this.stopPolling();
-           this.pollTimer = setInterval(async () => {
-             const fd = new FormData();
-             fd.append('phone', this.qrPhone);
-             const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrf_token='));
-             try {
-               const r = await fetch('/app/accounts/qr/poll', {
-                 method: 'POST', body: fd,
-                 headers: csrf ? {'X-CSRF-Token': csrf.split('=')[1]} : {}
-               });
-               const d = await r.json();
-               if (d.status === 'confirmed') {
-                 this.qrStatus = '✅ ' + (d.profile && d.profile.name ? d.profile.name : 'Подключено!');
-                 this.stopPolling();
-                 setTimeout(() => location.reload(), 1500);
-               } else if (d.status === 'expired') {
-                 this.qrStatus = '⏱ QR истёк';
-                 this.stopPolling();
-               } else if (d.status === 'error') {
-                 this.qrStatus = '❌ ' + (d.error || 'Ошибка');
-                 this.stopPolling();
-               }
-             } catch(e) {}
-           }, interval);
-         },
-         stopPolling() {
-           clearInterval(this.pollTimer);
-           clearInterval(this.countdownTimer);
-           this.qrActive = false;
-         },
-         async cancelQr() {
-           this.stopPolling();
-           const fd = new FormData();
-           fd.append('phone', this.qrPhone);
-           const csrf = document.cookie.split('; ').find(r=>r.startsWith('csrf_token='));
-           await fetch('/app/accounts/qr/cancel', { method: 'POST', body: fd, headers: csrf?{'X-CSRF-Token': csrf.split('=')[1]}:{} });
-           this.qrPng = '';
-           this.qrStatus = 'Отменено';
-         }
+         mode: 'qr'
        }">
     <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Добавить аккаунт</h2>
 
@@ -105,21 +22,21 @@
 
     <!-- QR mode -->
     <div x-show="mode === 'qr'">
-      <div x-show="!qrActive || !qrPng">
+      <div id="qr_form">
         <label class="block text-gray-400 text-xs mb-1">Номер телефона</label>
         <input id="qr_phone_input" placeholder="+79001234567" class="form-input mb-2"/>
         <label class="block text-gray-400 text-xs mb-1">Прокси (опционально, KZ/AM/UZ mobile)</label>
         <input id="qr_proxy_input" placeholder="http://user:pass@host:port" class="form-input mb-3 text-xs font-mono"/>
-        <button @click="startQr()" class="btn-primary w-full">📱 Получить QR-код</button>
+        <button type="button" onclick="MaxSurgeQR.start()" class="btn-primary w-full">📱 Получить QR-код</button>
         <p class="mt-2 text-xs text-gray-500">SMS-авторизация отключена MAX. Используйте QR: отсканируйте код из мобильного приложения MAX, где вы уже залогинены.</p>
       </div>
 
-      <div x-show="qrActive && qrPng" class="text-center">
-        <img :src="qrPng + '?t=' + Date.now()" class="mx-auto w-48 h-48 bg-white p-2 rounded-lg mb-2" alt="QR"/>
-        <p class="text-xs text-gray-400 mb-2" x-text="qrStatus"></p>
-        <p class="text-xs text-gray-500 mb-3" x-show="countdown > 0">⏱ <span x-text="countdown"></span>с осталось</p>
+      <div id="qr_display" class="text-center" style="display:none">
+        <img id="qr_img" src="" class="mx-auto w-48 h-48 bg-white p-2 rounded-lg mb-2" alt="QR"/>
+        <p id="qr_status" class="text-xs text-gray-400 mb-2"></p>
+        <p id="qr_countdown" class="text-xs text-gray-500 mb-3"></p>
         <div class="flex gap-2">
-          <button @click="cancelQr()" class="flex-1 btn-secondary text-xs">Отменить</button>
+          <button type="button" onclick="MaxSurgeQR.cancel()" class="flex-1 btn-secondary text-xs">Отменить</button>
         </div>
         <details class="mt-3 text-left">
           <summary class="text-xs text-gray-500 cursor-pointer">Как отсканировать?</summary>
@@ -192,33 +109,33 @@
   <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
     <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Как добавить аккаунт</h2>
 
-    <div class="mb-4 p-3 bg-red-900/20 border border-red-800/50 rounded-lg">
-      <p class="text-red-300 text-xs font-semibold mb-1">⚠ Важно</p>
-      <p class="text-red-200 text-xs">MAX отключил авторизацию по SMS. Теперь работают только QR login и импорт готовых токенов.</p>
+    <div class="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-lg">
+      <p class="text-red-700 dark:text-red-300 text-xs font-semibold mb-1">⚠ Важно</p>
+      <p class="text-red-700 dark:text-red-700 dark:text-red-300 text-xs">MAX отключил авторизацию по SMS. Теперь работают только QR login и импорт готовых токенов.</p>
     </div>
 
     <div class="space-y-3 text-sm">
       <div>
-        <div class="text-emerald-400 font-semibold mb-1">📱 QR login</div>
+        <div class="text-emerald-600 font-semibold mb-1">📱 QR login</div>
         <p class="text-gray-400 text-xs">Самый простой способ. У вас должен быть МАХ на телефоне. Откройте MAX → Настройки → "Устройства" или "MAX на компьютере" → Сканировать QR.</p>
       </div>
       <div>
-        <div class="text-emerald-400 font-semibold mb-1">🔑 Токен</div>
+        <div class="text-emerald-600 font-semibold mb-1">🔑 Токен</div>
         <p class="text-gray-400 text-xs">Для купленных аккаунтов с маркетплейса. Продавец отдаёт login_token + device_id.</p>
         <a href="https://t.me/bestmaxshop_bot?start=ref_124681426" target="_blank" rel="noopener" class="mt-1 inline-block text-xs text-indigo-400 hover:text-indigo-300">→ BestMaxShop ($5/акк, авто-доставка)</a>
       </div>
       <div>
-        <div class="text-emerald-400 font-semibold mb-1">📂 Session file</div>
+        <div class="text-emerald-600 font-semibold mb-1">📂 Session file</div>
         <p class="text-gray-400 text-xs">SQLite файл session.db от PyMax или Max Sheiker Manager. Содержит token + device_id.</p>
       </div>
       <div>
-        <div class="text-emerald-400 font-semibold mb-1">📦 Bulk CSV</div>
+        <div class="text-emerald-600 font-semibold mb-1">📦 Bulk CSV</div>
         <p class="text-gray-400 text-xs">Массовый импорт купленных аккаунтов. Столбцы: phone, login_token, device_id, proxy.</p>
       </div>
     </div>
 
-    <div class="mt-4 p-3 bg-yellow-900/20 border border-yellow-800/50 rounded-lg">
-      <p class="text-yellow-300 text-xs">⚠ Не превышайте 30-50 сообщений в день на аккаунт. Используйте мобильный прокси (RU/KZ/AM beeline/altel) для обхода блокировок.</p>
+    <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 rounded-lg">
+      <p class="text-yellow-700 dark:text-yellow-300 text-xs">⚠ Не превышайте 30-50 сообщений в день на аккаунт. Используйте мобильный прокси (RU/KZ/AM beeline/altel) для обхода блокировок.</p>
     </div>
   </div>
 </div>
@@ -283,9 +200,9 @@
         <td class="text-xs text-gray-500">{{ "✅" if acc.proxy else "—" }}</td>
         <td>
           <span class="px-2 py-0.5 rounded text-xs
-            {{ 'bg-green-900 text-green-300' if acc.status.value == 'active' else
-               'bg-red-900 text-red-300' if acc.status.value == 'blocked' else
-               'bg-yellow-900 text-yellow-300' }}">
+            {{ 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' if acc.status.value == 'active' else
+               'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300' if acc.status.value == 'blocked' else
+               'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' }}">
             {{ acc.status.value }}
           </span>
         </td>
@@ -315,7 +232,7 @@
               <button class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] text-gray-400 hover:text-yellow-400 hover:border-yellow-500" title="Сбросить счётчик">↺</button>
             </form>
             <form method="post" action="/app/accounts/{{ acc.id }}/delete" class="inline" onsubmit="return confirm('Удалить {{ acc.phone }}?')">
-              <button class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] text-red-400 hover:text-red-300 hover:border-red-500" title="Удалить">✕</button>
+              <button class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] text-red-400 hover:text-red-700 dark:text-red-300 hover:border-red-500" title="Удалить">✕</button>
             </form>
           </div>
           <div x-show="healthResult" class="text-[10px] mt-1" x-text="healthResult"></div>
@@ -330,4 +247,242 @@
     </tbody>
   </table></div>
 </div>
+<script>
+window.MaxSurgeQR = (function(){
+  let pollTimer = null;
+  let countdownTimer = null;
+  let expiresAt = 0;
+  let phone = '';
+
+  function $(id) { return document.getElementById(id); }
+  function setStatus(text) { const e = $('qr_status'); if (e) e.textContent = text; }
+  function getCsrf() {
+    const c = document.cookie.split('; ').find(r => r.startsWith('csrf_token='));
+    return c ? c.split('=')[1] : '';
+  }
+
+  async function start() {
+    const phoneInput = $('qr_phone_input');
+    const proxyInput = $('qr_proxy_input');
+    if (!phoneInput || !phoneInput.value.trim()) {
+      alert('Введите номер телефона');
+      return;
+    }
+    phone = phoneInput.value.trim();
+    if (!phone.startsWith('+')) phone = '+' + phone.replace(/^\+/, '');
+
+    $('qr_form').style.display = 'none';
+    $('qr_display').style.display = 'block';
+    setStatus('⏳ Подключение к MAX...');
+    $('qr_img').src = '';
+
+    const fd = new FormData();
+    fd.append('phone', phone);
+    fd.append('proxy', (proxyInput && proxyInput.value) || '');
+
+    try {
+      const r = await fetch('/app/accounts/qr/start', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-Token': getCsrf() }
+      });
+      const data = await r.json();
+      if (!r.ok || data.error) {
+        setStatus('❌ ' + (data.error || ('HTTP ' + r.status)));
+        return;
+      }
+      $('qr_img').src = data.qr_png + '?t=' + Date.now();
+      expiresAt = data.expires_at;
+      setStatus('📱 Отсканируйте QR из MAX приложения');
+      startCountdown();
+      startPolling(data.poll_interval || 5000);
+    } catch(e) {
+      setStatus('❌ ' + e.message);
+    }
+  }
+
+  function startCountdown() {
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+      const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      const el = $('qr_countdown');
+      if (el) el.textContent = remaining > 0 ? ('⏱ ' + remaining + 'с осталось') : '';
+      if (remaining <= 0) {
+        setStatus('⏱ QR истёк, нажмите "Отменить" и попробуйте снова');
+        stopPolling();
+      }
+    }, 1000);
+  }
+
+  function startPolling(interval) {
+    stopPolling();
+    pollTimer = setInterval(async () => {
+      const fd = new FormData();
+      fd.append('phone', phone);
+      try {
+        const r = await fetch('/app/accounts/qr/poll', {
+          method: 'POST', body: fd,
+          headers: { 'X-CSRF-Token': getCsrf() }
+        });
+        const d = await r.json();
+        if (d.status === 'confirmed') {
+          const name = (d.profile && d.profile.name) || 'Аккаунт подключён';
+          setStatus('✅ ' + name);
+          stopPolling();
+          setTimeout(() => location.reload(), 1500);
+        } else if (d.status === 'expired') {
+          setStatus('⏱ QR истёк');
+          stopPolling();
+        } else if (d.status === 'error') {
+          setStatus('❌ ' + (d.error || 'Ошибка'));
+          stopPolling();
+        }
+      } catch(e) {}
+    }, interval);
+  }
+
+  function stopPolling() {
+    clearInterval(pollTimer);
+    clearInterval(countdownTimer);
+    pollTimer = null;
+    countdownTimer = null;
+  }
+
+  async function cancel() {
+    stopPolling();
+    const fd = new FormData();
+    fd.append('phone', phone);
+    try {
+      await fetch('/app/accounts/qr/cancel', {
+        method: 'POST', body: fd,
+        headers: { 'X-CSRF-Token': getCsrf() }
+      });
+    } catch(e) {}
+    $('qr_display').style.display = 'none';
+    $('qr_form').style.display = 'block';
+  }
+
+  return { start: start, cancel: cancel };
+})();
+</script>
+
+<script>
+window.MaxSurgeQR = (function(){
+  let pollTimer = null;
+  let countdownTimer = null;
+  let expiresAt = 0;
+  let phone = '';
+
+  function $(id) { return document.getElementById(id); }
+  function setStatus(text) { const e = $('qr_status'); if (e) e.textContent = text; }
+  function getCsrf() {
+    const c = document.cookie.split('; ').find(r => r.startsWith('csrf_token='));
+    return c ? c.split('=')[1] : '';
+  }
+
+  async function start() {
+    const phoneInput = $('qr_phone_input');
+    const proxyInput = $('qr_proxy_input');
+    if (!phoneInput || !phoneInput.value.trim()) {
+      alert('Введите номер телефона');
+      return;
+    }
+    phone = phoneInput.value.trim();
+    if (!phone.startsWith('+')) phone = '+' + phone.replace(/^\+/, '');
+
+    $('qr_form').style.display = 'none';
+    $('qr_display').style.display = 'block';
+    setStatus('⏳ Подключение к MAX...');
+    $('qr_img').src = '';
+
+    const fd = new FormData();
+    fd.append('phone', phone);
+    fd.append('proxy', (proxyInput && proxyInput.value) || '');
+
+    try {
+      const r = await fetch('/app/accounts/qr/start', {
+        method: 'POST',
+        body: fd,
+        headers: { 'X-CSRF-Token': getCsrf() }
+      });
+      const data = await r.json();
+      if (!r.ok || data.error) {
+        setStatus('❌ ' + (data.error || ('HTTP ' + r.status)));
+        return;
+      }
+      $('qr_img').src = data.qr_png + '?t=' + Date.now();
+      expiresAt = data.expires_at;
+      setStatus('📱 Отсканируйте QR из MAX приложения');
+      startCountdown();
+      startPolling(data.poll_interval || 5000);
+    } catch(e) {
+      setStatus('❌ ' + e.message);
+    }
+  }
+
+  function startCountdown() {
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+      const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      const el = $('qr_countdown');
+      if (el) el.textContent = remaining > 0 ? ('⏱ ' + remaining + 'с осталось') : '';
+      if (remaining <= 0) {
+        setStatus('⏱ QR истёк, нажмите "Отменить" и попробуйте снова');
+        stopPolling();
+      }
+    }, 1000);
+  }
+
+  function startPolling(interval) {
+    stopPolling();
+    pollTimer = setInterval(async () => {
+      const fd = new FormData();
+      fd.append('phone', phone);
+      try {
+        const r = await fetch('/app/accounts/qr/poll', {
+          method: 'POST', body: fd,
+          headers: { 'X-CSRF-Token': getCsrf() }
+        });
+        const d = await r.json();
+        if (d.status === 'confirmed') {
+          const name = (d.profile && d.profile.name) || 'Аккаунт подключён';
+          setStatus('✅ ' + name);
+          stopPolling();
+          setTimeout(() => location.reload(), 1500);
+        } else if (d.status === 'expired') {
+          setStatus('⏱ QR истёк');
+          stopPolling();
+        } else if (d.status === 'error') {
+          setStatus('❌ ' + (d.error || 'Ошибка'));
+          stopPolling();
+        }
+      } catch(e) {}
+    }, interval);
+  }
+
+  function stopPolling() {
+    clearInterval(pollTimer);
+    clearInterval(countdownTimer);
+    pollTimer = null;
+    countdownTimer = null;
+  }
+
+  async function cancel() {
+    stopPolling();
+    const fd = new FormData();
+    fd.append('phone', phone);
+    try {
+      await fetch('/app/accounts/qr/cancel', {
+        method: 'POST', body: fd,
+        headers: { 'X-CSRF-Token': getCsrf() }
+      });
+    } catch(e) {}
+    $('qr_display').style.display = 'none';
+    $('qr_form').style.display = 'block';
+  }
+
+  return { start: start, cancel: cancel };
+})();
+</script>
+
 {% endblock %}
