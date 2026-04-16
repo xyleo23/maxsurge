@@ -23,7 +23,7 @@
   </div>
   <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5" x-data="wm()" x-init="init()">
     <div class="flex justify-between mb-3"><h2 class="font-semibold text-[color:var(--text-primary)]">Лог</h2><span class="text-sm text-gray-400" x-text="done+'/'+total">{{ status.actions_done }}/{{ status.total_actions }}</span></div>
-    <div class="h-2 bg-[var(--bg-card-alt)] rounded-full mb-3"><div class="h-2 bg-indigo-600 rounded-full transition-all" :style="'width:'+(total>0?Math.round(done/total*100):0)+'%'"></div></div>
+    <div class="h-2 bg-[var(--bg-card-alt)] rounded-full mb-3"><div class="h-2 bg-emerald-600 rounded-full transition-all" :style="'width:'+(total>0?Math.round(done/total*100):0)+'%'"></div></div>
     <div class="bg-[var(--log-bg)] rounded-lg p-3 h-52 overflow-y-auto font-mono text-xs">
       <template x-for="l in log"><div :class="l.includes('ОШИБКА')?'text-red-400':l.includes('Вступил')?'text-blue-400':l.includes('Отправил')?'text-green-400':l.includes('Сменил')?'text-yellow-400':'text-gray-300'" x-text="l"></div></template>
       {% for l in status.log %}<div class="text-gray-300">{{ l }}</div>{% endfor %}

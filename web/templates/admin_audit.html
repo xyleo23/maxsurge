@@ -22,7 +22,7 @@
       <tr style="border-top:1px solid var(--border)">
         <td class="py-2 text-xs whitespace-nowrap">{{ e.created_at.strftime("%m-%d %H:%M") }}</td>
         <td class="text-xs">{{ e.actor_email or "—" }}</td>
-        <td class="text-xs"><span style="color:#6366f1;font-weight:600">{{ e.action }}</span></td>
+        <td class="text-xs"><span style="color:#10B981;font-weight:600">{{ e.action }}</span></td>
         <td class="text-xs">{{ e.target_type or "—" }}{% if e.target_id %} #{{ e.target_id }}{% endif %}</td>
         <td class="text-xs" style="color:var(--text-muted)">{{ (e.details or "")[:150] }}</td>
         <td class="text-xs font-mono" style="color:var(--text-muted)">{{ e.ip or "—" }}</td>

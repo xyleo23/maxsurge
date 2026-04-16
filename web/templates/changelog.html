@@ -16,21 +16,21 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27><defs><linearGradient id=%27g%27 x1=%270%27 y1=%270%27 x2=%2724%27 y2=%2724%27 gradientUnits=%27userSpaceOnUse%27><stop stop-color=%27%236366f1%27/><stop offset=%270.5%27 stop-color=%27%23a855f7%27/><stop offset=%271%27 stop-color=%27%23ec4899%27/></linearGradient></defs><rect width=%2724%27 height=%2724%27 rx=%275%27 fill=%27url(%23g)%27/><rect x=%273%27 y=%2715%27 width=%274%27 height=%276%27 rx=%271%27 fill=%27white%27 fill-opacity=%270.55%27/><rect x=%279%27 y=%2711%27 width=%274%27 height=%2710%27 rx=%271%27 fill=%27white%27 fill-opacity=%270.8%27/><rect x=%2715%27 y=%277%27 width=%274%27 height=%2714%27 rx=%271%27 fill=%27white%27/><path d=%27M14 7L17 3L20 7%27 stroke=%27white%27 stroke-width=%272.2%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 fill=%27none%27/></svg>"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .gradient-text{background:linear-gradient(135deg,#818cf8,#c084fc,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .gradient-text{background:linear-gradient(135deg,#34d399,#6ee7b7,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
     .tag-badge{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:999px;letter-spacing:.02em;text-transform:uppercase}
     .tag-emerald{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.25)}
-    .tag-indigo{background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25)}
+    .tag-emerald{background:rgba(16,185,129,.12);color:#34d399;border:1px solid rgba(16,185,129,.25)}
     .tag-amber{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.25)}
     .tag-rose{background:rgba(244,63,94,.12);color:#fb7185;border:1px solid rgba(244,63,94,.25)}
     .tag-slate{background:rgba(100,116,139,.15);color:#cbd5e1;border:1px solid rgba(100,116,139,.3)}
     .entry{position:relative;padding-left:32px}
-    .entry::before{content:"";position:absolute;left:11px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,rgba(99,102,241,.4),rgba(168,85,247,.1))}
-    .entry::after{content:"";position:absolute;left:5px;top:22px;width:14px;height:14px;border-radius:999px;background:#0a0e1a;border:2px solid #818cf8;box-shadow:0 0 0 4px rgba(99,102,241,.15)}
-    .entry:last-child::before{background:linear-gradient(180deg,rgba(99,102,241,.4) 0%,rgba(168,85,247,.1) 40%,transparent 80%)}
+    .entry::before{content:"";position:absolute;left:11px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,rgba(16,185,129,.4),rgba(16,185,129,.1))}
+    .entry::after{content:"";position:absolute;left:5px;top:22px;width:14px;height:14px;border-radius:999px;background:#0a0e1a;border:2px solid #34d399;box-shadow:0 0 0 4px rgba(16,185,129,.15)}
+    .entry:last-child::before{background:linear-gradient(180deg,rgba(16,185,129,.4) 0%,rgba(16,185,129,.1) 40%,transparent 80%)}
     .cl-content p{margin:.5em 0}
     .cl-content a{color:#a5b4fc;text-decoration:underline;text-underline-offset:2px}
     .cl-content a:hover{color:#c7d2fe}
-    .cl-content code{background:rgba(99,102,241,.15);color:#c7d2fe;padding:1px 6px;border-radius:4px;font-size:.85em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .cl-content code{background:rgba(16,185,129,.15);color:#c7d2fe;padding:1px 6px;border-radius:4px;font-size:.85em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
     .cl-content strong{color:#fff;font-weight:600}
   </style>
 </head>
@@ -40,7 +40,7 @@
   <nav class="fixed top-0 w-full z-50 bg-[#0a0e1a]/80 backdrop-blur-xl border-b border-white/5">
     <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
       <a href="/" class="flex items-center gap-2.5 hover:opacity-80 transition">
-        <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
+        <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 via-emerald-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="15" width="4" height="6" rx="1" fill="white" fill-opacity="0.55"/><rect x="9" y="11" width="4" height="10" rx="1" fill="white" fill-opacity="0.8"/><rect x="15" y="7" width="4" height="14" rx="1" fill="white"/><path d="M14 7L17 3L20 7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
         <span class="font-bold text-lg">MaxSurge</span>
@@ -55,7 +55,7 @@
       </div>
       <div class="flex items-center gap-3">
         <a href="/login" class="text-sm text-gray-400 hover:text-white transition">Войти</a>
-        <a href="/register" class="text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Начать бесплатно</a>
+        <a href="/register" class="text-sm bg-gradient-to-r from-emerald-600 to-emerald-600 text-white px-5 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-500/30 transition-all">Начать бесплатно</a>
       </div>
     </div>
   </nav>
@@ -86,7 +86,7 @@
             <ul class="mt-3 space-y-2 cl-content text-gray-300 text-sm md:text-base leading-relaxed">
               {% for item in group['items'] %}
               <li class="flex gap-3">
-                <span class="text-indigo-400 mt-1 flex-shrink-0">→</span>
+                <span class="text-emerald-400 mt-1 flex-shrink-0">→</span>
                 <span>{{ item|safe }}</span>
               </li>
               {% endfor %}
@@ -99,7 +99,7 @@
 
       <div class="mt-16 text-center text-sm text-gray-500">
         Следите за обновлениями — или присоединяйтесь прямо сейчас:
-        <a href="/register" class="inline-block ml-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-5 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-indigo-500/30 transition-all">Попробовать 7 дней бесплатно</a>
+        <a href="/register" class="inline-block ml-2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white px-5 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-500/30 transition-all">Попробовать 7 дней бесплатно</a>
       </div>
     </div>
   </section>
@@ -109,7 +109,7 @@
     <div class="max-w-6xl mx-auto">
       <div class="flex flex-col md:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-2">
-          <div class="w-7 h-7 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-md flex items-center justify-center">
+          <div class="w-7 h-7 bg-gradient-to-br from-emerald-500 via-emerald-500 to-pink-500 rounded-md flex items-center justify-center">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="15" width="4" height="6" rx="1" fill="white" fill-opacity="0.55"/><rect x="9" y="11" width="4" height="10" rx="1" fill="white" fill-opacity="0.8"/><rect x="15" y="7" width="4" height="14" rx="1" fill="white"/><path d="M14 7L17 3L20 7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <span class="font-semibold text-sm">MaxSurge</span>

@@ -16,7 +16,7 @@
   <div class="stat-card">
     <div class="flex items-center justify-between mb-2">
       <span style="color:var(--text-muted)" class="text-xs font-medium uppercase">Пользователей</span>
-      <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center"><svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center"><svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
     </div>
     <div class="text-2xl font-bold" style="color:var(--text-primary)">{{ users_total }}</div>
     <div class="text-xs mt-1" style="color:var(--text-muted)">Сегодня: {{ users_today }} | Активных: {{ users_active }}</div>
@@ -42,7 +42,7 @@
   </div>
   <div class="stat-card">
     <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Спарсено юзеров</div>
-    <div class="text-2xl font-bold text-purple-400 mt-2">{{ parsed_total }}</div>
+    <div class="text-2xl font-bold text-emerald-400 mt-2">{{ parsed_total }}</div>
   </div>
   <div class="stat-card">
     <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Файлов / Чатов</div>
@@ -58,7 +58,7 @@
   </div>
   <div class="stat-card">
     <div class="text-xs font-medium uppercase mb-1" style="color:var(--text-muted)">За месяц</div>
-    <div class="text-2xl font-bold text-indigo-400">{{ "%.0f"|format(month_revenue) }} ₽</div>
+    <div class="text-2xl font-bold text-emerald-400">{{ "%.0f"|format(month_revenue) }} ₽</div>
   </div>
   <div class="stat-card">
     <div class="text-xs font-medium uppercase mb-1" style="color:var(--text-muted)">Распределение планов</div>
@@ -78,7 +78,7 @@
     <div class="flex items-end gap-1 h-40">
       {% set max_s = chart_signups|max if chart_signups else 1 %}
       {% for value in chart_signups %}
-      <div class="flex-1 bg-indigo-500 rounded-t hover:bg-indigo-400 transition-all relative group"
+      <div class="flex-1 bg-emerald-500 rounded-t hover:bg-emerald-400 transition-all relative group"
            style="height: {{ (value / max_s * 100)|round|int if max_s > 0 else 0 }}%; min-height: 2px">
         <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style="color:var(--text-primary)">{{ chart_dates[loop.index0] }}: {{ value }}</div>
       </div>
@@ -152,8 +152,8 @@
     <div class="card-header">Conversion funnel</div>
     <div class="p-4 space-y-2">
       {% set funnel=[
-        ("Регистрации", users_total, "#6366f1"),
-        ("Email verified", users_active, "#818cf8"),
+        ("Регистрации", users_total, "#10B981"),
+        ("Email verified", users_active, "#34d399"),
         ("Добавили аккаунт", accounts_total, "#a78bfa"),
         ("Отправили сообщение", sent_total, "#10b981"),
         ("Оплатили", (plans_distribution.get("start",0)+plans_distribution.get("basic",0)+plans_distribution.get("pro",0)+plans_distribution.get("lifetime",0)), "#f59e0b"),
@@ -178,10 +178,10 @@
   var signups={{ chart_signups|tojson }};
   var revSum={{ chart_payments_sum|tojson }};
   var plans={{ plans_distribution|tojson }};
-  new Chart(document.getElementById("signupsChart"),{type:"bar",data:{labels:dates,datasets:[{label:"Регистрации",data:signups,backgroundColor:"rgba(99,102,241,0.5)",borderColor:"#6366f1",borderWidth:1,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  new Chart(document.getElementById("signupsChart"),{type:"bar",data:{labels:dates,datasets:[{label:"Регистрации",data:signups,backgroundColor:"rgba(16,185,129,0.5)",borderColor:"#10B981",borderWidth:1,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
   new Chart(document.getElementById("revenueChart"),{type:"line",data:{labels:dates,datasets:[{label:"Выручка ₽",data:revSum,borderColor:"#10b981",backgroundColor:"rgba(16,185,129,0.1)",fill:true,tension:0.3}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
   var pLabels=Object.keys(plans);var pData=Object.values(plans);
-  new Chart(document.getElementById("plansChart"),{type:"doughnut",data:{labels:pLabels,datasets:[{data:pData,backgroundColor:["#6366f1","#10b981","#f59e0b","#ef4444","#64748b"]}]},options:{responsive:true,plugins:{legend:{position:"bottom"}}}});
+  new Chart(document.getElementById("plansChart"),{type:"doughnut",data:{labels:pLabels,datasets:[{data:pData,backgroundColor:["#10B981","#10b981","#f59e0b","#ef4444","#64748b"]}]},options:{responsive:true,plugins:{legend:{position:"bottom"}}}});
 })();
 </script>
 

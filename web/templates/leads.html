@@ -108,7 +108,7 @@ function openCard(id){
     <tbody>
       {% for lead in leads %}
       <tr>
-        <td class="font-medium max-w-[200px] truncate"><a href="#" @click.prevent="openCard({{ lead.id }})" class="text-indigo-400 hover:text-indigo-300 cursor-pointer">{{ lead.name }}</a></td>
+        <td class="font-medium max-w-[200px] truncate"><a href="#" @click.prevent="openCard({{ lead.id }})" class="text-emerald-400 hover:text-emerald-300 cursor-pointer">{{ lead.name }}</a></td>
         <td class="text-xs">{{ lead.city or '—' }}</td>
         <td class="font-mono text-xs">{{ lead.phone or '—' }}</td>
         <td class="text-xs"><span class="badge badge-blue">{{ lead.categories or '—' }}</span></td>

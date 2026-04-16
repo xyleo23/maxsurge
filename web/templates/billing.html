@@ -28,7 +28,7 @@
 <!-- Тарифы -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
   <!-- Start -->
-  <div class="card relative {% if user.plan.value == 'start' %}ring-2 ring-indigo-500{% endif %}">
+  <div class="card relative {% if user.plan.value == 'start' %}ring-2 ring-emerald-500{% endif %}">
     <div class="text-xs font-medium uppercase mb-2" style="color:var(--text-muted)">Start</div>
     <div class="flex items-baseline gap-1 mb-1">
       <span class="text-3xl font-bold" style="color:var(--text-primary)">1 490</span>
@@ -64,9 +64,9 @@
   </div>
 
   <!-- Basic (popular) -->
-  <div class="card relative border-2 {% if user.plan.value == 'basic' %}ring-2 ring-indigo-500{% endif %}" style="border-color:rgba(99,102,241,0.4)">
-    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[0.625rem] font-bold px-3 py-1 rounded-full whitespace-nowrap">Популярный</div>
-    <div class="text-xs font-medium uppercase mb-2 text-indigo-400">Basic</div>
+  <div class="card relative border-2 {% if user.plan.value == 'basic' %}ring-2 ring-emerald-500{% endif %}" style="border-color:rgba(16,185,129,0.4)">
+    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white text-[0.625rem] font-bold px-3 py-1 rounded-full whitespace-nowrap">Популярный</div>
+    <div class="text-xs font-medium uppercase mb-2 text-emerald-400">Basic</div>
     <div class="flex items-baseline gap-1 mb-1">
       <span class="text-3xl font-bold" style="color:var(--text-primary)">2 990</span>
       <span class="text-sm" style="color:var(--text-muted)">₽/мес</span>
@@ -101,7 +101,7 @@
   </div>
 
   <!-- Pro -->
-  <div class="card {% if user.plan.value == 'pro' %}ring-2 ring-indigo-500{% endif %}">
+  <div class="card {% if user.plan.value == 'pro' %}ring-2 ring-emerald-500{% endif %}">
     <div class="text-xs font-medium uppercase mb-2" style="color:var(--text-muted)">Pro</div>
     <div class="flex items-baseline gap-1 mb-1">
       <span class="text-3xl font-bold" style="color:var(--text-primary)">4 990</span>
@@ -137,8 +137,8 @@
   </div>
 
   <!-- Lifetime -->
-  <div class="card relative {% if user.plan.value == 'lifetime' %}ring-2 ring-purple-500{% endif %}" style="background:linear-gradient(135deg,rgba(126,34,206,0.15),rgba(219,39,119,0.1));border-color:rgba(168,85,247,0.3)">
-    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[0.625rem] font-bold px-3 py-1 rounded-full whitespace-nowrap">&#9889; Lifetime</div>
+  <div class="card relative {% if user.plan.value == 'lifetime' %}ring-2 ring-emerald-500{% endif %}" style="background:linear-gradient(135deg,rgba(126,34,206,0.15),rgba(219,39,119,0.1));border-color:rgba(16,185,129,0.3)">
+    <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-pink-600 text-white text-[0.625rem] font-bold px-3 py-1 rounded-full whitespace-nowrap">&#9889; Lifetime</div>
     <div class="text-xs font-medium uppercase mb-2 text-pink-400">Lifetime</div>
     <div class="flex items-baseline gap-2 mb-1">
       <span class="text-3xl font-bold" style="color:var(--text-primary)">49 900</span>
@@ -168,7 +168,7 @@
     {% else %}
     <form method="post" action="/app/billing/create-payment">
       <input type="hidden" name="plan" value="lifetime"/>
-      <button type="submit" class="w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:shadow-lg" style="background:linear-gradient(135deg,#9333ea,#db2777)">Купить навсегда</button>
+      <button type="submit" class="w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:shadow-lg" style="background:linear-gradient(135deg,#047857,#db2777)">Купить навсегда</button>
     </form>
     {% endif %}
   </div>
@@ -197,13 +197,13 @@
         <td class="text-right">
           {% if p.status.value == 'pending' %}
             {% if p.confirmation_url %}
-            <a href="{{ p.confirmation_url }}" class="text-xs text-indigo-400 hover:text-indigo-300">Оплатить</a>
+            <a href="{{ p.confirmation_url }}" class="text-xs text-emerald-400 hover:text-emerald-300">Оплатить</a>
             {% endif %}
             <form method="post" action="/app/billing/check/{{ p.id }}" class="inline ml-2">
               <button class="text-xs" style="color:var(--text-muted)" title="Проверить статус">&#8635;</button>
             </form>
           {% elif p.status.value == 'succeeded' %}
-            <a href="/app/billing/invoice/{{ p.id }}" class="text-xs text-indigo-400 hover:text-indigo-300" title="Скачать чек">📄 Чек</a>
+            <a href="/app/billing/invoice/{{ p.id }}" class="text-xs text-emerald-400 hover:text-emerald-300" title="Скачать чек">📄 Чек</a>
           {% endif %}
         </td>
       </tr>
@@ -217,6 +217,6 @@
 
 <div class="mt-6 p-4 rounded-lg text-xs" style="background:var(--bg-card-alt);color:var(--text-muted)">
   <div class="font-medium mb-1" style="color:var(--text-primary)">О тестовом режиме</div>
-  Сейчас ЮKassa работает в <strong>тестовом режиме</strong>. Для тестовых карт используйте номер <code class="text-indigo-400">5555 5555 5555 4444</code>, любую будущую дату и CVC <code class="text-indigo-400">123</code>.
+  Сейчас ЮKassa работает в <strong>тестовом режиме</strong>. Для тестовых карт используйте номер <code class="text-emerald-400">5555 5555 5555 4444</code>, любую будущую дату и CVC <code class="text-emerald-400">123</code>.
 </div>
 {% endblock %}

@@ -5,7 +5,7 @@
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Лидов всего</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ leads_total }}</div></div>
   <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Привязано к MAX</div><div class="text-2xl font-bold text-green-400">{{ leads_with_max }}</div><div class="text-xs text-gray-500 mt-1">{{ conversion_rate }}% конверсия</div></div>
-  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Отправлено всего</div><div class="text-2xl font-bold text-indigo-400">{{ sent_total }}</div><div class="text-xs text-gray-500 mt-1">{{ success_rate }}% успех</div></div>
+  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Отправлено всего</div><div class="text-2xl font-bold text-emerald-400">{{ sent_total }}</div><div class="text-xs text-gray-500 mt-1">{{ success_rate }}% успех</div></div>
   <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Сегодня / Неделя</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ sent_today }} / {{ sent_week }}</div></div>
   <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Спарсено юзеров</div><div class="text-2xl font-bold text-blue-400">{{ parsed_users }}</div></div>
   <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Чатов в каталоге</div><div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ chats_catalog }}</div></div>
@@ -19,7 +19,7 @@
     <div class="flex items-end gap-1 h-40">
       {% set max_val = daily_sends|map(attribute=1)|max if daily_sends else 1 %}
       {% for date, count in daily_sends %}
-      <div class="flex-1 bg-indigo-600 rounded-t hover:bg-indigo-500 transition-colors relative group"
+      <div class="flex-1 bg-emerald-600 rounded-t hover:bg-emerald-500 transition-colors relative group"
            style="height: {{ (count / (max_val if max_val > 0 else 1) * 100)|int }}%">
         <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-gray-400 opacity-0 group-hover:opacity-100">{{ count }}</div>
       </div>

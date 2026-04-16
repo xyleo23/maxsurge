@@ -34,7 +34,7 @@
         {% for t in tracks %}
         <tr style="border-top:1px solid var(--border)">
           <td class="py-2">
-            <div class="font-mono text-xs text-indigo-400 cursor-pointer" onclick="navigator.clipboard.writeText('https://maxsurge.ru/go/{{ t.short_code }}'); this.textContent='✓ copied'" title="Нажмите чтобы скопировать">maxsurge.ru/go/{{ t.short_code }}</div>
+            <div class="font-mono text-xs text-emerald-400 cursor-pointer" onclick="navigator.clipboard.writeText('https://maxsurge.ru/go/{{ t.short_code }}'); this.textContent='✓ copied'" title="Нажмите чтобы скопировать">maxsurge.ru/go/{{ t.short_code }}</div>
             <div class="text-xs truncate max-w-[200px]" style="color:var(--text-muted)">→ {{ t.target_url }}</div>
           </td>
           <td class="text-xs">{{ t.campaign_name or "—" }}</td>

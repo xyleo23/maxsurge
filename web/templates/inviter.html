@@ -67,7 +67,7 @@
     <div class="flex justify-between mb-3"><h2 class="font-semibold text-[color:var(--text-primary)]">Статус</h2>
       <div class="flex gap-3 text-sm"><span class="text-green-400" x-text="'OK: '+inv">OK: {{ status.invited }}</span><span class="text-red-400" x-text="'Fail: '+fail">Fail: {{ status.failed }}</span><span class="text-gray-400" x-text="'/ '+total">/ {{ status.total }}</span></div>
     </div>
-    <div class="h-2 bg-[var(--bg-card-alt)] rounded-full mb-3"><div class="h-2 bg-indigo-600 rounded-full transition-all" :style="'width:'+(total>0?Math.round((inv+fail)/total*100):0)+'%'"></div></div>
+    <div class="h-2 bg-[var(--bg-card-alt)] rounded-full mb-3"><div class="h-2 bg-emerald-600 rounded-full transition-all" :style="'width:'+(total>0?Math.round((inv+fail)/total*100):0)+'%'"></div></div>
     <div class="bg-[var(--log-bg)] rounded-lg p-3 h-52 overflow-y-auto font-mono text-xs">
       <template x-for="l in log"><div :class="l.startsWith('[OK]')?'text-green-400':l.startsWith('[FAIL]')?'text-red-400':'text-gray-300'" x-text="l"></div></template>
       {% for l in status.log %}<div class="text-gray-300">{{ l }}</div>{% endfor %}

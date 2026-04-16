@@ -97,10 +97,10 @@
 
     <!-- Tabs -->
     <div class="flex gap-1 mb-4 p-1 rounded-lg" style="background:var(--bg-input)">
-      <button @click="mode='qr'" :class="mode==='qr' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📱 QR</button>
-      <button @click="mode='token'" :class="mode==='token' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">🔑 Токен</button>
-      <button @click="mode='session'" :class="mode==='session' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📂 Session</button>
-      <button @click="mode='bulk'" :class="mode==='bulk' ? 'bg-indigo-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📦 Bulk</button>
+      <button @click="mode='qr'" :class="mode==='qr' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📱 QR</button>
+      <button @click="mode='token'" :class="mode==='token' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">🔑 Токен</button>
+      <button @click="mode='session'" :class="mode==='session' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📂 Session</button>
+      <button @click="mode='bulk'" :class="mode==='bulk' ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:text-white'" class="flex-1 text-xs py-2 rounded-md font-medium transition-all">📦 Bulk</button>
     </div>
 
     <!-- QR mode -->
@@ -192,19 +192,19 @@
 
     <div class="space-y-3 text-sm">
       <div>
-        <div class="text-indigo-400 font-semibold mb-1">📱 QR login</div>
+        <div class="text-emerald-400 font-semibold mb-1">📱 QR login</div>
         <p class="text-gray-400 text-xs">Самый простой способ. У вас должен быть МАХ на телефоне. Откройте MAX → Настройки → "Устройства" или "MAX на компьютере" → Сканировать QR.</p>
       </div>
       <div>
-        <div class="text-indigo-400 font-semibold mb-1">🔑 Токен</div>
+        <div class="text-emerald-400 font-semibold mb-1">🔑 Токен</div>
         <p class="text-gray-400 text-xs">Для купленных аккаунтов с маркетплейса (maxmarket.cc, bestmaxshop.com). Продавец отдаёт login_token + device_id.</p>
       </div>
       <div>
-        <div class="text-indigo-400 font-semibold mb-1">📂 Session file</div>
+        <div class="text-emerald-400 font-semibold mb-1">📂 Session file</div>
         <p class="text-gray-400 text-xs">SQLite файл session.db от PyMax или Max Sheiker Manager. Содержит token + device_id.</p>
       </div>
       <div>
-        <div class="text-indigo-400 font-semibold mb-1">📦 Bulk CSV</div>
+        <div class="text-emerald-400 font-semibold mb-1">📦 Bulk CSV</div>
         <p class="text-gray-400 text-xs">Массовый импорт купленных аккаунтов. Столбцы: phone, login_token, device_id, proxy.</p>
       </div>
     </div>
@@ -215,21 +215,63 @@
   </div>
 </div>
 
+<!-- Bulk Join Groups -->
+{% if accounts %}
+<div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5 mb-8" x-data="{showJoin:false}">
+  <div class="flex items-center justify-between cursor-pointer" @click="showJoin=!showJoin">
+    <h2 class="font-semibold text-[color:var(--text-primary)]">🔗 Автовступление в группы</h2>
+    <span class="text-gray-400 text-sm" x-text="showJoin?'▲':'▼'"></span>
+  </div>
+  <div x-show="showJoin" x-cloak class="mt-4">
+    <form method="post" action="/app/accounts/bulk-join">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+        <div>
+          <label class="block text-gray-400 text-xs mb-1">Аккаунт</label>
+          <select name="account_id" class="form-input text-sm" required>
+            {% for acc in accounts %}
+            <option value="{{ acc.id }}">{{ acc.phone }} ({{ acc.profile_name or acc.status.value }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-gray-400 text-xs mb-1">Пригласительные ссылки (по одной на строку, макс 50)</label>
+          <textarea name="links" rows="4" placeholder="https://max.ru/join/abc123" class="form-input text-xs font-mono" required></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary text-sm">🔗 Вступить во все</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 <!-- Список аккаунтов -->
 <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden">
   <div class="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between">
     <h2 class="font-semibold text-[color:var(--text-primary)]">Аккаунты ({{ accounts|length }}/{{ limit if limit != 99999 else '∞' }})</h2>
+    {% if accounts %}
+    <div class="flex gap-2">
+      <a href="/app/accounts/export/json" class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white hover:border-emerald-500 transition">📥 JSON</a>
+      <a href="/app/accounts/export/csv" class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white hover:border-emerald-500 transition">📥 CSV</a>
+    </div>
+    {% endif %}
   </div>
   <div class="overflow-x-auto -mx-4 md:mx-0"><table>
     <thead><tr>
-      <th>Телефон</th><th>Имя</th><th>MAX ID</th><th>Прокси</th><th>Статус</th><th>Сегодня</th><th>Всего</th><th>Последняя активность</th><th></th>
+      <th>Телефон</th><th>Имя</th><th>Роль</th><th>Прокси</th><th>Статус</th><th>Сегодня</th><th>Всего</th><th>Последняя</th><th>Действия</th>
     </tr></thead>
     <tbody>
       {% for acc in accounts %}
-      <tr>
+      <tr x-data="{showActions:false, healthResult:'', chatsData:null}" @mouseenter="showActions=true" @mouseleave="showActions=false">
         <td class="font-mono text-sm">{{ acc.phone }}</td>
-        <td>{{ acc.profile_name or "—" }}</td>
-        <td class="font-mono text-xs text-gray-400">{{ acc.max_user_id or "—" }}</td>
+        <td>
+          <div>{{ acc.profile_name or "—" }}</div>
+          <div class="text-[10px] text-gray-500 font-mono">{{ acc.max_user_id or "" }}</div>
+        </td>
+        <td>
+          <form method="post" action="/app/accounts/{{ acc.id }}/set-role" class="inline">
+            <input name="role" value="{{ acc.role or '' }}" placeholder="тег" class="w-16 text-xs bg-transparent border-b border-transparent focus:border-emerald-500 outline-none text-gray-400" onchange="this.form.submit()"/>
+          </form>
+        </td>
         <td class="text-xs text-gray-500">{{ "✅" if acc.proxy else "—" }}</td>
         <td>
           <span class="px-2 py-0.5 rounded text-xs
@@ -242,13 +284,34 @@
         <td>{{ acc.sent_today }}</td>
         <td>{{ acc.sent_total }}</td>
         <td class="text-gray-500 text-xs">{{ acc.last_used_at.strftime('%d.%m %H:%M') if acc.last_used_at else "—" }}</td>
-        <td class="flex gap-2">
-          <form method="post" action="/app/accounts/{{ acc.id }}/reset-counter">
-            <button class="text-xs text-gray-500 hover:text-gray-300" title="Сбросить счётчик">↺</button>
-          </form>
-          <form method="post" action="/app/accounts/{{ acc.id }}/delete" onsubmit="return confirm('Удалить аккаунт {{ acc.phone }}?')">
-            <button class="text-xs text-red-500 hover:text-red-400" title="Удалить">✕</button>
-          </form>
+        <td>
+          <div class="flex gap-1 items-center">
+            <button @click="
+              healthResult='⏳';
+              const csrf=document.cookie.split('; ').find(r=>r.startsWith('csrf_token='));
+              fetch('/app/accounts/{{ acc.id }}/check-validity',{method:'POST',headers:csrf?{'X-CSRF-Token':csrf.split('=')[1]}:{}})
+              .then(r=>r.json()).then(d=>{healthResult=d.status==='valid'?'✅':'❌ '+d.error})
+              .catch(e=>{healthResult='❌'})
+            " class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] text-gray-400 hover:text-green-400 hover:border-green-500" title="Проверить валидность">🔍</button>
+            <button @click="
+              chatsData='⏳';
+              fetch('/app/accounts/{{ acc.id }}/chats')
+              .then(r=>r.json()).then(d=>{
+                if(d.error){chatsData='❌ '+d.error}else{
+                  let n=(d.chats||[]).length+(d.channels||[]).length+(d.dialogs||[]).length;
+                  chatsData='💬 '+n+' (чатов: '+(d.chats||[]).length+', каналов: '+(d.channels||[]).length+')';
+                }
+              }).catch(e=>{chatsData='❌'})
+            " class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] text-gray-400 hover:text-blue-400 hover:border-blue-500" title="Список чатов">💬</button>
+            <form method="post" action="/app/accounts/{{ acc.id }}/reset-counter" class="inline">
+              <button class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] text-gray-400 hover:text-yellow-400 hover:border-yellow-500" title="Сбросить счётчик">↺</button>
+            </form>
+            <form method="post" action="/app/accounts/{{ acc.id }}/delete" class="inline" onsubmit="return confirm('Удалить {{ acc.phone }}?')">
+              <button class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] text-red-400 hover:text-red-300 hover:border-red-500" title="Удалить">✕</button>
+            </form>
+          </div>
+          <div x-show="healthResult" class="text-[10px] mt-1" x-text="healthResult"></div>
+          <div x-show="chatsData" class="text-[10px] mt-1 text-blue-300" x-text="chatsData"></div>
         </td>
       </tr>
       {% else %}

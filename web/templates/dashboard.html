@@ -20,7 +20,7 @@
   var msgsData = {{ chart_msgs_json|safe }};
   var opts = {responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}};
   new Chart(document.getElementById('leadsChart'),{
-    type:'bar', data:{labels:labels, datasets:[{label:'Лиды',data:leadsData,backgroundColor:'rgba(99,102,241,0.5)',borderColor:'#6366f1',borderWidth:1,borderRadius:4}]}, options:opts
+    type:'bar', data:{labels:labels, datasets:[{label:'Лиды',data:leadsData,backgroundColor:'rgba(16,185,129,0.5)',borderColor:'#10B981',borderWidth:1,borderRadius:4}]}, options:opts
   });
   new Chart(document.getElementById('msgsChart'),{
     type:'bar', data:{labels:labels, datasets:[{label:'Отправлено',data:msgsData,backgroundColor:'rgba(16,185,129,0.5)',borderColor:'#10b981',borderWidth:1,borderRadius:4}]}, options:opts
@@ -39,31 +39,31 @@
 </div>
 
 {% if show_onboarding %}
-<div class="card mb-6" style="background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(168,85,247,0.05));border-color:rgba(99,102,241,0.3)">
+<div class="card mb-6" style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(16,185,129,0.05));border-color:rgba(16,185,129,0.3)">
   <div class="flex items-start justify-between mb-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
-        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
         <h3 class="font-semibold" style="color:var(--text-primary)">Добро пожаловать в MaxSurge!</h3>
       </div>
       <p class="text-sm" style="color:var(--text-muted)">Выполните шаги чтобы запустить первую сообщения</p>
     </div>
     <div class="text-right">
-      <div class="text-2xl font-bold text-indigo-400">{{ onboarding_done }}/{{ onboarding_total }}</div>
+      <div class="text-2xl font-bold text-emerald-400">{{ onboarding_done }}/{{ onboarding_total }}</div>
       <div class="text-xs" style="color:var(--text-muted)">выполнено</div>
     </div>
   </div>
 
   <!-- Progress bar -->
   <div class="h-2 bg-gray-800/50 rounded-full overflow-hidden mb-5">
-    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all"
+    <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-500 rounded-full transition-all"
          style="width: {{ (onboarding_done / onboarding_total * 100)|round|int }}%"></div>
   </div>
 
   <!-- Steps -->
   <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
     {% for step in onboarding %}
-    <a href="{{ step.url }}" class="block p-3 rounded-lg border transition-all {% if step.done %}border-green-500/30 bg-green-500/5{% else %}border-[var(--border)] hover:border-indigo-500/40 bg-[var(--bg-card-alt)]{% endif %}">
+    <a href="{{ step.url }}" class="block p-3 rounded-lg border transition-all {% if step.done %}border-green-500/30 bg-green-500/5{% else %}border-[var(--border)] hover:border-emerald-500/40 bg-[var(--bg-card-alt)]{% endif %}">
       <div class="flex items-center gap-2 mb-1">
         {% if step.done %}
         <div class="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
@@ -117,8 +117,8 @@
   <div class="stat-card">
     <div class="flex items-center justify-between mb-2">
       <span class="text-[color:var(--text-muted)] text-xs font-medium uppercase tracking-wider">За неделю</span>
-      <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
       </div>
     </div>
     <div class="text-2xl font-bold text-[color:var(--text-primary)]">{{ sent_week }}</div>
@@ -221,9 +221,9 @@
         <svg class="w-4 h-4 text-[color:var(--text-muted)] ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </a>
 
-      <a href="/checker/" class="flex items-center gap-3 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:border-purple-500/30 transition-all group">
-        <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
-          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <a href="/checker/" class="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10 hover:border-emerald-500/30 transition-all group">
+        <div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+          <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <div>
           <div class="text-sm font-medium text-[color:var(--text-primary)]">Привязать MAX ID</div>

@@ -44,7 +44,7 @@
       {% for rule in rules %}
       <div class="bg-[var(--bg-card-alt)] rounded-lg p-3 mb-2 flex justify-between items-center">
         <div>
-          <div class="text-sm text-[color:var(--text-primary)]">TG: <span class="font-mono text-indigo-400">{{ rule.tg_channel_id }}</span> → MAX: <span class="font-mono text-green-400">{{ rule.max_chat_ids|join(', ') }}</span></div>
+          <div class="text-sm text-[color:var(--text-primary)]">TG: <span class="font-mono text-emerald-400">{{ rule.tg_channel_id }}</span> → MAX: <span class="font-mono text-green-400">{{ rule.max_chat_ids|join(', ') }}</span></div>
           <div class="text-xs text-gray-500 mt-1">
             {% if rule.strip_links %}ссылки{% endif %} {% if rule.strip_mentions %}@{% endif %}
             {% if rule.stop_words %}стоп: {{ rule.stop_words|join(', ') }}{% endif %}
@@ -62,7 +62,7 @@
       </div>
       <div class="bg-[var(--log-bg)] rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs">
         {% for l in status.log[-30:] %}
-        <div class="{% if '[FWD]' in l %}text-green-400{% elif '[ERR]' in l %}text-red-400{% elif '[RULE]' in l %}text-indigo-400{% else %}text-gray-300{% endif %}">{{ l }}</div>
+        <div class="{% if '[FWD]' in l %}text-green-400{% elif '[ERR]' in l %}text-red-400{% elif '[RULE]' in l %}text-emerald-400{% else %}text-gray-300{% endif %}">{{ l }}</div>
         {% endfor %}
       </div>
     </div>

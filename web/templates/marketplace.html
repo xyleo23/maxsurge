@@ -27,7 +27,7 @@
       <div>
         <span style="color:var(--text-primary);font-weight:600">{{ t.name }}</span>
         {% if t.public_category %}
-          <span class="ml-2 text-xs px-2 py-0.5 rounded" style="background:#6366f122;color:#6366f1">
+          <span class="ml-2 text-xs px-2 py-0.5 rounded" style="background:#10B98122;color:#10B981">
             {% for v, l in categories %}{% if v == t.public_category %}{{ l }}{% endif %}{% endfor %}
           </span>
         {% endif %}
@@ -48,7 +48,7 @@
   </div>
   {% else %}
   <div class="card col-span-2 p-8 text-center" style="color:var(--text-muted)">
-    Пока пусто. Будьте первым — опубликуйте свой шаблон из <a href="/app/templates/" class="text-indigo-400">Шаблонов</a>.
+    Пока пусто. Будьте первым — опубликуйте свой шаблон из <a href="/app/templates/" class="text-emerald-400">Шаблонов</a>.
   </div>
   {% endfor %}
 </div>

@@ -22,7 +22,7 @@
         <div class="flex items-center gap-2">
           <form method="post" action="/app/webhooks/test" class="inline">
             <input type="hidden" name="endpoint_id" value="{{ ep.id }}"/>
-            <button type="submit" class="px-3 py-1 text-xs border border-indigo-500/40 text-indigo-300 rounded-lg hover:bg-indigo-500/10">Тест</button>
+            <button type="submit" class="px-3 py-1 text-xs border border-emerald-500/40 text-emerald-300 rounded-lg hover:bg-emerald-500/10">Тест</button>
           </form>
           <form method="post" action="/app/webhooks/toggle" class="inline">
             <input type="hidden" name="endpoint_id" value="{{ ep.id }}"/>
@@ -71,13 +71,13 @@
     <form method="post" action="/app/webhooks/create" class="space-y-4">
       <div>
         <label class="block text-xs text-gray-500 uppercase tracking-wider mb-1">URL endpoint</label>
-        <input name="url" type="url" required placeholder="https://your-server.com/webhook" class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"/>
+        <input name="url" type="url" required placeholder="https://your-server.com/webhook" class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"/>
       </div>
       <div>
         <label class="block text-xs text-gray-500 uppercase tracking-wider mb-1">События (JSON array или * = все)</label>
-        <input name="events" type="text" value="*" placeholder='["message_sent","lead_collected"] или *' class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"/>
+        <input name="events" type="text" value="*" placeholder='["message_sent","lead_collected"] или *' class="w-full bg-black/20 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500"/>
       </div>
-      <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition">Создать вебхук</button>
+      <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition">Создать вебхук</button>
     </form>
   </div>
 
@@ -87,7 +87,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       {% for key, desc in events.items() %}
       <div class="flex items-center gap-3 text-sm">
-        <code class="text-indigo-400 text-xs bg-indigo-500/10 px-2 py-0.5 rounded">{{ key }}</code>
+        <code class="text-emerald-400 text-xs bg-emerald-500/10 px-2 py-0.5 rounded">{{ key }}</code>
         <span class="text-gray-400">{{ desc }}</span>
       </div>
       {% endfor %}
@@ -97,7 +97,7 @@
   <!-- How to verify -->
   <div class="bg-white/5 border border-white/10 rounded-xl p-6">
     <h2 class="font-semibold mb-4">Верификация подписи</h2>
-    <p class="text-sm text-gray-400 mb-3">Каждый запрос приходит с заголовком <code class="text-indigo-400">X-MaxSurge-Signature: sha256=...</code>. Проверьте HMAC-SHA256 payload с вашим Secret-ключом.</p>
+    <p class="text-sm text-gray-400 mb-3">Каждый запрос приходит с заголовком <code class="text-emerald-400">X-MaxSurge-Signature: sha256=...</code>. Проверьте HMAC-SHA256 payload с вашим Secret-ключом.</p>
     <pre class="bg-black/30 rounded-lg p-4 text-xs text-gray-300 overflow-x-auto leading-relaxed"><code># Python
 import hmac, hashlib
 
@@ -111,7 +111,7 @@ function verify(body, secret, signature) {
     const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(body).digest('hex');
     return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
 }</code></pre>
-    <p class="text-xs text-gray-500 mt-3">Подробнее: <a href="/help/webhook-api" class="text-indigo-400 hover:text-indigo-300">документация</a> (скоро)</p>
+    <p class="text-xs text-gray-500 mt-3">Подробнее: <a href="/help/webhook-api" class="text-emerald-400 hover:text-emerald-300">документация</a> (скоро)</p>
   </div>
 </div>
 {% endblock %}
