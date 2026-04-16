@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %} — Лиды
+{% block title %} — Лиды{% endblock %}
+{% block content %}
 <!-- Lead Card Popup -->
 <div x-show="cardOpen" x-cloak class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @click.self="cardOpen=false">
   <div class="card max-w-lg w-full max-h-[80vh] overflow-y-auto">
@@ -50,8 +51,7 @@ function openCard(id){
 }
 </script>
 </div>
-{% endblock %}
-{% block content %}
+
 <div x-data="{cardOpen:false,card:{},cardErr:''}">
 <div class="flex items-center justify-between mb-6">
   <div>
@@ -108,7 +108,7 @@ function openCard(id){
     <tbody>
       {% for lead in leads %}
       <tr>
-        <td class="font-medium max-w-[200px] truncate"><a href="#" @click.prevent="openCard({{ lead.id }})" class="text-emerald-400 hover:text-emerald-300 cursor-pointer">{{ lead.name }}</a></td>
+        <td class="font-medium max-w-[200px] truncate"><a href="#" @click.prevent="openCard({{ lead.id }})" class="text-emerald-600 hover:text-emerald-600 cursor-pointer">{{ lead.name }}</a></td>
         <td class="text-xs">{{ lead.city or '—' }}</td>
         <td class="font-mono text-xs">{{ lead.phone or '—' }}</td>
         <td class="text-xs"><span class="badge badge-blue">{{ lead.categories or '—' }}</span></td>
@@ -138,7 +138,7 @@ function openCard(id){
                 <button class="text-xs text-brand-400 hover:text-[color:var(--text-primary)]">OK</button>
               </form>
               <form method="post" action="/app/leads/{{ lead.id }}/delete" class="px-2 py-1" onsubmit="return confirm('Удалить лида?')">
-                <button class="text-xs text-red-400 hover:text-red-300 w-full text-left">Удалить</button>
+                <button class="text-xs text-red-400 hover:text-red-700 dark:text-red-300 w-full text-left">Удалить</button>
               </form>
             </div>
           </div>
