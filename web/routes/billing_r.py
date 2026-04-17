@@ -11,6 +11,13 @@ from fastapi.templating import Jinja2Templates
 from loguru import logger
 from sqlalchemy import select
 from yookassa import Configuration, Payment as YKPayment
+from max_client.robokassa import (
+    RobokassaConfig,
+    create_payment_url as rb_create_payment_url,
+    verify_result_signature as rb_verify_result,
+    verify_success_signature as rb_verify_success,
+    build_receipt_item as rb_build_receipt_item,
+)
 
 from config import get_settings
 from max_client.invoice import generate_invoice_pdf
@@ -251,6 +258,207 @@ async def webhook(request: Request):
         await s.commit()
 
     return JSONResponse({"ok": True})
+
+
+# ════════════════════════════════════════════════════════════════════
+#  ROBOKASSA endpoints (parallel to YooKassa above)
+# ════════════════════════════════════════════════════════════════════
+
+@router.post("/create-payment-rb")
+async def create_payment_robokassa(request: Request, plan: str = Form(...)):
+    """Create payment via Robokassa instead of YooKassa."""
+    user = await get_current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    try:
+        plan_enum = UserPlan(plan)
+    except ValueError:
+        return RedirectResponse("/app/billing/?msg=Неверный+тариф", status_code=303)
+
+    if plan_enum not in PLAN_PRICES:
+        return RedirectResponse("/app/billing/?msg=Тариф+недоступен", status_code=303)
+
+    cfg = RobokassaConfig.from_settings()
+    if not cfg.is_configured:
+        return RedirectResponse("/app/billing/?msg=Robokassa+не+настроена", status_code=303)
+
+    plan_info = PLAN_PRICES[plan_enum]
+    amount = plan_info["amount"]
+
+    # Create pending Payment record
+    async with async_session_factory() as s:
+        payment = Payment(
+            owner_id=user.id,
+            yk_payment_id=f"rb_pending_{uuid.uuid4().hex[:12]}",  # temporary, will update after InvId
+            plan=plan_enum,
+            amount=amount,
+            currency="RUB",
+            status=PaymentStatus.PENDING,
+            description=plan_info["description"],
+        )
+        s.add(payment)
+        await s.commit()
+        await s.refresh(payment)
+        inv_id = payment.id
+        # Update yk_payment_id to "rb_<id>" for tracking
+        payment.yk_payment_id = f"rb_{inv_id}"
+        await s.commit()
+
+    # Build receipt for 54-ФЗ (digital service, УСН)
+    receipt_items = [
+        rb_build_receipt_item(
+            name=plan_info["description"],
+            price=amount,
+            quantity=1,
+            tax="none",
+        )
+    ]
+
+    try:
+        pay_url = rb_create_payment_url(
+            amount=amount,
+            order_id=inv_id,
+            description=plan_info["description"],
+            email=user.email,
+            receipt_items=receipt_items,
+        )
+    except Exception as e:
+        logger.exception("Robokassa create payment error")
+        return RedirectResponse(f"/app/billing/?msg=Ошибка+создания+платежа:+{str(e)[:80]}", status_code=303)
+
+    try:
+        on_payment_created(user.email, amount, plan_enum.value)
+    except Exception:
+        pass
+
+    logger.info("[rb] payment {} created for user {} plan={} amount={}", inv_id, user.email, plan, amount)
+    return RedirectResponse(pay_url, status_code=303)
+
+
+@router.post("/webhook-rb")
+async def webhook_robokassa(request: Request):
+    """Robokassa ResultURL webhook.
+
+    Docs: https://docs.robokassa.ru/pay-interface/#result
+    Expects POST form: OutSum, InvId, SignatureValue
+    Must respond with: "OK{InvId}" (plain text) to confirm receipt
+    """
+    form = await request.form()
+    out_sum = str(form.get("OutSum", "")).strip()
+    inv_id = str(form.get("InvId", "")).strip()
+    sig = str(form.get("SignatureValue", "")).strip()
+
+    if not out_sum or not inv_id or not sig:
+        logger.warning("[rb webhook] missing params")
+        return Response("bad request", status_code=400)
+
+    if not rb_verify_result(out_sum, inv_id, sig):
+        logger.warning("[rb webhook] bad signature for InvId={}", inv_id)
+        return Response("bad sign", status_code=400)
+
+    # Signature valid — activate plan
+    try:
+        payment_id = int(inv_id)
+    except ValueError:
+        return Response("bad inv_id", status_code=400)
+
+    async with async_session_factory() as s:
+        payment = await s.get(Payment, payment_id)
+        if not payment:
+            logger.warning("[rb webhook] payment {} not found", payment_id)
+            # Still return OK — Robokassa will stop retrying
+            return Response(f"OK{inv_id}", media_type="text/plain")
+
+        if payment.status == PaymentStatus.SUCCEEDED:
+            logger.info("[rb webhook] payment {} already succeeded (duplicate)", payment_id)
+            return Response(f"OK{inv_id}", media_type="text/plain")
+
+        payment.status = PaymentStatus.SUCCEEDED
+        payment.paid_at = datetime.utcnow()
+        await s.commit()
+        await s.refresh(payment)
+
+        # Activate user plan
+        user = await s.get(SiteUser, payment.owner_id)
+        if user:
+            plan_info = PLAN_PRICES.get(payment.plan)
+            period_days = plan_info["period_days"] if plan_info else 30
+            now = datetime.utcnow()
+            if user.plan_expires_at and user.plan_expires_at > now:
+                user.plan_expires_at = user.plan_expires_at + timedelta(days=period_days)
+            else:
+                user.plan_expires_at = now + timedelta(days=period_days)
+            user.plan = payment.plan
+            await s.commit()
+
+            try:
+                on_payment_success(user.email, float(payment.amount), payment.plan.value)
+            except Exception:
+                pass
+
+            try:
+                from max_client.webhook_sender import webhook_async
+                webhook_async(user.id, "payment.succeeded", {"plan": payment.plan.value, "amount": float(payment.amount), "gateway": "robokassa"})
+                asyncio.create_task(dispatch_webhook(user.id, "payment_success", {
+                    "payment_id": payment.yk_payment_id,
+                    "amount": float(payment.amount),
+                    "plan": payment.plan.value,
+                    "gateway": "robokassa",
+                }))
+            except Exception:
+                pass
+
+            # Referral commission
+            if user.referred_by:
+                try:
+                    referrer = await s.get(SiteUser, user.referred_by)
+                    if referrer:
+                        commission = round(float(payment.amount) * 0.20, 2)
+                        referrer.ref_balance = float(referrer.ref_balance or 0) + commission
+                        referrer.ref_earned_total = float(referrer.ref_earned_total or 0) + commission
+                        s.add(RefCommission(
+                            referrer_id=referrer.id,
+                            referred_id=user.id,
+                            payment_id=payment.id,
+                            amount=commission,
+                            level=1,
+                        ))
+                        # L2
+                        if referrer.referred_by:
+                            l2 = await s.get(SiteUser, referrer.referred_by)
+                            if l2:
+                                l2_comm = round(float(payment.amount) * 0.05, 2)
+                                l2.ref_balance = float(l2.ref_balance or 0) + l2_comm
+                                l2.ref_earned_total = float(l2.ref_earned_total or 0) + l2_comm
+                                s.add(RefCommission(
+                                    referrer_id=l2.id,
+                                    referred_id=user.id,
+                                    payment_id=payment.id,
+                                    amount=l2_comm,
+                                    level=2,
+                                ))
+                        await s.commit()
+                except Exception as e:
+                    logger.warning("ref commission error: {}", e)
+
+    logger.info("[rb webhook] payment {} succeeded InvId={}", payment_id, inv_id)
+    return Response(f"OK{inv_id}", media_type="text/plain")
+
+
+@router.get("/success-rb")
+async def success_robokassa(request: Request, OutSum: str = "", InvId: str = "", SignatureValue: str = ""):
+    """Robokassa SuccessURL — user returned from payment page."""
+    if OutSum and InvId and SignatureValue:
+        if rb_verify_success(OutSum, InvId, SignatureValue):
+            return RedirectResponse(f"/app/billing/success?source=robokassa&inv={InvId}", status_code=303)
+    return RedirectResponse("/app/billing/?msg=Платёж+обработан", status_code=303)
+
+
+@router.get("/fail-rb")
+async def fail_robokassa(request: Request):
+    """Robokassa FailURL — payment cancelled/failed."""
+    return RedirectResponse("/app/billing/?msg=Платёж+отменён", status_code=303)
 
 
 @router.get("/success", response_class=HTMLResponse)

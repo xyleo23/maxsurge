@@ -193,6 +193,7 @@ CSRF_COOKIE = "csrf_token"
 CSRF_EXEMPT_PREFIXES = (
     "/api/v1/",           # Bearer-auth API
       "/app/billing/webhook",   # ЮKassa signed webhook
+      "/app/billing/webhook-rb",  # Robokassa signed webhook
     "/auth/login",        # first request has no cookie yet
     "/auth/register",
     "/auth/verify",
@@ -415,7 +416,8 @@ class ErrorMonitoringMiddleware(BaseHTTPMiddleware):
 
 # ── Auth middleware: protect /app/* ──────────────────
 AUTH_EXEMPT_PATHS = (
-    "/app/billing/webhook",  # ЮKassa signed webhook — no auth needed
+    "/app/billing/webhook",
+    "/app/billing/webhook-rb",  # ЮKassa signed webhook — no auth needed
 )
 
 

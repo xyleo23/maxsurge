@@ -56,17 +56,23 @@
     {% if user.plan.value == 'start' %}
     <button disabled class="w-full py-2.5 rounded-lg text-sm font-medium" style="background:var(--bg-card-alt);color:var(--text-muted)">Активен</button>
     {% else %}
-    <form method="post" action="/app/billing/create-payment">
-      <input type="hidden" name="plan" value="start"/>
-      <button type="submit" class="btn-ghost w-full">Выбрать Start</button>
-    </form>
+    <div class="space-y-2">
+      <form method="post" action="/app/billing/create-payment">
+        <input type="hidden" name="plan" value="start"/>
+        <button type="submit" class="btn-ghost w-full" title="ЮKassa — картой РФ">Выбрать Start (ЮKassa)</button>
+      </form>
+      <form method="post" action="/app/billing/create-payment-rb">
+        <input type="hidden" name="plan" value="start"/>
+        <button type="submit" class="btn-ghost w-full" style="opacity:0.85" title="Robokassa — картой, СБП">Выбрать Start (Robokassa)</button>
+      </form>
+    </div>
     {% endif %}
   </div>
 
   <!-- Basic (popular) -->
   <div class="card relative border-2 {% if user.plan.value == 'basic' %}ring-2 ring-emerald-500{% endif %}" style="border-color:rgba(16,185,129,0.4)">
     <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-600 to-emerald-600 text-white text-[0.625rem] font-bold px-3 py-1 rounded-full whitespace-nowrap">Популярный</div>
-    <div class="text-xs font-medium uppercase mb-2 text-emerald-400">Basic</div>
+    <div class="text-xs font-medium uppercase mb-2 text-emerald-600">Basic</div>
     <div class="flex items-baseline gap-1 mb-1">
       <span class="text-3xl font-bold" style="color:var(--text-primary)">2 990</span>
       <span class="text-sm" style="color:var(--text-muted)">₽/мес</span>
@@ -93,10 +99,16 @@
     {% if user.plan.value == 'basic' %}
     <button disabled class="w-full py-2.5 rounded-lg text-sm font-medium" style="background:var(--bg-card-alt);color:var(--text-muted)">Активен</button>
     {% else %}
-    <form method="post" action="/app/billing/create-payment">
-      <input type="hidden" name="plan" value="basic"/>
-      <button type="submit" class="btn-primary w-full">Выбрать Basic</button>
-    </form>
+    <div class="space-y-2">
+      <form method="post" action="/app/billing/create-payment">
+        <input type="hidden" name="plan" value="basic"/>
+        <button type="submit" class="btn-primary w-full" title="ЮKassa — картой РФ">Выбрать Basic (ЮKassa)</button>
+      </form>
+      <form method="post" action="/app/billing/create-payment-rb">
+        <input type="hidden" name="plan" value="basic"/>
+        <button type="submit" class="btn-primary w-full" style="opacity:0.85" title="Robokassa — картой, СБП">Выбрать Basic (Robokassa)</button>
+      </form>
+    </div>
     {% endif %}
   </div>
 
@@ -129,10 +141,16 @@
     {% if user.plan.value == 'pro' %}
     <button disabled class="w-full py-2.5 rounded-lg text-sm font-medium" style="background:var(--bg-card-alt);color:var(--text-muted)">Активен</button>
     {% else %}
-    <form method="post" action="/app/billing/create-payment">
-      <input type="hidden" name="plan" value="pro"/>
-      <button type="submit" class="btn-ghost w-full">Выбрать Pro</button>
-    </form>
+    <div class="space-y-2">
+      <form method="post" action="/app/billing/create-payment">
+        <input type="hidden" name="plan" value="pro"/>
+        <button type="submit" class="btn-ghost w-full" title="ЮKassa — картой РФ">Выбрать Pro (ЮKassa)</button>
+      </form>
+      <form method="post" action="/app/billing/create-payment-rb">
+        <input type="hidden" name="plan" value="pro"/>
+        <button type="submit" class="btn-ghost w-full" style="opacity:0.85" title="Robokassa — картой, СБП">Выбрать Pro (Robokassa)</button>
+      </form>
+    </div>
     {% endif %}
   </div>
 
@@ -166,10 +184,16 @@
     {% if user.plan.value == 'lifetime' %}
     <button disabled class="w-full py-2.5 rounded-lg text-sm font-medium" style="background:var(--bg-card-alt);color:var(--text-muted)">Активен</button>
     {% else %}
-    <form method="post" action="/app/billing/create-payment">
-      <input type="hidden" name="plan" value="lifetime"/>
-      <button type="submit" class="w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:shadow-lg" style="background:linear-gradient(135deg,#047857,#db2777)">Купить навсегда</button>
-    </form>
+    <div class="space-y-2">
+      <form method="post" action="/app/billing/create-payment">
+        <input type="hidden" name="plan" value="lifetime"/>
+        <button type="submit" class="w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:shadow-lg" style="background:linear-gradient(135deg,#047857,#db2777)" title="ЮKassa">Купить навсегда (ЮKassa)</button>
+      </form>
+      <form method="post" action="/app/billing/create-payment-rb">
+        <input type="hidden" name="plan" value="lifetime"/>
+        <button type="submit" class="w-full py-2.5 rounded-lg text-sm font-medium text-white transition-all hover:shadow-lg" style="background:linear-gradient(135deg,#047857,#db2777);opacity:0.85" title="Robokassa">Купить навсегда (Robokassa)</button>
+      </form>
+    </div>
     {% endif %}
   </div>
 </div>
@@ -197,13 +221,13 @@
         <td class="text-right">
           {% if p.status.value == 'pending' %}
             {% if p.confirmation_url %}
-            <a href="{{ p.confirmation_url }}" class="text-xs text-emerald-400 hover:text-emerald-300">Оплатить</a>
+            <a href="{{ p.confirmation_url }}" class="text-xs text-emerald-600 hover:text-emerald-600">Оплатить</a>
             {% endif %}
             <form method="post" action="/app/billing/check/{{ p.id }}" class="inline ml-2">
               <button class="text-xs" style="color:var(--text-muted)" title="Проверить статус">&#8635;</button>
             </form>
           {% elif p.status.value == 'succeeded' %}
-            <a href="/app/billing/invoice/{{ p.id }}" class="text-xs text-emerald-400 hover:text-emerald-300" title="Скачать чек">📄 Чек</a>
+            <a href="/app/billing/invoice/{{ p.id }}" class="text-xs text-emerald-600 hover:text-emerald-600" title="Скачать чек">📄 Чек</a>
           {% endif %}
         </td>
       </tr>
@@ -217,6 +241,6 @@
 
 <div class="mt-6 p-4 rounded-lg text-xs" style="background:var(--bg-card-alt);color:var(--text-muted)">
   <div class="font-medium mb-1" style="color:var(--text-primary)">О тестовом режиме</div>
-  Сейчас ЮKassa работает в <strong>тестовом режиме</strong>. Для тестовых карт используйте номер <code class="text-emerald-400">5555 5555 5555 4444</code>, любую будущую дату и CVC <code class="text-emerald-400">123</code>.
+  Сейчас ЮKassa работает в <strong>тестовом режиме</strong>. Для тестовых карт используйте номер <code class="text-emerald-600">5555 5555 5555 4444</code>, любую будущую дату и CVC <code class="text-emerald-600">123</code>.
 </div>
 {% endblock %}
