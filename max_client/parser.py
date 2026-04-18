@@ -8,7 +8,7 @@ from sqlalchemy import select
 
 from db.models import ParsedUser, ChatCatalog, async_session_factory
 from max_client.account import account_manager
-from max_client.ops import fetch_all_members as get_group_members, join_group as join_group_by_link, resolve_chat_by_link as resolve_group_by_link
+from max_client.ops import load_members, join_group as join_group_by_link, resolve_chat_by_link as resolve_group_by_link
 from max_client.ops import join_channel, resolve_chat_by_link as resolve_channel_username
 from max_client.ops import resolve_users
 from max_client.webhook_dispatcher import dispatch_webhook
@@ -79,17 +79,25 @@ async def resolve_chat(client, link: str) -> dict | None:
 async def parse_chat_members(client, chat_id: int, max_count: int = 5000) -> list[dict]:
     """Получить участников чата. Возвращает список {userId, firstName, ...}."""
     all_members = []
-    marker = 0
+    marker: int | None = 0
     while len(all_members) < max_count:
-        batch_size = min(500, max_count - len(all_members))
-        resp = await get_group_members(client, chat_id, marker=marker, count=batch_size)
-        members = resp.get("payload", {}).get("members", [])
+        batch_size = min(200, max_count - len(all_members))
+        # PyMax: load_members(client, chat_id, count, marker) -> (members_list, next_marker)
+        members, next_marker = await load_members(client, chat_id, count=batch_size, marker=marker)
         if not members:
             break
-        all_members.extend(members)
-        marker = members[-1].get("userId", 0)
-        if len(members) < batch_size:
+        # Convert PyMax Member objects to vkmax-style dicts for backwards compat
+        for m in members:
+            all_members.append({
+                "userId": getattr(m, "id", None) or getattr(m, "user_id", None),
+                "firstName": getattr(m, "first_name", "") or "",
+                "lastName": getattr(m, "last_name", "") or "",
+                "phone": getattr(m, "phone", ""),
+                "username": getattr(m, "username", ""),
+            })
+        if not next_marker:
             break
+        marker = next_marker
         await asyncio.sleep(0.5)
     return all_members
 
