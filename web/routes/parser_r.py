@@ -40,8 +40,25 @@ async def join_chats(links: str = Form(""), phone: str = Form("")):
 
 @router.post("/parse")
 async def parse_one_chat(chat_id: int = Form(...), chat_name: str = Form(""), phone: str = Form("")):
-    count = await parse_chat(chat_id, chat_name, phone or None)
-    return RedirectResponse(f"/app/parser/?msg=Спарсено+{count}+пользователей", status_code=303)
+    try:
+        count = await parse_chat(chat_id, chat_name, phone or None)
+        return RedirectResponse(f"/app/parser/?msg=Спарсено+{count}+пользователей", status_code=303)
+    except Exception as e:
+        err = str(e)[:200]
+        # Friendly messages for common MAX errors
+        if "chat.not.found" in err or "not found" in err.lower():
+            msg = "Чат+не+найден.+Проверьте+ID+или+сначала+вступите+в+чат"
+        elif "access" in err.lower() or "forbidden" in err.lower() or "permission" in err.lower():
+            msg = "Нет+доступа+к+чату.+Вступите+в+него+через+инвайт+или+вкладку+Join"
+        elif "rate" in err.lower() or "flood" in err.lower():
+            msg = "Слишком+быстро.+Подождите+минуту+и+попробуйте+снова"
+        elif "not_connected" in err.lower() or "WebSocket" in err:
+            msg = "MAX+аккаунт+не+подключён.+Переподключите+через+/app/accounts/"
+        else:
+            msg = f"Ошибка:+{err[:100]}"
+        import logging
+        logging.getLogger("parser_r").warning("parse_one_chat err: %s", err)
+        return RedirectResponse(f"/app/parser/?msg={msg}", status_code=303)
 
 @router.post("/stop")
 async def stop():
