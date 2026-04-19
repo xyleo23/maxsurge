@@ -33,6 +33,36 @@ TAG_META = {
 # ── История обновлений ───────────────────────────────────────
 CHANGELOG = [
     {
+        "version": "v3.4",
+        "date": "2026-04-19",
+        "title": "Prodamus, здоровье аккаунтов, наблюдаемость",
+        "groups": [
+            {"tag": "new", "items": [
+                "<strong>Prodamus</strong> — третий платёжный шлюз рядом с ЮKassa и Robokassa. Агентская схема, чеки НПД через «Мой налог», поддержка рассрочки.",
+                "<strong>Публичная <a href=\"/status\">/status</a></strong> — страница uptime с состоянием БД, диска и ключевых компонентов.",
+                "<strong>Healthcheck MAX-аккаунтов</strong> — каждый час проверка + автовосстановление (BLOCKED → ACTIVE если снова отвечает).",
+                "<strong>/metrics endpoint</strong> — 11 метрик в формате Prometheus (Basic auth) + готовый Grafana-дашборд на 14 панелей.",
+                "<strong>E2E smoke-тесты</strong> — 22 проверки после каждого деплоя (<code>make smoke</code>).",
+            ]},
+            {"tag": "improve", "items": [
+                "<strong>Оферта и Политика ПДн</strong> — переписаны под ИП на НПД (самозанятый), 152-ФЗ compliant.",
+                "<strong>Lifespan</strong> — 10 background-тасков обёрнуты в обработчик исключений, падения теперь видны в логах.",
+                "<strong>Makefile</strong> — 17 команд для повседневных операций (seed, smoke, backup, metrics, deploy-check).",
+                "<strong>Alert rules</strong> — готовые правила Prometheus для критичных сбоев (pending payments, blocked accounts, memory leaks).",
+            ]},
+            {"tag": "security", "items": [
+                "<strong>/openapi.json и /api/docs</strong> закрыты в проде (доступны только при <code>DEBUG=1</code>).",
+                "<strong>Secure cookie flag</strong> на всех auth-сессиях.",
+                "<strong>Dockerfile multi-stage</strong> — runtime-образ без build-tools, non-root user maxsurge.",
+            ]},
+            {"tag": "ops", "items": [
+                "<strong>.env.example</strong> — полный шаблон переменных с комментариями.",
+                "<strong>seed_dev.py</strong> — фикстуры для dev-окружения (3 юзера, 10 лидов, 3 шаблона, 5 чатов).",
+                "<strong>DEPLOYMENT.md</strong> — добавлены разделы про 3 платёжных шлюза и background-задачи.",
+            ]},
+        ],
+    },
+    {
         "version": "v3.3",
         "date": "2026-04-16",
         "title": "Новый лендинг, единый стиль, SMM-инфраструктура",

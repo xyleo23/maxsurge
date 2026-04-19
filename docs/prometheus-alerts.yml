@@ -1,0 +1,119 @@
+# Prometheus alerting rules for MaxSurge.
+#
+# Install:
+#   1. Copy to /etc/prometheus/rules/maxsurge.yml
+#   2. Add to prometheus.yml:
+#        rule_files: [ '/etc/prometheus/rules/*.yml' ]
+#   3. Configure alertmanager to route to Telegram / email
+#   4. systemctl reload prometheus
+#
+# Severity conventions:
+#   critical — прод сломан или деньги теряются, требует немедленного действия
+#   warning  — проблема, но сервис работает; разобраться в течение часа
+#   info     — наблюдение, тренд
+
+groups:
+  - name: maxsurge_availability
+    interval: 30s
+    rules:
+      - alert: MaxSurgeDown
+        expr: up{job="maxsurge"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MaxSurge не отвечает на /metrics"
+          description: "Prometheus не может достучаться до maxsurge.ru/metrics больше 2 минут. Сервис, скорее всего, упал или залип на startup."
+
+      - alert: MaxSurgeMetricsStale
+        expr: time() - maxsurge_scrape_timestamp_seconds > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Метрики MaxSurge устарели (>5 мин)"
+          description: "Последний scrape {{ $value | humanizeDuration }} назад. Возможно DB медленно отвечает или background таска залипла."
+
+  - name: maxsurge_accounts
+    interval: 1m
+    rules:
+      - alert: MaxAccountsAllBlocked
+        expr: maxsurge_accounts_total > 0 and maxsurge_accounts_active == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Все MAX-аккаунты заблокированы"
+          description: "На платформе есть {{ $labels.total }} аккаунтов, но ни один не ACTIVE. Рассылка невозможна — проверьте логи healthcheck."
+
+      - alert: MaxAccountBlockedSpike
+        expr: increase(maxsurge_accounts_blocked[1h]) >= 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Несколько аккаунтов заблокированы за час"
+          description: "За последний час {{ $value }} аккаунтов перешли в BLOCKED. Возможно massbreak от MAX или упал прокси."
+
+  - name: maxsurge_payments
+    interval: 1m
+    rules:
+      - alert: PendingPaymentsStuck
+        expr: maxsurge_payments_pending > 10
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $value }} платежей застряли в PENDING"
+          description: "Больше 10 платежей в PENDING уже 15+ минут. Вероятно webhook не приходит от PSP — проверьте настройки ЮKassa/Robokassa/Prodamus."
+
+      - alert: PendingPaymentsCritical
+        expr: maxsurge_payments_pending > 50
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Критическое число pending платежей ({{ $value }})"
+          description: "Webhook PSP, скорее всего, недоступен или не верифицируется. Деньги уходят от клиентов без активации тарифа."
+
+  - name: maxsurge_resources
+    interval: 1m
+    rules:
+      - alert: HighMemoryUsage
+        expr: maxsurge_process_rss_bytes > 1.5 * 1024 * 1024 * 1024
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MaxSurge использует >1.5 GB RAM"
+          description: "RSS = {{ $value | humanize1024 }}B. systemd unit ограничивает 2 GB — близко к OOM."
+
+      - alert: MemoryLeak
+        expr: deriv(maxsurge_process_rss_bytes[1h]) > 50 * 1024 * 1024 / 3600
+        for: 3h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Возможная утечка памяти (+{{ $value | humanize1024 }}B/сек)"
+          description: "Память растёт >50 MB/час три часа подряд. Посмотрите какой background-task не чистится."
+
+  - name: maxsurge_business
+    interval: 5m
+    rules:
+      - alert: NoSignupsForDay
+        expr: increase(maxsurge_users_total[24h]) == 0
+        for: 1h
+        labels:
+          severity: info
+        annotations:
+          summary: "За 24 часа ни одной регистрации"
+          description: "Либо рекламу отключили, либо форма регистрации сломана. Проверьте /register визуально."
+
+      - alert: RevenueStalled
+        expr: increase(maxsurge_revenue_rub_total[7d]) == 0 and maxsurge_users_total > 10
+        for: 1d
+        labels:
+          severity: warning
+        annotations:
+          summary: "За неделю нет оплат"
+          description: "Зарегистрировано {{ $labels.users }} юзеров, но за 7 дней 0 ₽. Проверьте платёжные шлюзы и конверсию."
