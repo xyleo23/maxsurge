@@ -40,9 +40,9 @@
             <td><span class="px-2 py-0.5 rounded text-xs bg-[var(--bg-card-alt)] text-gray-300">{{ ch.category or "—" }}</span></td>
             <td>{{ ch.members_count or "?" }}</td>
             <td>{{ ch.parsed_count }}</td>
-            <td class="text-xs text-emerald-400 truncate max-w-[150px]">{{ ch.invite_link or "—" }}</td>
+            <td class="text-xs text-emerald-600 truncate max-w-[150px]">{{ ch.invite_link or "—" }}</td>
             <td>
-              {% if ch.chat_id %}<a href="/parser/?chat_id={{ ch.chat_id }}" class="text-xs text-emerald-400 hover:text-emerald-300">Парсить</a>{% endif %}
+              {% if ch.chat_id %}<a href="/parser/?chat_id={{ ch.chat_id }}" class="text-xs text-emerald-600 hover:text-emerald-600">Парсить</a>{% endif %}
               <form method="post" action="/app/catalog/{{ ch.id }}/delete" class="inline" onsubmit="return confirm('Удалить?')"><button class="text-xs text-red-500 ml-2">x</button></form>
             </td>
           </tr>

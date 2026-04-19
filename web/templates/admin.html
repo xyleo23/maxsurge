@@ -16,7 +16,7 @@
   <div class="stat-card">
     <div class="flex items-center justify-between mb-2">
       <span style="color:var(--text-muted)" class="text-xs font-medium uppercase">Пользователей</span>
-      <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center"><svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center"><svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
     </div>
     <div class="text-2xl font-bold" style="color:var(--text-primary)">{{ users_total }}</div>
     <div class="text-xs mt-1" style="color:var(--text-muted)">Сегодня: {{ users_today }} | Активных: {{ users_active }}</div>
@@ -42,7 +42,7 @@
   </div>
   <div class="stat-card">
     <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Спарсено юзеров</div>
-    <div class="text-2xl font-bold text-emerald-400 mt-2">{{ parsed_total }}</div>
+    <div class="text-2xl font-bold text-emerald-600 mt-2">{{ parsed_total }}</div>
   </div>
   <div class="stat-card">
     <div class="text-xs font-medium uppercase" style="color:var(--text-muted)">Файлов / Чатов</div>
@@ -58,7 +58,7 @@
   </div>
   <div class="stat-card">
     <div class="text-xs font-medium uppercase mb-1" style="color:var(--text-muted)">За месяц</div>
-    <div class="text-2xl font-bold text-emerald-400">{{ "%.0f"|format(month_revenue) }} ₽</div>
+    <div class="text-2xl font-bold text-emerald-600">{{ "%.0f"|format(month_revenue) }} ₽</div>
   </div>
   <div class="stat-card">
     <div class="text-xs font-medium uppercase mb-1" style="color:var(--text-muted)">Распределение планов</div>

@@ -140,7 +140,7 @@ async def register(request: Request, email: str = Form(...), password: str = For
 
     token = _create_session_token(user.id, user.email)
     response = RedirectResponse("/app/", status_code=303)
-    response.set_cookie(COOKIE_NAME, token, max_age=MAX_AGE, httponly=True, samesite="lax")
+    response.set_cookie(COOKIE_NAME, token, max_age=MAX_AGE, httponly=True, samesite="lax", secure=True)
     return response
 
 
@@ -198,7 +198,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
             # Временный токен в cookie с email/pwd → форма 2FA
             challenge = _serializer.dumps({"uid": user.id, "challenge": True})
             response = RedirectResponse("/login-2fa", status_code=303)
-            response.set_cookie("maxsurge_2fa_challenge", challenge, max_age=300, httponly=True, samesite="lax")
+            response.set_cookie("maxsurge_2fa_challenge", challenge, max_age=300, httponly=True, samesite="lax", secure=True)
             return response
 
         totp = pyotp.TOTP(user.totp_secret)
@@ -227,7 +227,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
 
     token = _create_session_token(user.id, user.email)
     response = RedirectResponse("/app/", status_code=303)
-    response.set_cookie(COOKIE_NAME, token, max_age=MAX_AGE, httponly=True, samesite="lax")
+    response.set_cookie(COOKIE_NAME, token, max_age=MAX_AGE, httponly=True, samesite="lax", secure=True)
     return response
 
 
@@ -385,6 +385,6 @@ async def login_2fa_verify(request: Request, totp_code: str = Form(...)):
 
     token = _create_session_token(user.id, user.email)
     response = RedirectResponse("/app/", status_code=303)
-    response.set_cookie(COOKIE_NAME, token, max_age=MAX_AGE, httponly=True, samesite="lax")
+    response.set_cookie(COOKIE_NAME, token, max_age=MAX_AGE, httponly=True, samesite="lax", secure=True)
     response.delete_cookie("maxsurge_2fa_challenge")
     return response

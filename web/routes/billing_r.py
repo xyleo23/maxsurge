@@ -18,6 +18,11 @@ from max_client.robokassa import (
     verify_success_signature as rb_verify_success,
     build_receipt_item as rb_build_receipt_item,
 )
+from max_client.prodamus import (
+    ProdamusConfig,
+    create_payment_url as pd_create_payment_url,
+    verify_signature as pd_verify_signature,
+)
 
 from config import get_settings
 from max_client.invoice import generate_invoice_pdf
@@ -459,6 +464,180 @@ async def success_robokassa(request: Request, OutSum: str = "", InvId: str = "",
 async def fail_robokassa(request: Request):
     """Robokassa FailURL — payment cancelled/failed."""
     return RedirectResponse("/app/billing/?msg=Платёж+отменён", status_code=303)
+
+
+# ================================================================
+#  PRODAMUS endpoints
+# ================================================================
+
+@router.post("/create-payment-pd")
+async def create_payment_prodamus(request: Request, plan: str = Form(...)):
+    """Create payment via Prodamus."""
+    user = await get_current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    try:
+        plan_enum = UserPlan(plan)
+    except ValueError:
+        return RedirectResponse("/app/billing/?msg=Неверный+тариф", status_code=303)
+
+    if plan_enum not in PLAN_PRICES:
+        return RedirectResponse("/app/billing/?msg=Тариф+недоступен", status_code=303)
+
+    cfg = ProdamusConfig.from_settings()
+    if not cfg.is_configured:
+        return RedirectResponse("/app/billing/?msg=Prodamus+не+настроен", status_code=303)
+
+    plan_info = PLAN_PRICES[plan_enum]
+    amount = plan_info["amount"]
+
+    async with async_session_factory() as s:
+        payment = Payment(
+            owner_id=user.id,
+            yk_payment_id=f"pd_pending_{uuid.uuid4().hex[:12]}",
+            plan=plan_enum,
+            amount=amount,
+            currency="RUB",
+            status=PaymentStatus.PENDING,
+            description=plan_info["description"],
+        )
+        s.add(payment)
+        await s.commit()
+        await s.refresh(payment)
+        order_id = payment.id
+        payment.yk_payment_id = f"pd_{order_id}"
+        await s.commit()
+
+    try:
+        pay_url = pd_create_payment_url(
+            amount=amount,
+            order_id=order_id,
+            description=plan_info["description"],
+            email=user.email,
+        )
+    except Exception as e:
+        logger.exception("Prodamus create payment error")
+        return RedirectResponse(f"/app/billing/?msg=Ошибка+создания+платежа:+{str(e)[:80]}", status_code=303)
+
+    try:
+        on_payment_created(user.email, amount, plan_enum.value)
+    except Exception:
+        pass
+
+    logger.info("[pd] payment {} created for user {} plan={} amount={}", order_id, user.email, plan, amount)
+    return RedirectResponse(pay_url, status_code=303)
+
+
+@router.post("/webhook-pd")
+async def webhook_prodamus(request: Request):
+    """Prodamus urlNotification webhook.
+
+    Expects POST form with: order_id, sum, payment_status, signature
+    """
+    form = await request.form()
+    data = {k: str(v) for k, v in form.items()}
+    signature = data.pop("signature", "")
+    order_id = data.get("order_id", "")
+    status = data.get("payment_status", "")
+    paid_sum = data.get("sum", "")
+
+    if not pd_verify_signature(data, signature):
+        logger.warning("[pd webhook] bad signature for order_id={}", order_id)
+        return Response("bad sign", status_code=400)
+
+    try:
+        payment_id = int(order_id)
+    except ValueError:
+        return Response("bad order_id", status_code=400)
+
+    if status not in ("success", "paid"):
+        logger.info("[pd webhook] status={} for order {}, ignoring", status, payment_id)
+        return Response("ok", media_type="text/plain")
+
+    async with async_session_factory() as s:
+        payment = await s.get(Payment, payment_id)
+        if not payment:
+            logger.warning("[pd webhook] payment {} not found", payment_id)
+            return Response("ok", media_type="text/plain")
+
+        if payment.status == PaymentStatus.SUCCEEDED:
+            logger.info("[pd webhook] payment {} already succeeded (duplicate)", payment_id)
+            return Response("ok", media_type="text/plain")
+
+        payment.status = PaymentStatus.SUCCEEDED
+        payment.paid_at = datetime.utcnow()
+        await s.commit()
+        await s.refresh(payment)
+
+        user = await s.get(SiteUser, payment.owner_id)
+        if user:
+            plan_info = PLAN_PRICES.get(payment.plan)
+            period_days = plan_info["period_days"] if plan_info else 30
+            now = datetime.utcnow()
+            if user.plan_expires_at and user.plan_expires_at > now:
+                user.plan_expires_at = user.plan_expires_at + timedelta(days=period_days)
+            else:
+                user.plan_expires_at = now + timedelta(days=period_days)
+            user.plan = payment.plan
+            await s.commit()
+
+            try:
+                on_payment_success(user.email, float(payment.amount), payment.plan.value)
+            except Exception:
+                pass
+
+            try:
+                from max_client.webhook_sender import webhook_async
+                webhook_async(user.id, "payment.succeeded", {"plan": payment.plan.value, "amount": float(payment.amount), "gateway": "prodamus"})
+                asyncio.create_task(dispatch_webhook(user.id, "payment_success", {
+                    "payment_id": payment.yk_payment_id,
+                    "amount": float(payment.amount),
+                    "plan": payment.plan.value,
+                    "gateway": "prodamus",
+                }))
+            except Exception:
+                pass
+
+            if user.referred_by:
+                try:
+                    referrer = await s.get(SiteUser, user.referred_by)
+                    if referrer:
+                        commission = round(float(payment.amount) * 0.20, 2)
+                        referrer.ref_balance = float(referrer.ref_balance or 0) + commission
+                        referrer.ref_earned_total = float(referrer.ref_earned_total or 0) + commission
+                        s.add(RefCommission(
+                            referrer_id=referrer.id,
+                            referred_id=user.id,
+                            payment_id=payment.id,
+                            amount=commission,
+                            level=1,
+                        ))
+                        if referrer.referred_by:
+                            l2 = await s.get(SiteUser, referrer.referred_by)
+                            if l2:
+                                l2_comm = round(float(payment.amount) * 0.05, 2)
+                                l2.ref_balance = float(l2.ref_balance or 0) + l2_comm
+                                l2.ref_earned_total = float(l2.ref_earned_total or 0) + l2_comm
+                                s.add(RefCommission(
+                                    referrer_id=l2.id,
+                                    referred_id=user.id,
+                                    payment_id=payment.id,
+                                    amount=l2_comm,
+                                    level=2,
+                                ))
+                        await s.commit()
+                except Exception as e:
+                    logger.warning("ref commission error: {}", e)
+
+    logger.info("[pd webhook] payment {} succeeded sum={}", payment_id, paid_sum)
+    return Response("success", media_type="text/plain")
+
+
+@router.get("/success-pd")
+async def success_prodamus(request: Request):
+    """Prodamus return URL."""
+    return RedirectResponse("/app/billing/success?source=prodamus", status_code=303)
 
 
 @router.get("/success", response_class=HTMLResponse)

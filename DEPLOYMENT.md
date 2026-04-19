@@ -298,3 +298,52 @@ systemctl status maxsurge  # смотри Memory
 # Рестарт освобождает память:
 systemctl restart maxsurge
 ```
+
+---
+
+## Платёжные шлюзы (3 варианта)
+
+### ЮKassa
+Настройки в `.env`: `YK_SHOP_ID`, `YK_SECRET_KEY`.
+В ЛК ЮKassa указать webhook: `https://maxsurge.ru/app/billing/webhook`, события `payment.succeeded`.
+
+### Robokassa
+Настройки в `.env`: `RB_MERCHANT_LOGIN`, `RB_PASSWORD_1`, `RB_PASSWORD_2`, `RB_IS_TEST=0` для прода.
+В ЛК Robokassa → Технические настройки:
+- Result URL: `https://maxsurge.ru/app/billing/webhook-rb` (метод POST)
+- Success URL: `https://maxsurge.ru/app/billing/success-rb`
+- Fail URL: `https://maxsurge.ru/app/billing/fail-rb`
+- Алгоритм подписи: MD5
+
+### Prodamus
+Настройки в `.env`: `PD_SHOP` (субдомен), `PD_SECRET_KEY`, `PD_IS_TEST=0`.
+В ЛК Prodamus → Настройки интеграции:
+- URL уведомления (urlNotification): `https://maxsurge.ru/app/billing/webhook-pd`
+- URL возврата (urlReturn/urlSuccess): `https://maxsurge.ru/app/billing/success-pd`
+- Протокол подписи: HMAC-SHA256
+- Режим: самозанятый (ИП на НПД)
+
+### Выбор
+`PAYMENT_GATEWAY` = `yookassa` | `robokassa` | `prodamus` | `all`. Управляет какие кнопки показывать в `/app/billing/`.
+
+## Автоматические задачи (background)
+
+Запускаются в lifespan при старте `main.py`:
+| Задача | Интервал | Файл |
+|--------|----------|------|
+| Проверка истекших подписок + напоминания за 3 и 1 день | 1 час | `max_client/subscription_checker.py` |
+| Health-check MAX-аккаунтов (auto-heal BLOCKED) | 1 час | `max_client/account_health.py` |
+| Планировщик рассылок (scheduled_at) | 60 сек | `max_client/scheduler.py` |
+| Weekly digest владельцу | 7 дней | `max_client/health_digest.py` |
+| systemd watchdog notifier | 15 сек | inline в main.py |
+
+## Публичный /status
+`https://maxsurge.ru/status` — uptime страница, доступна без авторизации. Показывает состояние БД, диска, компонентов. Полезна для SEO-доверия и клиентских писем.
+
+## Юридические страницы
+- `/terms` — Публичная оферта (ИП на НПД)
+- `/privacy` — Политика обработки ПДн (152-ФЗ)
+- `/contacts` — Контакты и реквизиты
+- `/about` — О компании
+
+Редактируются в `web/routes/legal_r.py`. После изменения реквизитов — `systemctl restart maxsurge`.

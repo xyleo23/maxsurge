@@ -33,7 +33,7 @@
           <td class="font-mono text-xs">{{ a.phone }}</td>
           <td>{{ a.profile_name or "—" }}</td>
           <td class="text-xs text-gray-500">{{ a.max_user_id or "—" }}</td>
-          <td><span class="px-2 py-0.5 rounded text-xs {{ 'bg-green-900 text-green-300' if a.status.value == 'active' else 'bg-red-900 text-red-300' }}">{{ a.status.value }}</span></td>
+          <td><span class="px-2 py-0.5 rounded text-xs {{ 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' if a.status.value == 'active' else 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300' }}">{{ a.status.value }}</span></td>
         </tr>{% endfor %}
       </tbody>
     </table>

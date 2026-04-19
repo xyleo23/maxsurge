@@ -28,6 +28,7 @@ from passlib.hash import bcrypt as bcrypt_hash
 from sqlalchemy import select
 from web.routes.auth_r import router as auth_router, get_current_user
 from web.routes.legal_r import router as legal_router
+from web.routes.metrics_r import router as metrics_router
 from web.routes.blog_r import router as blog_router
 from web.routes.changelog_r import router as changelog_router
 from web.routes.help_r import router as help_router
@@ -79,6 +80,19 @@ logger.add("logs/maxsurge.log", rotation="10 MB", retention="7 days", level="DEB
 from contextlib import asynccontextmanager
 
 
+def _spawn(coro, name: str):
+    """asyncio.create_task + log unhandled exceptions instead of silent failure."""
+    import asyncio as _asy
+    async def _wrapped():
+        try:
+            await coro
+        except _asy.CancelledError:
+            raise
+        except Exception as e:
+            logger.exception("[lifespan] background task '{}' crashed: {}", name, e)
+    return _asy.create_task(_wrapped(), name=name)
+
+
 @asynccontextmanager
 async def lifespan(application):
     # ── STARTUP ──
@@ -88,9 +102,9 @@ async def lifespan(application):
         from max_client.neurochat import restore_running as restore_neurochat
         from max_client.bot_runner import restore_running as restore_bots
         from max_client.guard import restore_running as restore_guards
-        asyncio.create_task(restore_neurochat())
-        asyncio.create_task(restore_bots())
-        asyncio.create_task(restore_guards())
+        _spawn(restore_neurochat(), "restore_neurochat")
+        _spawn(restore_bots(), "restore_bots")
+        _spawn(restore_guards(), "restore_guards")
     except Exception as e:
         logger.warning("Сессии: {}", e)
     # Auto-create superadmin from .env
@@ -112,16 +126,18 @@ async def lifespan(application):
                 existing.is_superadmin = True
                 await s.commit()
                 logger.info("Суперадмин обновлён: {}", settings.ADMIN_EMAIL)
-    asyncio.create_task(run_periodic_check(3600))
+    _spawn(run_periodic_check(3600), "subscription_checker")
     from max_client.onboarding import run_onboarding_loop
-    asyncio.create_task(run_onboarding_loop())
+    _spawn(run_onboarding_loop(), "onboarding_loop")
     from max_client.health_digest import run_periodic_digest, check_health
-    asyncio.create_task(run_periodic_digest())
-    asyncio.create_task(check_health())
+    _spawn(run_periodic_digest(), "health_digest")
+    _spawn(check_health(), "health_check")
     from max_client.scheduler import run_scheduler_loop
-    asyncio.create_task(run_scheduler_loop())
+    _spawn(run_scheduler_loop(), "task_scheduler")
     from max_client.health_digest import run_periodic_weekly as _rpw
-    asyncio.create_task(_rpw())
+    _spawn(_rpw(), "weekly_digest")
+    from max_client.account_health import run_periodic_account_health
+    _spawn(run_periodic_account_health(3600), "account_health")
 
     # systemd watchdog notifier
     try:
@@ -175,7 +191,15 @@ async def lifespan(application):
     logger.info("[shutdown] done")
 
 
-app = FastAPI(title="MaxSurge v3.0", docs_url="/api/docs", lifespan=lifespan)
+import os as _os
+_debug = _os.environ.get("DEBUG", "0") == "1"
+app = FastAPI(
+    title="MaxSurge v3.0",
+    docs_url="/api/docs" if _debug else None,
+    redoc_url=None,
+    openapi_url="/openapi.json" if _debug else None,
+    lifespan=lifespan,
+)
 from pathlib import Path as _P
 _static_dir = _P(__file__).parent / "web" / "static"
 _static_dir.mkdir(parents=True, exist_ok=True)
@@ -194,6 +218,7 @@ CSRF_EXEMPT_PREFIXES = (
     "/api/v1/",           # Bearer-auth API
       "/app/billing/webhook",   # ЮKassa signed webhook
       "/app/billing/webhook-rb",  # Robokassa signed webhook
+    "/app/billing/webhook-pd",  # Prodamus signed webhook
     "/auth/login",        # first request has no cookie yet
     "/auth/register",
     "/auth/verify",
@@ -442,6 +467,7 @@ app.add_middleware(ErrorMonitoringMiddleware)
 # ── Public routes ──────────────────────────────────────
 app.include_router(auth_router)
 app.include_router(legal_router)
+app.include_router(metrics_router)
 app.include_router(blog_router)
 from web.routes.contact_r import router as contact_router
 app.include_router(contact_router)

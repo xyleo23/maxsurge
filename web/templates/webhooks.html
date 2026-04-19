@@ -22,7 +22,7 @@
         <div class="flex items-center gap-2">
           <form method="post" action="/app/webhooks/test" class="inline">
             <input type="hidden" name="endpoint_id" value="{{ ep.id }}"/>
-            <button type="submit" class="px-3 py-1 text-xs border border-emerald-500/40 text-emerald-300 rounded-lg hover:bg-emerald-500/10">Тест</button>
+            <button type="submit" class="px-3 py-1 text-xs border border-emerald-500/40 text-emerald-600 rounded-lg hover:bg-emerald-500/10">Тест</button>
           </form>
           <form method="post" action="/app/webhooks/toggle" class="inline">
             <input type="hidden" name="endpoint_id" value="{{ ep.id }}"/>
@@ -47,7 +47,7 @@
         </div>
         <div>
           <span class="text-gray-600">Ошибки:</span>
-          <span class="{% if ep.fail_count > 0 %}text-rose-400{% else %}text-emerald-400{% endif %} ml-1">{{ ep.fail_count }}</span>
+          <span class="{% if ep.fail_count > 0 %}text-rose-400{% else %}text-emerald-600{% endif %} ml-1">{{ ep.fail_count }}</span>
         </div>
         <div>
           <span class="text-gray-600">Последний:</span>
@@ -87,7 +87,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
       {% for key, desc in events.items() %}
       <div class="flex items-center gap-3 text-sm">
-        <code class="text-emerald-400 text-xs bg-emerald-500/10 px-2 py-0.5 rounded">{{ key }}</code>
+        <code class="text-emerald-600 text-xs bg-emerald-500/10 px-2 py-0.5 rounded">{{ key }}</code>
         <span class="text-gray-400">{{ desc }}</span>
       </div>
       {% endfor %}
@@ -97,7 +97,7 @@
   <!-- How to verify -->
   <div class="bg-white/5 border border-white/10 rounded-xl p-6">
     <h2 class="font-semibold mb-4">Верификация подписи</h2>
-    <p class="text-sm text-gray-400 mb-3">Каждый запрос приходит с заголовком <code class="text-emerald-400">X-MaxSurge-Signature: sha256=...</code>. Проверьте HMAC-SHA256 payload с вашим Secret-ключом.</p>
+    <p class="text-sm text-gray-400 mb-3">Каждый запрос приходит с заголовком <code class="text-emerald-600">X-MaxSurge-Signature: sha256=...</code>. Проверьте HMAC-SHA256 payload с вашим Secret-ключом.</p>
     <pre class="bg-black/30 rounded-lg p-4 text-xs text-gray-300 overflow-x-auto leading-relaxed"><code># Python
 import hmac, hashlib
 
@@ -111,7 +111,7 @@ function verify(body, secret, signature) {
     const expected = 'sha256=' + crypto.createHmac('sha256', secret).update(body).digest('hex');
     return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
 }</code></pre>
-    <p class="text-xs text-gray-500 mt-3">Подробнее: <a href="/help/webhook-api" class="text-emerald-400 hover:text-emerald-300">документация</a> (скоро)</p>
+    <p class="text-xs text-gray-500 mt-3">Подробнее: <a href="/help/webhook-api" class="text-emerald-600 hover:text-emerald-600">документация</a> (скоро)</p>
   </div>
 </div>
 {% endblock %}

@@ -42,8 +42,12 @@ class Settings(BaseSettings):
     RB_PASSWORD_1: str = ""
     RB_PASSWORD_2: str = ""
     RB_IS_TEST: str = "1"  # "1" test mode, "0" production
-    # Payment method preference: "yookassa" | "robokassa" | "both"
-    PAYMENT_GATEWAY: str = "both"
+    # Prodamus
+    PD_SHOP: str = ""           # subdomain, e.g. "maxsurge" -> maxsurge.payform.ru
+    PD_SECRET_KEY: str = ""     # HMAC-SHA256 secret
+    PD_IS_TEST: str = "1"       # "1" demo_mode, "0" production
+    # Payment method preference: "yookassa" | "robokassa" | "prodamus" | "all"
+    PAYMENT_GATEWAY: str = "all"
     YK_RETURN_URL: str = "https://maxsurge.ru/app/billing/success"
     SMTP_HOST: str = ""
     SMTP_PORT: int = 465

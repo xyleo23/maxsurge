@@ -64,7 +64,7 @@
               <!-- Reset password -->
               <form method="post" action="/app/admin/users/{{ u.id }}/reset-password" class="flex gap-1 px-3 py-1">
                 <input name="new_password" type="password" placeholder="Новый пароль" class="form-input text-xs py-1 flex-1" minlength="6"/>
-                <button class="text-xs text-emerald-400 hover:text-emerald-300 whitespace-nowrap">Сброс</button>
+                <button class="text-xs text-emerald-600 hover:text-emerald-600 whitespace-nowrap">Сброс</button>
               </form>
               <!-- Delete -->
               {% if not u.is_superadmin %}

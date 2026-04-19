@@ -14,8 +14,8 @@
       <label class="text-gray-400 text-xs mb-1 block">Прокси (опционально, рекомендуется для 2GIS)</label>
       <input name="proxy" placeholder="http://user:pass@host:port" class="form-input mb-3 font-mono text-xs"/>
       {% if status.running %}
-      <div class="p-3 bg-yellow-900/30 border border-yellow-800/50 rounded-lg mb-3">
-        <p class="text-yellow-300 text-sm">Скрапер работает...</p>
+      <div class="p-3 bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800/50 rounded-lg mb-3">
+        <p class="text-yellow-700 dark:text-yellow-300 text-sm">Скрапер работает...</p>
       </div>
       {% else %}
       <button type="submit" class="btn-primary w-full">Запустить скрапер</button>

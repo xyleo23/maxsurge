@@ -44,6 +44,8 @@ jobs:
           sleep 3
           echo '=== health check ==='
           curl -sf http://localhost:8090/health | python3 -c 'import sys,json; d=json.load(sys.stdin); print("status:",d["status"]); sys.exit(0 if d["status"]=="ok" else 1)'
+          echo '=== changelog post ==='
+          /root/maxsurge_publisher/venv/bin/python /root/maxsurge_publisher/scripts/auto_changelog.py || true
           echo '=== deploy OK ==='
           DEPLOY_EOF
 

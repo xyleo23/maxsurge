@@ -33,6 +33,34 @@ TAG_META = {
 # ── История обновлений ───────────────────────────────────────
 CHANGELOG = [
     {
+        "version": "v3.3",
+        "date": "2026-04-16",
+        "title": "Новый лендинг, единый стиль, SMM-инфраструктура",
+        "groups": [
+            {"tag": "new", "items": [
+                "<strong>Полностью переработанный лендинг</strong> — новый H1, 5-этапная воронка, bento-grid фич, блок Early Access, калькулятор ROI.",
+                "<strong>Зелёная дизайн-система</strong> — единый стиль на всех 40+ страницах, email-шаблонах, favicon и OG-image.",
+                "<strong>Реферальная программа на главной</strong> — 20% L1 + 5% L2 теперь видны посетителям.",
+                "<strong>Блок гарантии</strong> — отдельная секция: 7 дней бесплатно, возврат, отмена в 1 клик.",
+                "<strong>Telegram-канал @maxsurge_ru</strong> — запущен с ботом-паблишером и контент-планом на 2 недели.",
+                "<strong>Changelog-карточки</strong> — автогенерация изображений для TG-постов об обновлениях.",
+            ]},
+            {"tag": "improve", "items": [
+                "<strong>Тарифы</strong> — тумблер месяц/год со скидкой 20%, подпись без скрытых комиссий.",
+                "<strong>Trust bar</strong> — 152-ФЗ, без установки, поддержка за 15 мин, ЮKassa.",
+                "<strong>FAQ</strong> — 8 вопросов с закрытием возражений (блокировки, оплата, закрывающие документы).",
+                "<strong>Скриншоты</strong> — перегенерированы в обновлённом интерфейсе.",
+                "<strong>Контрастность</strong> — алерты и статусы читаемы в светлой теме (dark: варианты).",
+            ]},
+            {"tag": "fix", "items": [
+                "<strong>Шрифт Inter</strong> — подключен на все страницы.",
+                "<strong>Sticky CTA</strong> — мобильная кнопка внизу экрана.",
+                "<strong>Scroll progress bar</strong> — индикатор прогресса на лендинге.",
+            ]},
+        ],
+    },
+    {
+        "version": "v3.2",
         "date": "2026-04-15",
         "title": "Production hardening: SMTP, Яндекс.Метрика, UptimeRobot, favicon, mobile, webhook fix",
         "groups": [
@@ -74,6 +102,7 @@ CHANGELOG = [
         ],
     },
     {
+        "version": "v3.1",
         "date": "2026-04-12",
         "title": "PWA, кампании, tracking, блэклист, security hardening",
         "groups": [
@@ -122,6 +151,7 @@ CHANGELOG = [
         ],
     },
     {
+        "version": "v3.0",
         "date": "2026-04-11",
         "title": "Help Center, ROI-калькулятор, email онбординг",
         "groups": [

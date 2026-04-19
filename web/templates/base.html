@@ -3,7 +3,7 @@
 <head>
     <meta name="yandex-verification" content="dfbd0b018a646001" />
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%%27http://www.w3.org/2000/svg%%27 viewBox=%%270 0 100 100%%27><text y=%%27.9em%%27 font-size=%%2790%%27><title>MaxSurge#x26A1;</text></svg>"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><defs><linearGradient id='g' x1='0' y1='0' x2='24' y2='24' gradientUnits='userSpaceOnUse'><stop stop-color='%2310B981'/><stop offset='1' stop-color='%23047857'/></linearGradient></defs><rect width='24' height='24' rx='5' fill='url(%23g)'/><rect x='3' y='15' width='4' height='6' rx='1' fill='white' fill-opacity='0.55'/><rect x='9' y='11' width='4' height='10' rx='1' fill='white' fill-opacity='0.8'/><rect x='15' y='7' width='4' height='14' rx='1' fill='white'/><path d='M14 7L17 3L20 7' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>"/>
   <title>MaxSurge{% block title %}{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -38,7 +38,7 @@
     }
     .dark{
       --bg-body:#0a0e1a;--bg-sidebar:#0f172a;--bg-card:#0f172a;--bg-card-alt:#1e293b;--bg-input:#0f172a;
-      --border:#1e293b;--border-hover:rgba(16,185,129,0.3);
+      --border:#1e293b;--border-hover:rgba(5,150,105,0.4);
       --text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#475569;--text-inverse:#ffffff;
       --bg-table-head:#0f172a;--bg-hover:rgba(16,185,129,0.03);
       --scrollbar:#1e293b;--log-bg:#060810;
@@ -206,7 +206,7 @@
         </button>
       </div>
       <div class="flex items-center gap-3">
-        <a href="/app/settings/" class="text-xs hover:text-emerald-400 transition" style="color:var(--text-muted)" title="Настройки">
+        <a href="/app/settings/" class="text-xs hover:text-emerald-600 transition" style="color:var(--text-muted)" title="Настройки">
           <svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </a>
         <a href="/auth/logout" class="text-xs hover:text-red-400 transition" style="color:var(--text-muted)">Выход</a>
@@ -215,8 +215,17 @@
   </aside>
 
   <!-- Main -->
+  
+  <!-- Beta banner -->
+  <div class="fixed top-0 lg:left-56 left-0 right-0 z-30 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs py-1.5 px-4 text-center shadow">
+    <span class="font-semibold">🚀 Бета-тест.</span>
+    <span>Запуск</span>
+    <span class="font-bold">27.04.2026</span>
+    <span class="hidden sm:inline">— спасибо что с нами!</span>
+  </div>
+
   <main class="flex-1 overflow-auto min-h-screen">
-    <div class="p-6 pt-16 lg:pt-6 max-w-[1400px]">
+    <div class="p-6 pt-20 lg:pt-10 max-w-[1400px]">
       {% if msg %}
       <div class="toast mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:var(--text-primary)" x-data="{show:true}" x-show="show" x-init="setTimeout(()=>show=false,5000)">
         <svg class="w-4 h-4 text-brand-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
