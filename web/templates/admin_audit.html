@@ -1,10 +1,44 @@
 {% extends "base.html" %}
 {% block title %} — Audit Log{% endblock %}
 {% block content %}
-<div class="mb-6">
-  <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Audit Log</h1>
-  <p style="color:var(--text-muted)" class="text-sm mt-1">Последние 500 действий суперадмина.</p>
+<div class="mb-6 flex items-baseline justify-between gap-4">
+  <div>
+    <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Audit Log</h1>
+    <p style="color:var(--text-muted)" class="text-sm mt-1">Найдено: <strong>{{ total }}</strong> записей за {{ filter_days }} дн.</p>
+  </div>
+  <a href="/app/admin/" class="text-xs" style="color:var(--text-muted)">&larr; Админ-панель</a>
 </div>
+
+<!-- Filters -->
+<form method="get" class="card mb-6" style="padding:1rem">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+    <div>
+      <label class="block text-xs mb-1" style="color:var(--text-muted)">Email/имя actor</label>
+      <input type="text" name="actor" value="{{ filter_actor }}" placeholder="admin@..." class="form-input text-sm w-full"/>
+    </div>
+    <div>
+      <label class="block text-xs mb-1" style="color:var(--text-muted)">Action</label>
+      <select name="action" class="form-input text-sm w-full">
+        <option value="">— все —</option>
+        {% for a in distinct_actions %}
+        <option value="{{ a }}"{% if a == filter_action %} selected{% endif %}>{{ a }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs mb-1" style="color:var(--text-muted)">Период (дней)</label>
+      <select name="days" class="form-input text-sm w-full">
+        {% for d in [1, 7, 14, 30, 90] %}
+        <option value="{{ d }}"{% if d == filter_days %} selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex items-end gap-2">
+      <button type="submit" class="btn-primary text-sm w-full">Применить</button>
+      <a href="/app/admin/audit" class="btn-ghost text-sm">Сброс</a>
+    </div>
+  </div>
+</form>
 
 <div class="card">
   {% if entries %}
@@ -30,8 +64,23 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- Pagination -->
+  <div class="flex items-center justify-between mt-4 px-2 text-xs" style="color:var(--text-muted)">
+    <span>Страница {{ page }}. Показано {{ entries|length }} из {{ total }}.</span>
+    <div class="flex gap-2">
+      {% if page > 1 %}
+      <a href="?actor={{ filter_actor }}&action={{ filter_action }}&days={{ filter_days }}&page={{ page - 1 }}"
+         class="px-2 py-1 rounded border" style="border-color:var(--border)">&larr; Назад</a>
+      {% endif %}
+      {% if has_next %}
+      <a href="?actor={{ filter_actor }}&action={{ filter_action }}&days={{ filter_days }}&page={{ page + 1 }}"
+         class="px-2 py-1 rounded border" style="border-color:var(--border)">Далее &rarr;</a>
+      {% endif %}
+    </div>
+  </div>
   {% else %}
-  <p style="color:var(--text-muted)" class="p-4">Пока нет записей.</p>
+  <p style="color:var(--text-muted)" class="p-4">Записей не найдено. Попробуйте расширить период или сбросить фильтры.</p>
   {% endif %}
 </div>
 {% endblock %}

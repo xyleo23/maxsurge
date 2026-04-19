@@ -214,19 +214,59 @@ async def cleanup_logs():
 
 
 @router.get("/audit", response_class=HTMLResponse)
-async def audit_page(request: Request):
+async def audit_page(
+    request: Request,
+    actor: str = "",
+    action: str = "",
+    days: int = 7,
+    page: int = 1,
+):
     user = await _require_admin(request)
     if not user or not user.is_superadmin:
         return RedirectResponse("/app/", status_code=303)
+
+    from datetime import datetime as _dt, timedelta as _td
+    per_page = 100
+    page = max(1, page)
+    since = _dt.utcnow() - _td(days=max(1, min(days, 90)))
+
     async with async_session_factory() as s:
-        res = await s.execute(
-            select(AuditLog).order_by(AuditLog.created_at.desc()).limit(500)
-        )
-        entries = res.scalars().all()
+        q = select(AuditLog).where(AuditLog.created_at >= since)
+        if actor:
+            q = q.where(AuditLog.actor_email.ilike(f"%{actor}%"))
+        if action:
+            q = q.where(AuditLog.action.ilike(f"%{action}%"))
+
+        total = (await s.execute(
+            select(func.count()).select_from(q.subquery())
+        )).scalar() or 0
+
+        entries = (await s.execute(
+            q.order_by(AuditLog.created_at.desc())
+             .offset((page - 1) * per_page)
+             .limit(per_page)
+        )).scalars().all()
+
+        # Distinct actions for dropdown
+        distinct_actions = (await s.execute(
+            select(AuditLog.action).where(AuditLog.created_at >= since).distinct().limit(50)
+        )).scalars().all()
+
+    has_next = total > page * per_page
     return templates.TemplateResponse(
         request=request,
         name="admin_audit.html",
-        context={"entries": entries},
+        context={
+            "entries": entries,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "has_next": has_next,
+            "filter_actor": actor,
+            "filter_action": action,
+            "filter_days": days,
+            "distinct_actions": distinct_actions,
+        },
     )
 
 

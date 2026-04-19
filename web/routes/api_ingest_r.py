@@ -102,6 +102,9 @@ async def ingest_leads(batch: IngestBatch, request: Request):
 @router.get("/api/v1/ingest/ping")
 async def ingest_ping(request: Request):
     user = await _user_by_api_key(request)
+    ok, reset = rate_limit(f"ping:{user.id}", max_requests=60, window_sec=60)
+    if not ok:
+        return JSONResponse({"ok": False, "error": f"rate_limit: try in {reset}s"}, status_code=429)
     return {"ok": True, "email": user.email, "plan": user.plan.value}
 
 
