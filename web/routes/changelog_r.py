@@ -117,7 +117,7 @@ CHANGELOG = [
         "groups": [
             {"tag": "new", "items": [
                 "<strong>SMTP через Яндекс 360</strong> — welcome, verify, reset password, onboarding серия (4 письма), upsell/winback.",
-                "<strong>Яндекс.Метрика</strong> 108545615 — webvisor, clickmap, ecommerce.",
+                "<strong>Яндекс.Метрика</strong> 108689029 — webvisor, clickmap, ecommerce.",
                 "<strong>UptimeRobot</strong> — внешний uptime monitor /health, 5-мин интервал, email алерт.",
                 "<strong>Favicon</strong> — .ico (6 размеров) + apple-touch-icon для iOS home screen.",
                 "<strong>OG image 1200x630</strong> — красивое превью в соцсетях (VK, TG, FB, Twitter).",

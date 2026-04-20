@@ -1,0 +1,27 @@
+{
+  "name": "max_leadfinder",
+  "version": "1.0.0",
+  "description": "**SaaS платформа для продвижения в мессенджере MAX**",
+  "main": "tailwind.config.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xyleo23/maxsurge.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xyleo23/maxsurge/issues"
+  },
+  "homepage": "https://github.com/xyleo23/maxsurge#readme",
+  "dependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}

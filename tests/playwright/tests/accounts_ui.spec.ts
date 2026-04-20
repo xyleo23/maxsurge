@@ -87,7 +87,7 @@ test.describe('Accounts page UI', () => {
 
   test('post scheduler calendar loads', async ({ page }) => {
     await page.goto('/app/posts/');
-    await expect(page.getByText('Планировщик постов')).toBeVisible();
+    await expect(page.locator('h1:has-text("Планировщик постов")')).toBeVisible();
     // Should show day-of-week headers
     await expect(page.locator('text=Пн').first()).toBeVisible();
     await expect(page.locator('text=Вс').first()).toBeVisible();
@@ -95,7 +95,7 @@ test.describe('Accounts page UI', () => {
 
   test('import-contacts dual-pane renders', async ({ page }) => {
     await page.goto('/app/import-contacts/');
-    await expect(page.getByText('Импорт контактов').first()).toBeVisible();
+    await expect(page.locator('h1:has-text("Импорт контактов")')).toBeVisible();
     await expect(page.getByText('1. Аккаунт').first()).toBeVisible();
     await expect(page.getByText('2. Группа / канал').first()).toBeVisible();
   });
