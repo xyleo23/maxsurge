@@ -509,8 +509,12 @@ async def apple_icon():
 
 
 @app.api_route("/health", methods=["GET", "HEAD"])
-async def health():
-    """Deep health check: db ping, disk, accounts, uptime."""
+async def health(request: Request):
+    """Health check — minimal public, detail requires Basic auth (same as /metrics).
+
+    - Public  GET /health           -> {status, version}  (for UptimeRobot, Traefik probe)
+    - Admin   GET /health?detail=1  -> + checks dict     (requires ADMIN_EMAIL/PASSWORD Basic)
+    """
     import shutil as _sh
     import os as _os
     import time as _time
@@ -524,11 +528,7 @@ async def health():
     try:
         async with _asf() as _s:
             await _s.execute(_text("SELECT 1"))
-            users_count = (await _s.execute(_sel(_func.count(SiteUser.id)))).scalar() or 0
-            active_accounts = (await _s.execute(
-                _sel(_func.count(MaxAccount.id)).where(MaxAccount.status == AccountStatus.ACTIVE)
-            )).scalar() or 0
-        checks["db"] = {"ok": True, "users": users_count, "active_accounts": active_accounts}
+        checks["db"] = {"ok": True}
     except Exception as e:
         status = "degraded"
         checks["db"] = {"ok": False, "error": str(e)[:200]}
@@ -565,12 +565,31 @@ async def health():
     except Exception as e:
         checks["workers"] = {"error": str(e)[:100]}
 
-    return {
-        "status": status,
-        "version": "3.0",
-        "timestamp": int(_time.time()),
-        "checks": checks,
-    }
+    # Public response: always minimal
+    response = {"status": status, "version": "3.0", "timestamp": int(_time.time())}
+
+    # Detailed checks only with Basic auth matching ADMIN_EMAIL/PASSWORD
+    if request.query_params.get("detail") == "1":
+        import base64 as _b64
+        auth = request.headers.get("authorization", "")
+        authorized = False
+        if auth.lower().startswith("basic "):
+            try:
+                u, p = _b64.b64decode(auth[6:]).decode("utf-8").split(":", 1)
+                authorized = (u == settings.ADMIN_EMAIL and p == settings.ADMIN_PASSWORD)
+            except Exception:
+                pass
+        if authorized:
+            response["checks"] = checks
+        else:
+            from fastapi.responses import JSONResponse as _JR
+            return _JR(
+                {"status": status, "version": "3.0", "detail": "auth_required"},
+                status_code=401,
+                headers={"WWW-Authenticate": 'Basic realm="health-detail"'},
+            )
+
+    return response
 
 
 
