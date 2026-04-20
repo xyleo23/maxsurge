@@ -1,0 +1,130 @@
+# Production compose — MaxSurge с PostgreSQL вместо SQLite.
+# НЕ АКТИВНО сейчас. Применяется только в день миграции на PG.
+#
+# Подготовка:
+#   1. Создать .env.prod из .env.example, добавить:
+#      DATABASE_URL=postgresql+asyncpg://maxsurge:CHANGE_ME@postgres:5432/maxsurge
+#      POSTGRES_PASSWORD=CHANGE_ME  (тот же пароль)
+#   2. docker compose -f docker-compose.prod.yml up -d postgres
+#   3. Дождаться 'healthy': docker compose -f docker-compose.prod.yml ps
+#   4. Мигрировать данные:
+#      ./venv/bin/python scripts/sqlite_to_postgres.py \
+#        --dst postgresql+asyncpg://maxsurge:CHANGE_ME@localhost:5432/maxsurge
+#   5. Верифицировать: ... --verify-only
+#   6. Если нужен автозапуск maxsurge контейнером — раскомментировать
+#      блок 'maxsurge' ниже и отключить systemd-unit
+#
+# Откат:
+#   1. DATABASE_URL=sqlite+aiosqlite:///max_leadfinder.db в .env
+#   2. systemctl restart maxsurge
+#   3. docker compose -f docker-compose.prod.yml down postgres
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: maxsurge-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: maxsurge
+      POSTGRES_USER: maxsurge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      # Expose only on loopback — прод-пароль всё равно, но снижаем attack surface
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - maxsurge_pg_data:/var/lib/postgresql/data
+      # Daily backup via pg_dump — монтируется тот же backups dir
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maxsurge -d maxsurge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    # Resource limits — Postgres + SB + redis ≈ 500 MB sustained
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "effective_cache_size=768MB"
+      - "-c"
+      - "max_connections=100"
+      - "-c"
+      - "work_mem=8MB"
+      - "-c"
+      - "maintenance_work_mem=64MB"
+      - "-c"
+      - "log_min_duration_statement=1000"  # лог slow queries >1s
+      - "-c"
+      - "log_statement=ddl"
+      - "-c"
+      - "wal_level=replica"
+
+  # Backup sidecar — каждый день pg_dump в backups/
+  pg-backup:
+    image: postgres:16-alpine
+    container_name: maxsurge-pg-backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./backups:/backups
+    entrypoint: >
+      /bin/sh -c '
+      while true; do
+        ts=$$(date +%Y%m%d_%H%M%S);
+        echo "[$$ts] pg_dump start";
+        pg_dump -h postgres -U maxsurge -d maxsurge --no-owner --no-privileges
+          | gzip > /backups/pg_maxsurge_$$ts.sql.gz
+          && echo "[$$ts] pg_dump ok $$(ls -lh /backups/pg_maxsurge_$$ts.sql.gz | awk {\"print \\$$5\"})"
+          || echo "[$$ts] pg_dump FAILED";
+        find /backups -name "pg_maxsurge_*.sql.gz" -mtime +7 -delete;
+        sleep 86400;
+      done'
+
+  # Раскомментировать, когда будете готовы крутить MaxSurge через docker (сейчас — systemd).
+  # maxsurge:
+  #   build: .
+  #   container_name: maxsurge-app
+  #   restart: unless-stopped
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   ports:
+  #     - "127.0.0.1:8090:8090"
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     DATABASE_URL: postgresql+asyncpg://maxsurge:${POSTGRES_PASSWORD}@postgres:5432/maxsurge
+  #   volumes:
+  #     - ./logs:/app/logs
+  #     - ./backups:/app/backups
+  #     - ./sessions:/app/sessions
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.maxsurge.rule=Host(`maxsurge.ru`) || Host(`www.maxsurge.ru`)"
+  #     - "traefik.http.routers.maxsurge.entrypoints=websecure"
+  #     - "traefik.http.routers.maxsurge.tls.certresolver=myresolver"
+  #     - "traefik.http.services.maxsurge.loadbalancer.server.port=8090"
+  #   networks:
+  #     - default
+  #     - traefik_shared
+
+volumes:
+  maxsurge_pg_data:
+    name: maxsurge_pg_data
+
+# networks:
+#   traefik_shared:
+#     external: true
