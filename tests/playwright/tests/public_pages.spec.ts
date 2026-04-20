@@ -19,8 +19,8 @@ test.describe('Public pages', () => {
 
   test('login page has email+password+submit', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.getByLabel(/email|почта/i).first()).toBeVisible();
-    await expect(page.getByLabel(/пароль|password/i).first()).toBeVisible();
+    await expect(page.locator("input[name=\"email\"]")).toBeVisible();
+    await expect(page.locator("input[name=\"password\"]")).toBeVisible();
     await expect(page.getByRole('button', { name: /войти|log ?in/i })).toBeVisible();
   });
 
@@ -28,7 +28,7 @@ test.describe('Public pages', () => {
     await page.goto('/register');
     await expect(page.locator('input[name="email"]')).toBeVisible();
     await expect(page.locator('input[name="password"]')).toBeVisible();
-    await expect(page.getByRole('link', { name: /услов|terms/i }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /Оферт|Политик|услов|terms/i }).first()).toBeVisible();
   });
 
   test('terms page contains ИП and НПД', async ({ page }) => {

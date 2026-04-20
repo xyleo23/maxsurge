@@ -13,7 +13,7 @@
   <meta name="google-site-verification" content="mkeuLRykzp92-jYYW0-4ObceyPjg8v6eKkspgUKEESg" />
   <meta property="og:type" content="website"/>
   <meta property="og:url" content="https://maxsurge.ru/"/>
-  <meta property="og:title" content="MaxSurge — лидогенерация в мессенджере MAX из 2GIS"/>
+  <meta property="og:title" content="MaxSurge — лидогенерация в мессенджере MAX"/>
   <meta property="og:description" content="Находим клиентов в чатах и картах, отправляем в MAX, AI отвечает за вас. 7 дней бесплатно от 1 490 ₽/мес."/>
   <meta property="og:site_name" content="MaxSurge"/>
   <meta property="og:locale" content="ru_RU"/>
@@ -21,7 +21,7 @@
   <meta property="og:image:width" content="1200"/>
   <meta property="og:image:height" content="630"/>
   <meta name="twitter:card" content="summary_large_image"/>
-  <meta name="twitter:title" content="MaxSurge — лидогенерация в мессенджере MAX из 2GIS"/>
+  <meta name="twitter:title" content="MaxSurge — лидогенерация в мессенджере MAX"/>
   <meta name="twitter:description" content="Все инструменты для работы с MAX в одной веб-панели. 7 дней бесплатно."/>
   <meta name="twitter:image" content="https://maxsurge.ru/static/og-image.png"/>
 
@@ -177,19 +177,51 @@ ym(108545615,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",
       Самый функциональный инструмент для MAX
     </div>
 
-    <!-- H1 -->
-    <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 leading-[1.1] tracking-tight">
+    <!-- H1 --><!-- AB_H1_TEST -->
+    <h1 id="ab-h1" class="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 leading-[1.1] tracking-tight">
       Клиенты из чатов и карт —<br/>прямо в ваш <span class="gradient-text">MAX</span>
     </h1>
 
     <!-- Sub -->
-    <p class="text-lg md:text-xl text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
+    <p id="ab-sub" class="text-lg md:text-xl text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
       Находим аудиторию в чатах MAX и организации из открытых карт. Рассылаем персональные сообщения, <strong class="text-white">AI отвечает за вас 24/7.</strong> Настройка — 15 минут.
     </p>
+    <script>
+    (function(){
+      var variants = {
+        v1: {
+          h1: 'Клиенты из чатов и карт —<br/>прямо в ваш <span class="gradient-text">MAX</span>',
+          sub: 'Находим аудиторию в чатах MAX и организации из открытых карт. Рассылаем персональные сообщения, <strong class="text-white">AI отвечает за вас 24/7.</strong> Настройка — 15 минут.'
+        },
+        v2: {
+          h1: 'Лиды из <span class="gradient-text">MAX</span> —<br/>без рекламных бюджетов',
+          sub: 'Пока конкуренты заливают деньги в Директ, вы пишете клиентам напрямую в мессенджер. Открываемость 87%, стоимость лида в 10 раз ниже.'
+        },
+        v3: {
+          h1: '<span class="gradient-text">MAX</span> — как Instagram в 2015.<br/>Успей зайти первым',
+          sub: '77 миллионов пользователей и почти никаких инструментов для бизнеса. Находим клиентов, пишем, автоматизируем ответы. Вход — 15 минут.'
+        }
+      };
+      var keys = Object.keys(variants);
+      var chosen = localStorage.getItem('ab_h1');
+      if (!chosen || !variants[chosen]) {
+        chosen = keys[Math.floor(Math.random() * keys.length)];
+        try { localStorage.setItem('ab_h1', chosen); } catch(e){}
+      }
+      var h1 = document.getElementById('ab-h1');
+      var sub = document.getElementById('ab-sub');
+      if (h1) h1.innerHTML = variants[chosen].h1;
+      if (sub) sub.innerHTML = variants[chosen].sub;
+      if (typeof ym === 'function') {
+        ym(108545615, 'params', {ab_h1: chosen});
+      }
+      window.__AB_H1 = chosen;
+    })();
+    </script>
 
     <!-- CTA pair -->
     <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-5">
-      <a href="/register" class="w-full sm:w-auto text-center bg-brand text-white px-8 py-3.5 rounded-xl text-lg font-semibold hover:bg-brand-dark hover:shadow-xl hover:shadow-brand/25 transition-all">
+      <a href="/register" onclick="if(typeof ym==='function'){ym(108545615,'reachGoal','register_click',{ab_h1:window.__AB_H1||'n/a'});}" class="w-full sm:w-auto text-center bg-brand text-white px-8 py-3.5 rounded-xl text-lg font-semibold hover:bg-brand-dark hover:shadow-xl hover:shadow-brand/25 transition-all">
         Попробовать 7 дней бесплатно
       </a>
       <a href="#how" class="w-full sm:w-auto text-center border border-gray-700 text-gray-300 px-8 py-3.5 rounded-xl text-lg hover:border-brand/50 transition-all">
@@ -498,7 +530,7 @@ ym(108545615,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-14 reveal">
       <p class="text-brand font-semibold text-sm uppercase tracking-wider mb-3">Для каких ниш</p>
-      <h2 class="text-3xl md:text-4xl font-bold tracking-tight">Работает в любой нише, где есть 2GIS</h2>
+      <h2 class="text-3xl md:text-4xl font-bold tracking-tight">Работает в любой нише с локальными клиентами</h2>
     </div>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 reveal">
       <div class="bento-card"><div class="text-2xl mb-3">🏗️</div><h3 class="font-semibold text-white mb-2">Строительство</h3><p class="text-gray-400 text-sm">Карты → строительные фирмы → рассылка с предложением субподряда или поставки материалов.</p></div>

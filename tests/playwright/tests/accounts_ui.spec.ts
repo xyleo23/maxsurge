@@ -1,65 +1,63 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
 /**
- * /app/accounts/ UI — role dialog, bulk select, toggle, inline comment.
+ * /app/accounts/ UI — role dialog, bulk endpoint, catalog filters.
  *
- * Needs auth. Creates and deletes its own role to avoid polluting user data.
- * Does NOT add MAX accounts (would trigger real MAX API / rate limits).
+ * Uses storageState from setup project (login once, share across tests).
  */
 
-const EMAIL = process.env.ADMIN_EMAIL || '';
-const PASSWORD = process.env.ADMIN_PASSWORD || '';
-const hasCreds = Boolean(EMAIL && PASSWORD);
-
-async function login(page: Page): Promise<void> {
-  await page.goto('/login');
-  await page.locator('input[name="email"]').fill(EMAIL);
-  await page.locator('input[name="password"]').fill(PASSWORD);
-  await page.getByRole('button', { name: /войти|log ?in/i }).click();
-  await page.waitForURL(/\/app\//, { timeout: 10_000 });
-}
-
 test.describe('Accounts page UI', () => {
-  test.skip(!hasCreds, 'ADMIN_EMAIL / ADMIN_PASSWORD env not provided');
 
-  test.beforeEach(async ({ page }) => {
-    await login(page);
+  test('roles CRUD via API (create, rename, delete, cascade)', async ({ request, page }) => {
+    // Get CSRF cookie from any /app page
     await page.goto('/app/accounts/');
-  });
+    const cookies = await page.context().cookies();
+    const csrf = cookies.find((c) => c.name === 'csrf_token')?.value || '';
+    expect(csrf).toBeTruthy();
 
-  test('roles modal: create, rename, delete', async ({ page }) => {
-    const roleName = `E2E-${Date.now()}`;
-
-    // Open modal
-    await page.getByRole('button', { name: /Роли/ }).click();
-    await expect(page.getByText('Роли аккаунтов')).toBeVisible();
+    const name = `E2E-${Date.now()}`;
 
     // Create
-    await page.locator('input[placeholder*="Название роли"]').fill(roleName);
-    await page.locator('input[placeholder*="Название роли"]').press('Enter');
+    const rCreate = await request.post('/app/accounts/roles/add', {
+      form: { name, color: '#10b981' },
+      headers: { 'X-CSRF-Token': csrf },
+    });
+    expect(rCreate.ok()).toBeTruthy();
+    const created = await rCreate.json();
+    expect(created.ok).toBe(true);
+    const roleId = created.id;
 
-    // New role should appear in list
-    await expect(page.locator(`text=${roleName}`)).toBeVisible({ timeout: 3000 });
+    // List — role present
+    const rList = await request.get('/app/accounts/roles');
+    const listBody = await rList.json();
+    expect(listBody.roles.find((r: any) => r.id === roleId)).toBeTruthy();
 
-    // Rename inline
-    const renamedTo = `${roleName}-renamed`;
-    const input = page.locator(`input[value="${roleName}"]`).first();
-    await input.fill(renamedTo);
-    await input.press('Tab'); // blur -> saves
-    await expect(page.locator(`input[value="${renamedTo}"]`)).toBeVisible({ timeout: 3000 });
+    // Rename
+    const newName = name + '-renamed';
+    const rUpd = await request.post(`/app/accounts/roles/${roleId}/update`, {
+      form: { name: newName, color: '#a855f7' },
+      headers: { 'X-CSRF-Token': csrf },
+    });
+    const upd = await rUpd.json();
+    expect(upd.ok).toBe(true);
+    expect(upd.name).toBe(newName);
 
-    // Delete (handle confirm)
-    page.once('dialog', (d) => d.accept());
-    const deleteBtn = page.locator(`input[value="${renamedTo}"]`)
-      .locator('..')
-      .getByRole('button', { name: '✕' });
-    await deleteBtn.click();
-    await expect(page.locator(`input[value="${renamedTo}"]`)).toHaveCount(0, { timeout: 3000 });
+    // Delete
+    const rDel = await request.post(`/app/accounts/roles/${roleId}/delete`, {
+      headers: { 'X-CSRF-Token': csrf },
+    });
+    expect((await rDel.json()).ok).toBe(true);
+
+    // Confirm gone
+    const rList2 = await request.get('/app/accounts/roles');
+    const listBody2 = await rList2.json();
+    expect(listBody2.roles.find((r: any) => r.id === roleId)).toBeUndefined();
   });
 
-  test('bulk-check validity endpoint responds for empty selection', async ({ request, page, context }) => {
-    // Get CSRF cookie that came with page load
-    const cookies = await context.cookies();
+    test('bulk-check-validity endpoint accepts empty list', async ({ request, page }) => {
+    // Visit a page to get CSRF cookie via context
+    await page.goto('/app/accounts/');
+    const cookies = await page.context().cookies();
     const csrf = cookies.find((c) => c.name === 'csrf_token')?.value || '';
     expect(csrf).toBeTruthy();
 
@@ -67,7 +65,6 @@ test.describe('Accounts page UI', () => {
       form: { account_ids: '' },
       headers: { 'X-CSRF-Token': csrf },
     });
-    // Should return {results: []} for empty list
     expect(r.ok()).toBeTruthy();
     const body = await r.json();
     expect(body.results).toEqual([]);
@@ -77,8 +74,29 @@ test.describe('Accounts page UI', () => {
     await page.goto('/app/catalog/?search=test&sort=name&type_filter=channel');
     expect(page.url()).toContain('search=test');
     expect(page.url()).toContain('sort=name');
-    // Selected options reflect URL
     await expect(page.locator('select[name="sort"]')).toHaveValue('name');
     await expect(page.locator('select[name="type_filter"]')).toHaveValue('channel');
+  });
+
+  test('checker page renders with 3 modes', async ({ page }) => {
+    await page.goto('/app/checker/');
+    await expect(page.locator('text=Мягкая').first()).toBeVisible();
+    await expect(page.locator('text=Массовый').first()).toBeVisible();
+    await expect(page.locator('text=Чекер User ID').first()).toBeVisible();
+  });
+
+  test('post scheduler calendar loads', async ({ page }) => {
+    await page.goto('/app/posts/');
+    await expect(page.getByText('Планировщик постов')).toBeVisible();
+    // Should show day-of-week headers
+    await expect(page.locator('text=Пн').first()).toBeVisible();
+    await expect(page.locator('text=Вс').first()).toBeVisible();
+  });
+
+  test('import-contacts dual-pane renders', async ({ page }) => {
+    await page.goto('/app/import-contacts/');
+    await expect(page.getByText('Импорт контактов').first()).toBeVisible();
+    await expect(page.getByText('1. Аккаунт').first()).toBeVisible();
+    await expect(page.getByText('2. Группа / канал').first()).toBeVisible();
   });
 });

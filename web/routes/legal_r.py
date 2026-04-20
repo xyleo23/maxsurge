@@ -425,38 +425,59 @@ async def status_page(request: Request):
 async def robots():
     return """User-agent: *
 Allow: /
-Allow: /login
-Allow: /register
-Allow: /terms
-Allow: /privacy
-Allow: /contacts
-Allow: /about
-Allow: /blog
+Disallow: /app/
+Disallow: /auth/
+Disallow: /api/
+Disallow: /*?utm_
+Disallow: /*?ab_h1=
+Disallow: /*?fbclid=
+Disallow: /*?gclid=
+Disallow: /*?yclid=
+
+User-agent: Yandex
+Allow: /
+Disallow: /app/
+Disallow: /auth/
+Disallow: /api/
+Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&ab_h1&fbclid&gclid&yclid&_openstat&from
+
+User-agent: Googlebot
+Allow: /
 Disallow: /app/
 Disallow: /auth/
 Disallow: /api/
 
 Sitemap: https://maxsurge.ru/sitemap.xml
+Host: maxsurge.ru
 """
 
 
 @router.get("/sitemap.xml", response_class=PlainTextResponse)
 async def sitemap():
-    xml = """<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://maxsurge.ru/</loc><priority>1.0</priority></url>
-  <url><loc>https://maxsurge.ru/login</loc><priority>0.8</priority></url>
-  <url><loc>https://maxsurge.ru/register</loc><priority>0.8</priority></url>
-  <url><loc>https://maxsurge.ru/terms</loc><priority>0.5</priority></url>
-  <url><loc>https://maxsurge.ru/privacy</loc><priority>0.5</priority></url>
-  <url><loc>https://maxsurge.ru/contacts</loc><priority>0.5</priority></url>
-  <url><loc>https://maxsurge.ru/about</loc><priority>0.7</priority></url>
-  <url><loc>https://maxsurge.ru/blog/</loc><priority>0.8</priority></url>
-  <url><loc>https://maxsurge.ru/blog/automated-messaging-max-2026</loc><priority>0.7</priority></url>
-  <url><loc>https://maxsurge.ru/blog/messenger-max-business-guide-2026</loc><priority>0.7</priority></url>
-  <url><loc>https://maxsurge.ru/blog/lead-generation-crm-small-business</loc><priority>0.7</priority></url>
-  <url><loc>https://maxsurge.ru/blog/2gis-parser-how-to</loc><priority>0.7</priority></url>
-  <url><loc>https://maxsurge.ru/blog/ai-chatbot-customer-support</loc><priority>0.7</priority></url>
-  <url><loc>https://maxsurge.ru/blog/account-warmup-messenger-security</loc><priority>0.7</priority></url>
-</urlset>"""
+    # Single source of truth for URLs
+    LASTMOD = "2026-04-20"
+    urls = [
+        ("https://maxsurge.ru/",                                                  "1.0", "weekly"),
+        ("https://maxsurge.ru/about",                                             "0.8", "monthly"),
+        ("https://maxsurge.ru/blog",                                              "0.9", "weekly"),
+        ("https://maxsurge.ru/blog/messenger-max-business-guide-2026",            "0.8", "monthly"),
+        ("https://maxsurge.ru/blog/automated-messaging-max-2026",                 "0.8", "monthly"),
+        ("https://maxsurge.ru/blog/lead-generation-crm-small-business",           "0.7", "monthly"),
+        ("https://maxsurge.ru/blog/2gis-parser-how-to",                           "0.7", "monthly"),
+        ("https://maxsurge.ru/blog/ai-chatbot-customer-support",                  "0.7", "monthly"),
+        ("https://maxsurge.ru/blog/account-warmup-messenger-security",            "0.7", "monthly"),
+        ("https://maxsurge.ru/changelog",                                         "0.7", "weekly"),
+        ("https://maxsurge.ru/login",                                             "0.4", "yearly"),
+        ("https://maxsurge.ru/register",                                          "0.6", "yearly"),
+        ("https://maxsurge.ru/terms",                                             "0.3", "yearly"),
+        ("https://maxsurge.ru/privacy",                                           "0.3", "yearly"),
+        ("https://maxsurge.ru/contacts",                                          "0.4", "yearly"),
+    ]
+    parts = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for loc, prio, freq in urls:
+        parts.append(f'  <url><loc>{loc}</loc><lastmod>{LASTMOD}</lastmod><changefreq>{freq}</changefreq><priority>{prio}</priority></url>')
+    parts.append('</urlset>')
+    xml = "\n".join(parts) + "\n"
     return PlainTextResponse(xml, media_type="application/xml")
+

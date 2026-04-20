@@ -4,9 +4,10 @@ import { defineConfig, devices } from '@playwright/test';
  * Playwright config for MaxSurge E2E.
  *
  * ENV:
- *   BASE_URL   — target host, default https://maxsurge.ru (override for local: http://localhost:8090)
- *   ADMIN_EMAIL, ADMIN_PASSWORD — for login flow tests
- *   CI         — enables junit reporter + retries
+ *   BASE_URL       target host (default https://maxsurge.ru)
+ *   ADMIN_EMAIL    for setup (login once, save storage state)
+ *   ADMIN_PASSWORD
+ *   CI             enables junit + retries + serial
  */
 export default defineConfig({
   testDir: './tests',
@@ -15,9 +16,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  workers: process.env.CI ? 1 : 2,  // Serial in CI to avoid rate-limit
   reporter: process.env.CI
-    ? [['junit', { outputFile: 'test-results/junit.xml' }], ['html', { open: 'never' }]]
+    ? [['junit', { outputFile: 'test-results/junit.xml' }], ['html', { open: 'never' }], ['list']]
     : [['html', { open: 'on-failure' }], ['list']],
 
   use: {
@@ -31,11 +32,36 @@ export default defineConfig({
   },
 
   projects: [
+    // 1. Setup: login once, save state
     {
-      name: 'chromium',
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+    },
+
+    // 2. Public pages — no auth needed
+    {
+      name: 'public',
+      testMatch: /public_pages\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
-    // Uncomment when mobile responsive tests are needed:
-    // { name: 'mobile', use: { ...devices['iPhone 13'] } },
+
+    // 3. Auth tests — run raw login/logout without storageState
+    {
+      name: 'auth',
+      testMatch: /auth_flow\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+      // Not dependent on setup — tests its own login/logout from scratch
+    },
+
+    // 4. App tests — use stored session from setup
+    {
+      name: 'app',
+      testMatch: /accounts_ui\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: '.auth/admin.json',
+      },
+      dependencies: ['setup'],
+    },
   ],
 });
