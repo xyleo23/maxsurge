@@ -1,5 +1,77 @@
 {% extends "base.html" %}
-{% block title %} — Приглашение{% endblock %}
+{% block title %} — Приглашение
+<script>
+function prevalidator() {
+  return {
+    phones: '',
+    mode: 'soft',
+    running: false,
+    done: false,
+    lastFound: 0,
+    status: { total: 0, processed: 0, found: 0, results: [] },
+    _timer: null,
+    get phoneCount() {
+      return (this.phones || '').split('\n').map(s => s.trim()).filter(Boolean).length;
+    },
+    _csrf() {
+      const c = document.cookie.split('; ').find(r => r.startsWith('csrf_token='));
+      return c ? c.split('=')[1] : '';
+    },
+    async run() {
+      this.done = false;
+      const fd = new FormData();
+      fd.append('items', this.phones);
+      fd.append('mode', this.mode);
+      fd.append('pause_from', this.mode === 'mass' ? 3 : 15);
+      fd.append('pause_to',   this.mode === 'mass' ? 5 : 25);
+      fd.append('limit_per_account', 50);
+      fd.append('account_phones', '');
+      const r = await fetch('/app/checker/bulk-start', {
+        method: 'POST', body: fd,
+        headers: { 'X-CSRF-Token': this._csrf() },
+      });
+      const d = await r.json();
+      if (d.error) { alert('Ошибка: ' + d.error); return; }
+      this.running = true;
+      this.poll();
+    },
+    async stop() {
+      await fetch('/app/checker/bulk-stop', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': this._csrf() },
+      });
+      this.running = false;
+    },
+    poll() {
+      clearInterval(this._timer);
+      this._timer = setInterval(async () => {
+        const r = await fetch('/app/checker/bulk-status');
+        const d = await r.json();
+        this.status = d;
+        this.running = !!d.running;
+        if (!d.running) {
+          clearInterval(this._timer);
+          this._injectFoundIds();
+          this.done = true;
+        }
+      }, 2000);
+    },
+    _injectFoundIds() {
+      const found = (this.status.results || []).filter(r => r.status === 'found' && r.user_id);
+      this.lastFound = found.length;
+      if (found.length === 0) return;
+      const ta = document.getElementById('user_ids_text');
+      if (!ta) return;
+      const existing = (ta.value || '').trim();
+      const newIds = found.map(r => r.user_id).join('\n');
+      ta.value = existing ? existing + '\n' + newIds : newIds;
+      ta.dispatchEvent(new Event('input'));  // triggers existing count listener
+    },
+  };
+}
+</script>
+
+{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Инвайтинг в чаты</h1>
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -8,6 +80,40 @@
     <form method="post" action="/app/inviter/start">
       <label class="text-gray-400 text-xs mb-1 block">Ссылка на чат (куда приглашаем)</label>
       <input name="chat_link" class="form-input mb-3" placeholder="https://max.ru/join/XXXX"/>
+      <!-- Pre-validation via Max-checker -->
+      <details class="mb-4 bg-[var(--bg-card-alt)] border border-[var(--border)] rounded-lg p-3" x-data="prevalidator()">
+        <summary class="cursor-pointer text-xs text-gray-400 hover:text-white">
+          🔎 Отсев невалидных номеров (через Max-чекер) — <span class="text-emerald-500">рекомендуется</span>
+        </summary>
+        <div class="mt-3">
+          <label class="text-gray-500 text-xs mb-1 block">Вставьте номера — чекер проверит наличие в MAX и добавит их ID в список ниже</label>
+          <textarea x-model="phones" rows="4"
+                    placeholder="+79001234567&#10;+79002345678&#10;..."
+                    class="form-input text-xs font-mono mb-2"></textarea>
+          <div class="flex items-center gap-2 flex-wrap text-xs">
+            <span class="text-gray-500">Введено: <span x-text="phoneCount" class="text-emerald-400"></span></span>
+            <label class="text-gray-500 flex items-center gap-1">
+              Режим:
+              <select x-model="mode" class="bg-transparent border border-[var(--border)] rounded px-1 py-0.5">
+                <option value="soft">мягкая</option>
+                <option value="mass">массовая</option>
+              </select>
+            </label>
+            <button type="button" @click="run()" :disabled="running || phoneCount === 0"
+                    class="px-3 py-1 rounded border border-emerald-700 text-emerald-300 hover:bg-emerald-900/30"
+                    :class="(running || phoneCount === 0) ? 'opacity-50 cursor-not-allowed' : ''">
+              <span x-show="!running">Проверить в MAX</span>
+              <span x-show="running">⏳ <span x-text="status.processed"></span>/<span x-text="status.total"></span></span>
+            </button>
+            <button type="button" @click="stop()" x-show="running"
+                    class="px-3 py-1 rounded border border-red-700 text-red-300 hover:bg-red-900/30">⏹</button>
+          </div>
+          <div x-show="done && lastFound > 0" class="mt-2 p-2 rounded bg-emerald-900/20 border border-emerald-700/40 text-xs text-emerald-300">
+            ✅ Найдено в MAX: <strong x-text="lastFound"></strong> из <strong x-text="status.total"></strong>.
+            <span class="text-gray-400">Их ID добавлены в поле ниже ↓</span>
+          </div>
+        </div>
+      </details>
       <label class="text-gray-400 text-xs mb-1 block">ID пользователей (по одному на строку)</label>
       <textarea name="user_ids_text" rows="6" class="form-input mb-3 font-mono text-xs" id="user_ids_text" placeholder="123456789&#10;987654321&#10;..."></textarea>
       <div class="flex items-center gap-2 mb-3">

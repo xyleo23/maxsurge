@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %} — Импорт контактов{% endblock %}
+{% block content %}
+
+<div class="flex items-baseline justify-between mb-6">
+  <h1 class="text-2xl font-bold text-[color:var(--text-primary)]">📇 Импорт контактов из групп</h1>
+  <span class="text-xs text-gray-500">Выгрузить участников чата/канала в базу лидов</span>
+</div>
+
+<div x-data="importContacts()" x-init="init()">
+
+<!-- Step 1 + 2: select account, select chat -->
+<div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label class="text-gray-400 text-xs mb-1 block">1. Аккаунт</label>
+      <select x-model="accountId" @change="loadChats()" class="form-input text-sm">
+        <option value="">— выберите —</option>
+        {% for a in accounts %}
+        <option value="{{ a.id }}">{{ a.phone }}{% if a.profile_name %} — {{ a.profile_name }}{% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="text-gray-400 text-xs mb-1 block">2. Группа / канал</label>
+      <select x-model="chatId" @change="onChatChange()" class="form-input text-sm" :disabled="!accountId || chatsLoading">
+        <option value="">
+          <template x-if="!accountId">— сначала выберите аккаунт —</template>
+          <template x-if="chatsLoading">⏳ загружаю...</template>
+          <template x-if="accountId && !chatsLoading">— выберите —</template>
+        </option>
+        <template x-for="c in chats" :key="c.id">
+          <option :value="c.id" x-text="(c.type === 'channel' ? '📢 ' : '💬 ') + c.name + (c.members ? ' (' + c.members + ')' : '')"></option>
+        </template>
+      </select>
+    </div>
+  </div>
+  <div class="mt-3 flex items-center gap-2 flex-wrap">
+    <button type="button" @click="loadMembers()" :disabled="!chatId || loading"
+            class="btn-primary text-sm"
+            :class="(!chatId || loading) ? 'opacity-50 cursor-not-allowed' : ''">
+      <span x-show="!loading">Загрузить участников</span>
+      <span x-show="loading">⏳ Загружаю...</span>
+    </button>
+    <span x-show="members.length > 0" class="text-xs text-gray-400">
+      Загружено: <strong class="text-emerald-400" x-text="members.length"></strong>
+    </span>
+    <span x-show="error" class="text-xs text-red-400" x-text="error"></span>
+  </div>
+</div>
+
+<!-- Step 3: dual-pane picker -->
+<div x-show="members.length > 0" class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 mb-6">
+  <!-- Left: available -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl flex flex-col min-h-[500px]">
+    <div class="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
+      <h3 class="font-semibold text-sm">Все участники (<span x-text="filtered.length"></span>)</h3>
+      <button type="button" @click="selectAllVisible()" class="text-xs text-emerald-400 hover:text-emerald-300">Выбрать всё</button>
+    </div>
+    <div class="p-3 border-b border-[var(--border)]">
+      <input x-model="search" type="search" placeholder="🔍 Поиск по имени или номеру..." class="form-input text-sm"/>
+    </div>
+    <div class="flex-1 overflow-y-auto">
+      <template x-for="m in visible" :key="m.user_id">
+        <div @click="toggleSelect(m)"
+             class="px-4 py-1.5 text-xs flex items-center gap-2 cursor-pointer hover:bg-white/5 border-b border-[var(--border)]/40"
+             :class="isSelected(m) ? 'opacity-40' : ''">
+          <input type="checkbox" :checked="isSelected(m)" class="pointer-events-none"/>
+          <div class="flex-1 min-w-0">
+            <div class="truncate" x-text="(m.first_name + ' ' + m.last_name).trim() || ('user ' + m.user_id)"></div>
+            <div class="text-[10px] text-gray-500 font-mono" x-text="m.user_id + (m.phone ? ' · ' + m.phone : '')"></div>
+          </div>
+        </div>
+      </template>
+      <div x-show="filtered.length === 0" class="p-4 text-center text-xs text-gray-500">
+        Ничего не найдено по запросу "<span x-text="search"></span>"
+      </div>
+    </div>
+    <!-- Pagination -->
+    <div class="px-3 py-2 border-t border-[var(--border)] flex items-center justify-between text-xs text-gray-500">
+      <button type="button" @click="page = Math.max(1, page-1)" :disabled="page <= 1"
+              class="hover:text-white disabled:opacity-30">‹ Назад</button>
+      <span>Стр. <span x-text="page"></span> из <span x-text="totalPages"></span></span>
+      <button type="button" @click="page = Math.min(totalPages, page+1)" :disabled="page >= totalPages"
+              class="hover:text-white disabled:opacity-30">Далее ›</button>
+    </div>
+  </div>
+
+  <!-- Arrows -->
+  <div class="flex md:flex-col items-center justify-center gap-2">
+    <button type="button" @click="moveVisibleToSelected()" title="Добавить все с экрана"
+            class="w-10 h-10 rounded-lg border border-[var(--border)] text-emerald-400 hover:bg-emerald-900/30 hover:border-emerald-500">→</button>
+    <button type="button" @click="clearSelected()" title="Убрать всё"
+            class="w-10 h-10 rounded-lg border border-[var(--border)] text-red-400 hover:bg-red-900/30 hover:border-red-500">←</button>
+  </div>
+
+  <!-- Right: selected -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl flex flex-col min-h-[500px]">
+    <div class="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
+      <h3 class="font-semibold text-sm">Выбрано (<span x-text="selected.length" class="text-emerald-400"></span>)</h3>
+      <button type="button" @click="clearSelected()" x-show="selected.length > 0"
+              class="text-xs text-red-400 hover:text-red-300">Очистить</button>
+    </div>
+    <div class="flex-1 overflow-y-auto">
+      <template x-for="m in selected" :key="m.user_id">
+        <div class="px-4 py-1.5 text-xs flex items-center gap-2 border-b border-[var(--border)]/40 group">
+          <div class="flex-1 min-w-0">
+            <div class="truncate" x-text="(m.first_name + ' ' + m.last_name).trim() || ('user ' + m.user_id)"></div>
+            <div class="text-[10px] text-gray-500 font-mono" x-text="m.user_id + (m.phone ? ' · ' + m.phone : '')"></div>
+          </div>
+          <button type="button" @click="toggleSelect(m)"
+                  class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300">✕</button>
+        </div>
+      </template>
+      <div x-show="selected.length === 0" class="p-6 text-center text-xs text-gray-500">
+        Выберите участников слева — они появятся здесь.
+      </div>
+    </div>
+    <div class="px-3 py-3 border-t border-[var(--border)] flex items-center gap-2">
+      <input x-model="sourceLabel" type="text" placeholder="Метка источника (напр. 'биржа_реклама')" class="form-input text-xs flex-1"/>
+      <button type="button" @click="commit()" :disabled="selected.length === 0 || committing"
+              class="btn-primary text-xs px-3"
+              :class="(selected.length === 0 || committing) ? 'opacity-50 cursor-not-allowed' : ''">
+        <span x-show="!committing">📥 В лиды (<span x-text="selected.length"></span>)</span>
+        <span x-show="committing">⏳ Импортирую...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div x-show="result" class="bg-emerald-900/20 border border-emerald-700/40 rounded-xl p-4 text-sm">
+  <p class="text-emerald-300 font-semibold mb-1">✅ Импорт завершён</p>
+  <p class="text-emerald-200/80 text-xs">
+    Создано лидов: <strong x-text="result.created"></strong>.
+    Пропущено дубликатов: <strong x-text="result.skipped_dupe"></strong>.
+    <a href="/app/leads/" class="underline hover:text-emerald-300">Перейти в базу лидов →</a>
+  </p>
+</div>
+
+</div><!-- /importContacts -->
+
+<script>
+function importContacts() {
+  return {
+    accountId: '',
+    chatId: '',
+    chats: [],
+    members: [],
+    selected: [],
+    search: '',
+    page: 1,
+    perPage: 50,
+    chatsLoading: false,
+    loading: false,
+    committing: false,
+    error: '',
+    sourceLabel: 'import',
+    result: null,
+
+    init() {},
+    _csrf() {
+      const c = document.cookie.split('; ').find(r => r.startsWith('csrf_token='));
+      return c ? c.split('=')[1] : '';
+    },
+
+    get filtered() {
+      const q = (this.search || '').trim().toLowerCase();
+      if (!q) return this.members;
+      return this.members.filter(m => {
+        const name = ((m.first_name || '') + ' ' + (m.last_name || '')).toLowerCase();
+        const phone = (m.phone || '').toLowerCase();
+        const uid = String(m.user_id || '');
+        return name.includes(q) || phone.includes(q) || uid.includes(q);
+      });
+    },
+
+    get totalPages() {
+      return Math.max(1, Math.ceil(this.filtered.length / this.perPage));
+    },
+
+    get visible() {
+      const start = (this.page - 1) * this.perPage;
+      return this.filtered.slice(start, start + this.perPage);
+    },
+
+    isSelected(m) {
+      return this.selected.some(s => s.user_id === m.user_id);
+    },
+
+    toggleSelect(m) {
+      if (this.isSelected(m)) {
+        this.selected = this.selected.filter(s => s.user_id !== m.user_id);
+      } else {
+        this.selected = [...this.selected, m];
+      }
+    },
+
+    selectAllVisible() {
+      const toAdd = this.visible.filter(m => !this.isSelected(m));
+      this.selected = [...this.selected, ...toAdd];
+    },
+
+    moveVisibleToSelected() {
+      this.selectAllVisible();
+    },
+
+    clearSelected() {
+      this.selected = [];
+    },
+
+    onChatChange() {
+      this.members = [];
+      this.selected = [];
+      this.result = null;
+    },
+
+    async loadChats() {
+      this.chats = [];
+      this.chatId = '';
+      this.members = [];
+      this.selected = [];
+      this.error = '';
+      if (!this.accountId) return;
+      this.chatsLoading = true;
+      try {
+        const r = await fetch(`/app/import-contacts/chats/${this.accountId}`);
+        const d = await r.json();
+        if (d.error) { this.error = d.error; return; }
+        // Sort by members desc
+        this.chats = (d.chats || []).sort((a, b) => (b.members || 0) - (a.members || 0));
+      } catch (e) {
+        this.error = 'ошибка: ' + e.message;
+      } finally {
+        this.chatsLoading = false;
+      }
+    },
+
+    async loadMembers() {
+      if (!this.chatId) return;
+      this.loading = true;
+      this.error = '';
+      this.page = 1;
+      this.result = null;
+      try {
+        const r = await fetch(`/app/import-contacts/members/${this.accountId}/${this.chatId}?limit=2000`);
+        const d = await r.json();
+        if (d.error) { this.error = 'Ошибка: ' + d.error; return; }
+        this.members = d.members || [];
+        this.selected = [];
+      } catch (e) {
+        this.error = 'ошибка: ' + e.message;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async commit() {
+      if (this.selected.length === 0) return;
+      this.committing = true;
+      this.result = null;
+      const ids = this.selected.map(m => m.user_id).join(',');
+      const fd = new FormData();
+      fd.append('selected', ids);
+      fd.append('source_label', this.sourceLabel || 'import');
+      fd.append('members_json', JSON.stringify(this.selected));
+      try {
+        const r = await fetch('/app/import-contacts/commit', {
+          method: 'POST', body: fd,
+          headers: { 'X-CSRF-Token': this._csrf() },
+        });
+        const d = await r.json();
+        if (d.ok) {
+          this.result = d;
+          this.selected = [];
+        } else {
+          alert('Ошибка: ' + (d.error || 'unknown'));
+        }
+      } catch (e) {
+        alert('Ошибка: ' + e.message);
+      } finally {
+        this.committing = false;
+      }
+    },
+  };
+}
+</script>
+{% endblock %}

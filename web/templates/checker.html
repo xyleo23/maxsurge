@@ -1,41 +1,346 @@
 {% extends "base.html" %}
 {% block title %} — Чекер номеров{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Чекер номеров → MAX ID</h1>
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Лидов с телефоном (без MAX ID)</div><div class="text-2xl font-bold text-yellow-400">{{ leads_with_phone }}</div></div>
-  <div class="stat-card"><div class="text-gray-400 text-xs uppercase mb-1">Привязано к MAX</div><div class="text-2xl font-bold text-green-400">{{ leads_linked }}</div></div>
+
+<div class="flex items-baseline justify-between mb-6">
+  <h1 class="text-2xl font-bold text-[color:var(--text-primary)]">Чекер на наличие MAX</h1>
+  <span class="text-xs text-gray-500">Проверка есть ли номер/User ID в MAX перед рассылкой</span>
 </div>
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
-    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Запуск чекера</h2>
+
+<!-- Stats -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="stat-card">
+    <div class="text-gray-400 text-xs uppercase mb-1">Лидов с телефоном (без MAX ID)</div>
+    <div class="text-2xl font-bold text-yellow-400">{{ leads_with_phone }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="text-gray-400 text-xs uppercase mb-1">Привязано к MAX</div>
+    <div class="text-2xl font-bold text-green-400">{{ leads_linked }}</div>
+  </div>
+</div>
+
+<div x-data="bulkChecker()" x-init="init()">
+
+<!-- Bulk checker -->
+<div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5 mb-6">
+  <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">🔎 Проверка произвольного списка</h2>
+
+  <!-- Mode toggle -->
+  <div class="mb-4">
+    <label class="text-gray-400 text-xs mb-2 block">Режим проверки</label>
+    <div class="flex gap-3 flex-wrap">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="radio" x-model="mode" value="soft" class="accent-emerald-500"/>
+        <span class="text-sm">Чекер номеров — <span class="text-gray-400">мягкая</span></span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="radio" x-model="mode" value="mass" class="accent-emerald-500"/>
+        <span class="text-sm">Чекер номеров — <span class="text-gray-400">массовый</span></span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="radio" x-model="mode" value="userid" class="accent-emerald-500"/>
+        <span class="text-sm">Чекер User ID</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Mode info boxes -->
+  <div class="mb-4">
+    <div x-show="mode === 'soft'" class="p-3 bg-yellow-900/20 border border-yellow-700/50 rounded-lg">
+      <div class="flex items-start gap-2">
+        <span class="text-yellow-400">ⓘ</span>
+        <div>
+          <p class="text-yellow-300 text-sm font-medium">Мягкая проверка</p>
+          <p class="text-yellow-200/80 text-xs mt-1">
+            Безопасный режим без перезаписи имён в телефонной книге MAX.
+            Жёсткие суточные лимиты (рекомендуем не более 50–70 номеров на аккаунт в сутки).
+          </p>
+        </div>
+      </div>
+    </div>
+    <div x-show="mode === 'mass'" class="p-3 bg-red-900/20 border border-red-700/50 rounded-lg">
+      <div class="flex items-start gap-2">
+        <span class="text-red-400">⚠</span>
+        <div>
+          <p class="text-red-300 text-sm font-medium">Массовый чекинг</p>
+          <p class="text-red-200/80 text-xs mt-1">
+            Быстро, тысячами, но в процессе чека номер добавляется в контакты
+            и его имя может быть перезаписано. Не использовать для личных аккаунтов —
+            только для рабочих с чистой книгой.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div x-show="mode === 'userid'" class="p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+      <div class="flex items-start gap-2">
+        <span class="text-blue-400">ⓘ</span>
+        <div>
+          <p class="text-blue-300 text-sm font-medium">Чекер User ID</p>
+          <p class="text-blue-200/80 text-xs mt-1">
+            Резолв пользователей по MAX user_id. Без добавления в контакты,
+            без изменения имён — самый безопасный вариант.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+    <!-- Left: list input -->
+    <div>
+      <label class="text-gray-400 text-xs mb-1 block">
+        <span x-show="mode !== 'userid'">Список номеров (по одному на строку)</span>
+        <span x-show="mode === 'userid'">Список User ID (по одному на строку)</span>
+      </label>
+      <textarea x-model="items" rows="10"
+                :placeholder="mode === 'userid' ? '123456\n789012\n...' : '+79001234567\n+79002345678\n...'"
+                class="form-input text-xs font-mono"></textarea>
+      <p class="text-xs text-gray-500 mt-1">
+        Введено: <span x-text="itemCount" class="text-emerald-500 font-semibold">0</span> шт.
+      </p>
+    </div>
+
+    <!-- Right: accounts + settings -->
+    <div>
+      <label class="text-gray-400 text-xs mb-1 block">Выбор аккаунтов для чека</label>
+      <select x-model="selectedAccounts" multiple size="4" class="form-input mb-3">
+        {% for a in accounts %}
+        <option value="{{ a.phone }}">{{ a.phone }} {% if a.profile_name %}— {{ a.profile_name }}{% endif %}</option>
+        {% endfor %}
+      </select>
+      <p class="text-[11px] text-gray-500 mb-3">Ctrl+click для выбора нескольких. Пусто = все активные.</p>
+
+      <div class="grid grid-cols-2 gap-2 mb-2" x-show="mode !== 'userid'">
+        <div>
+          <label class="text-gray-400 text-xs mb-1 block">Лимит на аккаунт (для soft)</label>
+          <input type="number" x-model.number="limitPerAccount" min="1" max="500" class="form-input text-sm"/>
+        </div>
+        <div></div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="text-gray-400 text-xs mb-1 block">Пауза от (сек)</label>
+          <input type="number" x-model.number="pauseFrom" min="0" max="300" class="form-input text-sm"/>
+        </div>
+        <div>
+          <label class="text-gray-400 text-xs mb-1 block">Пауза до (сек)</label>
+          <input type="number" x-model.number="pauseTo" min="0" max="600" class="form-input text-sm"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <button type="button" @click="start()" :disabled="running || itemCount === 0"
+            class="btn-primary text-sm px-4"
+            :class="running || itemCount === 0 ? 'opacity-50 cursor-not-allowed' : ''">
+      <span x-show="!running">▶ Начать</span>
+      <span x-show="running">⏳ В процессе...</span>
+    </button>
+    <button type="button" @click="stop()" x-show="running"
+            class="text-xs px-3 py-1.5 rounded-lg border border-red-700/60 text-red-300 hover:bg-red-900/30">
+      ⏹ Остановить
+    </button>
+    <button type="button" @click="clearResults()" x-show="!running && status.results.length > 0"
+            class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white">
+      Очистить результаты
+    </button>
+    <a href="/app/checker/bulk-export" x-show="status.results.length > 0"
+       class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white">
+      📥 CSV
+    </a>
+  </div>
+
+  <!-- Progress + counters -->
+  <div x-show="status.total > 0" class="mt-4 space-y-2">
+    <div class="flex gap-4 text-sm flex-wrap">
+      <span class="text-gray-400">Всего: <span class="text-white font-semibold" x-text="status.total"></span></span>
+      <span class="text-gray-400">Проверено: <span class="text-white font-semibold" x-text="status.processed"></span></span>
+      <span class="text-emerald-400">✅ В MAX: <span class="font-semibold" x-text="status.found"></span></span>
+      <span class="text-gray-500">— Нет: <span class="font-semibold" x-text="status.not_found"></span></span>
+    </div>
+    <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+      <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all"
+           :style="'width:' + (status.total ? (status.processed/status.total*100).toFixed(1) : 0) + '%'"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Results table -->
+<div x-show="status.results.length > 0" class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden mb-6">
+  <div class="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
+    <h3 class="font-semibold text-[color:var(--text-primary)]">Результаты</h3>
+    <span class="text-xs text-gray-500">Показано последние 500</span>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-xs text-gray-500 uppercase border-b border-[var(--border)]">
+          <th class="px-4 py-2">Вход</th>
+          <th class="px-2">Статус</th>
+          <th class="px-2">MAX User ID</th>
+          <th class="px-2">Аккаунт</th>
+          <th class="px-2">Ошибка</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="(r, i) in status.results.slice(-500).reverse()" :key="i">
+          <tr class="border-t border-[var(--border)] hover:bg-white/5">
+            <td class="px-4 py-1.5 font-mono text-xs" x-text="r.input"></td>
+            <td class="px-2">
+              <span class="px-2 py-0.5 rounded text-xs"
+                    :class="r.status === 'found' ? 'bg-green-900/40 text-green-300'
+                      : (r.status === 'not_found' ? 'bg-gray-700/60 text-gray-300'
+                      : 'bg-red-900/40 text-red-300')">
+                <span x-show="r.status === 'found'">✅ В MAX</span>
+                <span x-show="r.status === 'not_found'">— Нет</span>
+                <span x-show="r.status !== 'found' && r.status !== 'not_found'" x-text="r.status"></span>
+              </span>
+            </td>
+            <td class="px-2 font-mono text-xs text-gray-400" x-text="r.user_id || '—'"></td>
+            <td class="px-2 font-mono text-xs text-gray-500" x-text="r.account || '—'"></td>
+            <td class="px-2 text-xs text-red-400 truncate max-w-[200px]" x-text="r.error || ''"></td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /bulkChecker -->
+
+<!-- Legacy: чекер по лидам -->
+<details class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
+  <summary class="cursor-pointer font-semibold text-[color:var(--text-primary)]">📇 Чекер по лидам (привязать MAX ID к базе)</summary>
+  <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
     <form method="post" action="/app/checker/start">
       <label class="text-gray-400 text-xs mb-1 block">Кол-во номеров для проверки</label>
       <input name="limit" type="number" value="10" min="1" max="20" class="form-input mb-3"/>
-      <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 rounded-lg mb-3">
-        <p class="text-yellow-700 dark:text-yellow-300 text-xs">Лимит MAX: 10-20 проверок в день. Превышение = бан аккаунта!</p>
-      </div>
+      <p class="text-yellow-300 text-xs mb-3">Осторожно — легаси-режим с фиксированной паузой 5 сек, лимит MAX ≈ 20/день.</p>
       <select name="phone" class="form-input mb-3">
         <option value="">Авто (первый активный)</option>
         {% for a in accounts %}<option value="{{ a.phone }}">{{ a.phone }}</option>{% endfor %}
       </select>
       {% if status.running %}
-      <form method="post" action="/app/checker/stop"><button class="btn-danger w-full">Остановить</button></form>
+      <button formaction="/app/checker/stop" formmethod="post" class="btn-danger w-full">Остановить</button>
       {% else %}
-      <button type="submit" class="btn-primary w-full">Запустить чекер</button>
+      <button type="submit" class="btn-primary w-full">Запустить по лидам</button>
       {% endif %}
     </form>
-  </div>
-  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5" x-data="ck()" x-init="init()">
-    <div class="flex gap-4 mb-3 text-sm">
-      <span class="text-green-400" x-text="'Найдено: '+found">Найдено: {{ status.found }}</span>
-      <span class="text-gray-400" x-text="'Не найдено: '+nf">Не найдено: {{ status.not_found }}</span>
+    <div x-data="legacyCk()" x-init="init()">
+      <div class="flex gap-4 mb-3 text-sm">
+        <span class="text-green-400" x-text="'Найдено: '+found"></span>
+        <span class="text-gray-400" x-text="'Не найдено: '+nf"></span>
+      </div>
+      <div class="bg-[var(--log-bg)] rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs">
+        <template x-for="l in log">
+          <div :class="l.startsWith('[OK]') ? 'text-green-400' : l.startsWith('[ERR]') ? 'text-red-400' : 'text-gray-400'" x-text="l"></div>
+        </template>
+      </div>
     </div>
-    <div class="bg-[var(--log-bg)] rounded-lg p-3 h-48 overflow-y-auto font-mono text-xs">
-      <template x-for="l in log"><div :class="l.startsWith('[OK]')?'text-green-400':l.startsWith('[ERR]')?'text-red-400':'text-gray-400'" x-text="l"></div></template>
-      {% for l in status.log %}<div class="text-gray-300">{{ l }}</div>{% endfor %}
-    </div>
   </div>
-</div>
-<script>function ck(){return{found:{{status.found}},nf:{{status.not_found}},log:[],running:{{'true' if status.running else 'false'}},init(){if(this.running)this.poll()},async poll(){const r=await fetch('/app/checker/status');const d=await r.json();this.found=d.found;this.nf=d.not_found;this.log=d.log;this.running=d.running;if(this.running)setTimeout(()=>this.poll(),3000)}}}</script>
+</details>
+
+<script>
+function bulkChecker() {
+  return {
+    mode: 'soft',
+    items: '',
+    selectedAccounts: [],
+    limitPerAccount: 50,
+    pauseFrom: 20,
+    pauseTo: 30,
+    running: false,
+    status: { total: 0, processed: 0, found: 0, not_found: 0, results: [] },
+    _timer: null,
+
+    get itemCount() {
+      return (this.items || '').split('\n').map(s => s.trim()).filter(Boolean).length;
+    },
+
+    _csrf() {
+      const c = document.cookie.split('; ').find(r => r.startsWith('csrf_token='));
+      return c ? c.split('=')[1] : '';
+    },
+
+    async init() {
+      await this.refresh();
+      if (this.status.running) this.poll();
+    },
+
+    async refresh() {
+      try {
+        const r = await fetch('/app/checker/bulk-status');
+        const d = await r.json();
+        this.status = d;
+        this.running = !!d.running;
+      } catch (e) {}
+    },
+
+    poll() {
+      clearInterval(this._timer);
+      this._timer = setInterval(async () => {
+        await this.refresh();
+        if (!this.running) clearInterval(this._timer);
+      }, 2000);
+    },
+
+    async start() {
+      const fd = new FormData();
+      fd.append('items', this.items);
+      fd.append('mode', this.mode);
+      fd.append('account_phones', this.selectedAccounts.join(','));
+      fd.append('pause_from', this.pauseFrom);
+      fd.append('pause_to', this.pauseTo);
+      fd.append('limit_per_account', this.limitPerAccount);
+      const r = await fetch('/app/checker/bulk-start', {
+        method: 'POST', body: fd,
+        headers: { 'X-CSRF-Token': this._csrf() },
+      });
+      const d = await r.json();
+      if (d.error) {
+        alert('Ошибка: ' + d.error);
+        return;
+      }
+      this.running = true;
+      this.poll();
+    },
+
+    async stop() {
+      await fetch('/app/checker/bulk-stop', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': this._csrf() },
+      });
+      this.running = false;
+    },
+
+    clearResults() {
+      // Client-side only; server clears on next start.
+      this.status.results = [];
+      this.status.total = 0;
+      this.status.processed = 0;
+      this.status.found = 0;
+      this.status.not_found = 0;
+    },
+  };
+}
+
+function legacyCk() {
+  return {
+    found: {{ status.found }},
+    nf: {{ status.not_found }},
+    log: [],
+    running: {{ 'true' if status.running else 'false' }},
+    init() { if (this.running) this.poll(); },
+    async poll() {
+      const r = await fetch('/app/checker/status');
+      const d = await r.json();
+      this.found = d.found; this.nf = d.not_found;
+      this.log = d.log; this.running = d.running;
+      if (this.running) setTimeout(() => this.poll(), 3000);
+    },
+  };
+}
+</script>
 {% endblock %}

@@ -29,6 +29,8 @@ from sqlalchemy import select
 from web.routes.auth_r import router as auth_router, get_current_user
 from web.routes.legal_r import router as legal_router
 from web.routes.metrics_r import router as metrics_router
+from web.routes.posts_r import router as posts_router
+from web.routes.import_contacts_r import router as import_contacts_router
 from web.routes.blog_r import router as blog_router
 from web.routes.changelog_r import router as changelog_router
 from web.routes.help_r import router as help_router
@@ -138,6 +140,8 @@ async def lifespan(application):
     _spawn(_rpw(), "weekly_digest")
     from max_client.account_health import run_periodic_account_health
     _spawn(run_periodic_account_health(3600), "account_health")
+    from max_client.post_scheduler import run_post_scheduler_loop
+    _spawn(run_post_scheduler_loop(60), "post_scheduler")
 
     # systemd watchdog notifier
     try:
@@ -468,6 +472,8 @@ app.add_middleware(ErrorMonitoringMiddleware)
 app.include_router(auth_router)
 app.include_router(legal_router)
 app.include_router(metrics_router)
+app.include_router(posts_router, prefix="/app")
+app.include_router(import_contacts_router, prefix="/app")
 app.include_router(blog_router)
 from web.routes.contact_r import router as contact_router
 app.include_router(contact_router)

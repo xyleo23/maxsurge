@@ -105,6 +105,31 @@ class AccountRole(Base):
     __table_args__ = (UniqueConstraint("owner_id", "name", name="uq_role_owner_name"),)
 
 
+class PostStatus(str, Enum):
+    PENDING = "pending"
+    POSTED  = "posted"
+    FAILED  = "failed"
+    CANCELLED = "cancelled"
+
+
+class ScheduledPost(Base):
+    """Пост для публикации в канал/группу MAX в запланированное время."""
+    __tablename__ = "scheduled_posts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    account_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("max_accounts.id"), nullable=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger)            # целевой chat/channel id
+    chat_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
+    body: Mapped[str] = mapped_column(Text)
+    attachment_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    scheduled_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    status: Mapped[str] = mapped_column(String(16), default="pending")  # pending|posted|failed|cancelled
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    posted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 # ── Шаблоны ────────────────────────────────────────────
 class TemplateStatus(str, Enum):
     PENDING = "pending"          # ждёт AI-проверку
