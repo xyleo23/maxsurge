@@ -196,6 +196,34 @@
           </button>
         </div>
       </template>
+      <button type="button" @click="openRolesModal()"
+              class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white hover:border-emerald-500 transition">
+        🏷 Роли
+      </button>
+      <template x-if="selected.length > 0">
+        <div class="relative" x-data="{show:false}" @click.outside="show=false">
+          <button type="button" @click="show=!show"
+                  class="text-xs px-3 py-1.5 rounded-lg border border-emerald-700/60 text-emerald-300 hover:bg-emerald-900/30 transition">
+            🏷 Присвоить роль ▾
+          </button>
+          <div x-show="show" x-cloak class="absolute right-0 mt-1 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg py-1 min-w-[180px] z-10">
+            <button type="button" @click="bulkSetRole(''); show=false"
+                    class="block w-full text-left px-3 py-1.5 text-xs text-gray-400 hover:bg-white/5 hover:text-white">
+              — без роли —
+            </button>
+            <template x-for="r in roles" :key="r.id">
+              <button type="button" @click="bulkSetRole(r.name); show=false"
+                      class="block w-full text-left px-3 py-1.5 text-xs text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full" :style="'background:'+r.color"></span>
+                <span x-text="r.name"></span>
+              </button>
+            </template>
+            <div x-show="roles.length === 0" class="px-3 py-2 text-xs text-gray-500 italic">
+              Создайте роли в диалоге 🏷 Роли
+            </div>
+          </div>
+        </div>
+      </template>
       <a href="/app/accounts/export/json" class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white hover:border-emerald-500 transition">📥 JSON</a>
       <a href="/app/accounts/export/csv" class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white hover:border-emerald-500 transition">📥 CSV</a>
     </div>
@@ -537,12 +565,142 @@ window.MaxSurgeQR = (function(){
 </script>
 
 
+
+<!-- Roles modal -->
+<div x-show="rolesModal" x-cloak @keydown.escape.window="rolesModal=false"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70"
+     style="display:none">
+  <div @click.outside="rolesModal=false"
+       class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl w-full max-w-md p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-semibold text-[color:var(--text-primary)]">🏷 Роли аккаунтов</h3>
+      <button type="button" @click="rolesModal=false" class="text-gray-500 hover:text-white">✕</button>
+    </div>
+
+    <!-- Create form -->
+    <form @submit.prevent="createRole()" class="flex gap-2 mb-4 pb-4 border-b border-[var(--border)]">
+      <input x-model="newRoleName" type="text" placeholder="Название роли..."
+             class="form-input text-sm flex-1" maxlength="64" required/>
+      <input x-model="newRoleColor" type="color" class="w-10 h-9 rounded cursor-pointer" title="Цвет"/>
+      <button type="submit" class="btn-primary text-sm px-3">+</button>
+    </form>
+
+    <!-- List -->
+    <div class="space-y-1.5 max-h-[50vh] overflow-y-auto">
+      <template x-for="r in roles" :key="r.id">
+        <div class="flex items-center gap-2 px-3 py-2 rounded bg-[var(--bg-card-alt)] border border-[var(--border)]">
+          <input type="color" :value="r.color" @change="updateRole(r, null, $event.target.value)"
+                 class="w-6 h-6 rounded cursor-pointer flex-shrink-0" title="Изменить цвет"/>
+          <input type="text" :value="r.name" @blur="updateRole(r, $event.target.value, null)"
+                 @keydown.enter.prevent="$event.target.blur()"
+                 class="flex-1 bg-transparent text-sm text-gray-200 outline-none border-b border-transparent focus:border-emerald-500"/>
+          <button type="button" @click="deleteRole(r)"
+                  class="text-red-400 hover:text-red-300 text-xs px-2"
+                  :title="'Удалить «' + r.name + '»'">✕</button>
+        </div>
+      </template>
+      <div x-show="roles.length === 0" class="text-center text-gray-500 py-6 text-sm">
+        Ролей пока нет. Создайте первую выше ↑
+      </div>
+    </div>
+
+    <p class="mt-4 text-[11px] text-gray-500">
+      Удаление роли очищает поле «Роль» у всех аккаунтов с этой ролью.
+      Переименование — автоматически обновляет аккаунты.
+    </p>
+  </div>
+</div>
+
 <script>
 function accountsTable() {
   return {
     selected: [],
     bulkRunning: false,
     bulkResults: {},
+    roles: [],
+    rolesModal: false,
+    newRoleName: '',
+    newRoleColor: '#64748b',
+
+    async init() {
+      await this.loadRoles();
+    },
+
+    async loadRoles() {
+      try {
+        const r = await fetch('/app/accounts/roles');
+        const d = await r.json();
+        this.roles = d.roles || [];
+      } catch (e) { /* ignore */ }
+    },
+
+    openRolesModal() {
+      this.loadRoles();
+      this.rolesModal = true;
+    },
+
+    async createRole() {
+      const name = (this.newRoleName || '').trim();
+      if (!name) return;
+      const fd = new FormData();
+      fd.append('name', name);
+      fd.append('color', this.newRoleColor);
+      const r = await fetch('/app/accounts/roles/add', {
+        method: 'POST', body: fd,
+        headers: { 'X-CSRF-Token': this._csrf() },
+      });
+      const d = await r.json();
+      if (d.ok) {
+        this.newRoleName = '';
+        await this.loadRoles();
+      } else {
+        alert('Ошибка: ' + (d.error || 'unknown'));
+      }
+    },
+
+    async updateRole(role, newName, newColor) {
+      const fd = new FormData();
+      fd.append('name', newName !== null ? newName : role.name);
+      fd.append('color', newColor !== null ? newColor : role.color);
+      const r = await fetch(`/app/accounts/roles/${role.id}/update`, {
+        method: 'POST', body: fd,
+        headers: { 'X-CSRF-Token': this._csrf() },
+      });
+      const d = await r.json();
+      if (d.ok) await this.loadRoles();
+    },
+
+    async deleteRole(role) {
+      if (!confirm(`Удалить роль «${role.name}»? Поле «Роль» у всех аккаунтов с этой ролью очистится.`)) return;
+      const r = await fetch(`/app/accounts/roles/${role.id}/delete`, {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': this._csrf() },
+      });
+      const d = await r.json();
+      if (d.ok) await this.loadRoles();
+    },
+
+    async bulkSetRole(roleName) {
+      if (this.selected.length === 0) return;
+      const fd = new FormData();
+      fd.append('account_ids', this.selected.join(','));
+      fd.append('role', roleName);
+      try {
+        const r = await fetch('/app/accounts/bulk-set-role', {
+          method: 'POST', body: fd,
+          headers: { 'X-CSRF-Token': this._csrf() },
+        });
+        const d = await r.json();
+        if (d.ok) {
+          // Update role inputs in selected rows
+          for (const id of this.selected) {
+            const inp = document.querySelector(`#row-${id} input[name="role"]`);
+            if (inp) inp.value = roleName;
+          }
+        }
+      } catch (e) { alert('Ошибка: ' + e.message); }
+    },
+
     get allIds() {
       return [...document.querySelectorAll('[id^="row-"]')].map(r => parseInt(r.id.slice(4)));
     },

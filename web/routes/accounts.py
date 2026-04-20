@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 from loguru import logger
 from sqlalchemy import select
 
-from db.models import MaxAccount, AccountStatus, async_session_factory
+from db.models import MaxAccount, AccountStatus, AccountRole, async_session_factory
 from db.plan_limits import check_limit
 from max_client.account import account_manager
 from web.routes._scope import get_request_user, scope_query
@@ -511,6 +511,114 @@ async def bulk_check_validity(request: Request, account_ids: str = Form("")):
 
     results = await _asyncio.gather(*[_check_one(a) for a in accs], return_exceptions=False)
     return JSONResponse({"results": results})
+
+
+@router.get("/roles")
+async def list_roles(request: Request):
+    """Return all roles owned by current user (for modal + select dropdown)."""
+    user = await get_request_user(request)
+    if not user:
+        return JSONResponse({"error": "unauthorized"}, 401)
+    async with async_session_factory() as s:
+        from sqlalchemy import select
+        q = select(AccountRole).where(AccountRole.owner_id == user.id).order_by(AccountRole.name)
+        roles = (await s.execute(q)).scalars().all()
+    return JSONResponse({
+        "roles": [{"id": r.id, "name": r.name, "color": r.color} for r in roles]
+    })
+
+
+@router.post("/roles/add")
+async def add_role(request: Request, name: str = Form(...), color: str = Form("#64748b")):
+    user = await get_request_user(request)
+    if not user:
+        return JSONResponse({"error": "unauthorized"}, 401)
+    name = (name or "").strip()[:64]
+    if not name:
+        return JSONResponse({"error": "empty_name"}, 400)
+    color = (color or "#64748b").strip()[:16]
+    async with async_session_factory() as s:
+        from sqlalchemy import select
+        existing = (await s.execute(
+            select(AccountRole).where(AccountRole.owner_id == user.id, AccountRole.name == name)
+        )).scalar_one_or_none()
+        if existing:
+            return JSONResponse({"error": "duplicate", "id": existing.id}, 400)
+        role = AccountRole(owner_id=user.id, name=name, color=color)
+        s.add(role)
+        await s.commit()
+        await s.refresh(role)
+    return JSONResponse({"ok": True, "id": role.id, "name": role.name, "color": role.color})
+
+
+@router.post("/roles/{role_id}/update")
+async def update_role(request: Request, role_id: int, name: str = Form(...), color: str = Form("#64748b")):
+    user = await get_request_user(request)
+    if not user:
+        return JSONResponse({"error": "unauthorized"}, 401)
+    async with async_session_factory() as s:
+        role = await s.get(AccountRole, role_id)
+        if not role or role.owner_id != user.id:
+            return JSONResponse({"error": "not_found"}, 404)
+        old_name = role.name
+        role.name = (name or "").strip()[:64] or old_name
+        role.color = (color or role.color).strip()[:16]
+        await s.commit()
+        # Cascade rename: update MaxAccount.role
+        if old_name != role.name:
+            from sqlalchemy import update
+            await s.execute(
+                update(MaxAccount)
+                .where(MaxAccount.owner_id == user.id, MaxAccount.role == old_name)
+                .values(role=role.name)
+            )
+            await s.commit()
+    return JSONResponse({"ok": True, "id": role.id, "name": role.name, "color": role.color})
+
+
+@router.post("/roles/{role_id}/delete")
+async def delete_role(request: Request, role_id: int):
+    user = await get_request_user(request)
+    if not user:
+        return JSONResponse({"error": "unauthorized"}, 401)
+    async with async_session_factory() as s:
+        role = await s.get(AccountRole, role_id)
+        if not role or role.owner_id != user.id:
+            return JSONResponse({"error": "not_found"}, 404)
+        name = role.name
+        await s.delete(role)
+        await s.commit()
+        # Cascade clear MaxAccount.role where it matches
+        from sqlalchemy import update
+        await s.execute(
+            update(MaxAccount)
+            .where(MaxAccount.owner_id == user.id, MaxAccount.role == name)
+            .values(role="")
+        )
+        await s.commit()
+    return JSONResponse({"ok": True})
+
+
+@router.post("/bulk-set-role")
+async def bulk_set_role(request: Request, account_ids: str = Form(...), role: str = Form("")):
+    """Assign same role to multiple accounts. Empty role = clear."""
+    user = await get_request_user(request)
+    if not user:
+        return JSONResponse({"error": "unauthorized"}, 401)
+    try:
+        ids = [int(x) for x in account_ids.split(",") if x.strip()]
+    except ValueError:
+        return JSONResponse({"error": "bad_ids"}, 400)
+    ids = ids[:200]
+    role = (role or "").strip()[:64]
+    async with async_session_factory() as s:
+        from sqlalchemy import update
+        q = update(MaxAccount).where(MaxAccount.id.in_(ids)).values(role=role)
+        if not user.is_superadmin:
+            q = q.where(MaxAccount.owner_id == user.id)
+        await s.execute(q)
+        await s.commit()
+    return JSONResponse({"ok": True, "updated": len(ids)})
 
 
 @router.post("/{account_id}/set-role")

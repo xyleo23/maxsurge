@@ -2,7 +2,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, Float, Enum as SQLEnum, ForeignKey, JSON
+from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, Float, Enum as SQLEnum, ForeignKey, JSON, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
@@ -90,6 +90,19 @@ class MaxAccount(Base):
     sent_total: Mapped[int] = mapped_column(Integer, default=0)
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class AccountRole(Base):
+    """User-defined role/group for MaxAccount.role field (e.g. 'Group ONE', 'Парсеры')."""
+    __tablename__ = "account_roles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    owner_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("site_users.id"), nullable=True, index=True)
+    name: Mapped[str] = mapped_column(String(64))
+    color: Mapped[str] = mapped_column(String(16), default="#64748b")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (UniqueConstraint("owner_id", "name", name="uq_role_owner_name"),)
 
 
 # ── Шаблоны ────────────────────────────────────────────
