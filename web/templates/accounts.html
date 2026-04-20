@@ -303,7 +303,11 @@
               .then(r=>r.json()).then(d=>{
                 if(d.error){chatsData='❌ '+d.error}else{
                   let n=(d.chats||[]).length+(d.channels||[]).length+(d.dialogs||[]).length;
-                  chatsData='💬 '+n+' (чатов: '+(d.chats||[]).length+', каналов: '+(d.channels||[]).length+')';
+                  let mg=d.managing||{};
+                  let roleTag='';
+                  if((mg.owned||0)>0) roleTag+=' 👑'+mg.owned;
+                  if((mg.admin||0)>0) roleTag+=' 🛡'+mg.admin;
+                  chatsData='💬 '+n+' (ч:'+(d.chats||[]).length+', к:'+(d.channels||[]).length+')'+roleTag;
                 }
               }).catch(e=>{chatsData='❌'})
             " class="text-xs px-1.5 py-0.5 rounded border border-[var(--border)] text-gray-400 hover:text-blue-400 hover:border-blue-500" title="Список чатов">💬</button>

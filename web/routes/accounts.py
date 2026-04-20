@@ -426,11 +426,42 @@ async def account_chats(request: Request, account_id: int):
         client = await account_manager.get_client(acc.phone)
         if not client:
             return JSONResponse({"error": "not_connected"}, 400)
+
+        # Our account's user_id (for determining role in each chat)
+        my_uid = acc.max_user_id or getattr(client, "user_id", None)
+
+        def _role(ch) -> str:
+            if my_uid is None:
+                return "member"
+            if getattr(ch, "owner", None) == my_uid:
+                return "owner"
+            admins = getattr(ch, "admins", None) or []
+            if my_uid in admins:
+                return "admin"
+            return "member"
+
+        def _item(ch, kind: str) -> dict:
+            return {
+                "id": ch.id,
+                "name": getattr(ch, "title", getattr(ch, "name", "?")),
+                "type": kind,
+                "role": _role(ch),
+                "members": getattr(ch, "participants_count", None) or getattr(ch, "members_count", None),
+            }
+
+        chats_out    = [_item(c, "chat")    for c in (client.chats    or [])]
+        channels_out = [_item(c, "channel") for c in (client.channels or [])]
+
         result = {
             "phone": acc.phone,
-            "chats": [{"id": c.id, "name": getattr(c, "title", getattr(c, "name", "?")), "type": "chat"} for c in (client.chats or [])],
-            "channels": [{"id": c.id, "name": getattr(c, "title", getattr(c, "name", "?")), "type": "channel"} for c in (client.channels or [])],
-            "dialogs": [{"id": d.id, "name": getattr(d, "title", getattr(d, "name", str(d.id))), "type": "dialog"} for d in (client.dialogs or [])],
+            "max_user_id": my_uid,
+            "chats":    chats_out,
+            "channels": channels_out,
+            "dialogs":  [{"id": d.id, "name": getattr(d, "title", getattr(d, "name", str(d.id))), "type": "dialog", "role": "member"} for d in (client.dialogs or [])],
+            "managing": {
+                "owned": sum(1 for c in chats_out + channels_out if c["role"] == "owner"),
+                "admin": sum(1 for c in chats_out + channels_out if c["role"] == "admin"),
+            },
         }
         return JSONResponse(result)
     except Exception as e:
