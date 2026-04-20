@@ -170,11 +170,32 @@
 {% endif %}
 
 <!-- Список аккаунтов -->
-<div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden">
-  <div class="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between">
-    <h2 class="font-semibold text-[color:var(--text-primary)]">Аккаунты ({{ accounts|length }}/{{ limit if limit != 99999 else '∞' }})</h2>
+<div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden"
+     x-data="accountsTable()">
+  <div class="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between flex-wrap gap-2">
+    <h2 class="font-semibold text-[color:var(--text-primary)]">
+      Аккаунты ({{ accounts|length }}/{{ limit if limit != 99999 else '∞' }})
+      <span x-show="selected.length > 0" class="ml-2 text-xs px-2 py-0.5 rounded bg-emerald-900/40 text-emerald-300">
+        Выбрано: <span x-text="selected.length"></span>
+      </span>
+    </h2>
     {% if accounts %}
-    <div class="flex gap-2">
+    <div class="flex gap-2 flex-wrap">
+      <!-- Bulk actions (shown only when selection exists) -->
+      <template x-if="selected.length > 0">
+        <div class="flex gap-2">
+          <button type="button" @click="bulkCheckValidity()"
+                  class="text-xs px-3 py-1.5 rounded-lg border border-emerald-700/60 text-emerald-300 hover:bg-emerald-900/30 transition"
+                  :disabled="bulkRunning">
+            <span x-show="!bulkRunning">🔍 Проверить валидность</span>
+            <span x-show="bulkRunning">⏳ Проверка...</span>
+          </button>
+          <button type="button" @click="clearSelection()"
+                  class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white hover:border-gray-500 transition">
+            Снять выделение
+          </button>
+        </div>
+      </template>
       <a href="/app/accounts/export/json" class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white hover:border-emerald-500 transition">📥 JSON</a>
       <a href="/app/accounts/export/csv" class="text-xs px-3 py-1.5 rounded-lg border border-[var(--border)] text-gray-400 hover:text-white hover:border-emerald-500 transition">📥 CSV</a>
     </div>
@@ -182,11 +203,26 @@
   </div>
   <div class="overflow-x-auto -mx-4 md:mx-0"><table>
     <thead><tr>
-      <th>Телефон</th><th>Имя</th><th>Роль</th><th>Прокси</th><th>Статус</th><th>Сегодня</th><th>Всего</th><th>Последняя</th><th>Действия</th>
+      <th class="w-8"><input type="checkbox" @change="toggleAll($event.target.checked)" :checked="allSelected" class="rounded"/></th>
+      <th>Вкл</th><th>Телефон</th><th>Имя</th><th>Роль</th><th>Прокси</th><th>Статус</th><th>Сегодня</th><th>Всего</th><th>Комментарий</th><th>Действия</th>
     </tr></thead>
     <tbody>
       {% for acc in accounts %}
-      <tr x-data="{showActions:false, healthResult:'', chatsData:null}" @mouseenter="showActions=true" @mouseleave="showActions=false">
+      <tr x-data="{healthResult: bulkResults[{{ acc.id }}] || '', chatsData:null, statusLocal:'{{ acc.status.value }}', commentLocal: {{ (acc.comment or '')|tojson }}, commentEditing:false}" :id="'row-{{ acc.id }}'">
+        <td>
+          <input type="checkbox" :value="{{ acc.id }}" x-model="selected" class="rounded"/>
+        </td>
+        <td>
+          <!-- Toggle on/off: PAUSED <-> ACTIVE. Disabled for BLOCKED/PENDING_AUTH. -->
+          <button type="button" @click="toggleActive({{ acc.id }}, $el)"
+                  class="relative inline-flex items-center h-5 w-9 rounded-full transition"
+                  :class="statusLocal==='active' ? 'bg-emerald-500' : (statusLocal==='paused' ? 'bg-gray-600' : 'bg-gray-800 cursor-not-allowed opacity-50')"
+                  :disabled="statusLocal!=='active' && statusLocal!=='paused'"
+                  :title="statusLocal==='active' ? 'Активен — нажмите чтобы приостановить' : (statusLocal==='paused' ? 'Приостановлен — нажмите чтобы включить' : statusLocal)">
+            <span class="inline-block h-4 w-4 rounded-full bg-white shadow transform transition"
+                  :class="statusLocal==='active' ? 'translate-x-4' : 'translate-x-0.5'"></span>
+          </button>
+        </td>
         <td class="font-mono text-sm">{{ acc.phone }}</td>
         <td>
           <div>{{ acc.profile_name or "—" }}</div>
@@ -199,16 +235,31 @@
         </td>
         <td class="text-xs text-gray-500">{{ "✅" if acc.proxy else "—" }}</td>
         <td>
-          <span class="px-2 py-0.5 rounded text-xs
-            {{ 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' if acc.status.value == 'active' else
-               'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300' if acc.status.value == 'blocked' else
-               'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' }}">
-            {{ acc.status.value }}
-          </span>
+          <span class="px-2 py-0.5 rounded text-xs"
+                :class="{
+                  'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300': statusLocal==='active',
+                  'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300': statusLocal==='paused',
+                  'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300': statusLocal==='blocked',
+                  'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300': statusLocal==='pending_auth' || statusLocal==='warming'
+                }"
+                x-text="statusLocal"></span>
         </td>
         <td>{{ acc.sent_today }}</td>
         <td>{{ acc.sent_total }}</td>
-        <td class="text-gray-500 text-xs">{{ acc.last_used_at.strftime('%d.%m %H:%M') if acc.last_used_at else "—" }}</td>
+        <td>
+          <!-- Inline comment edit -->
+          <div x-show="!commentEditing" @click="commentEditing=true" class="cursor-text text-xs text-gray-400 hover:text-white min-w-[120px] min-h-[20px]">
+            <span x-show="commentLocal" x-text="commentLocal"></span>
+            <span x-show="!commentLocal" class="text-gray-600 italic">добавить…</span>
+          </div>
+          <input x-show="commentEditing" x-model="commentLocal"
+                 @blur="saveComment({{ acc.id }}); commentEditing=false"
+                 @keydown.enter.prevent="saveComment({{ acc.id }}); commentEditing=false"
+                 @keydown.escape="commentEditing=false"
+                 class="w-full text-xs bg-transparent border-b border-emerald-500 outline-none text-gray-200"
+                 placeholder="комментарий…"
+                 x-init="$watch('commentEditing', v => v && $nextTick(() => $el.focus()))"/>
+        </td>
         <td>
           <div class="flex gap-1 items-center">
             <button @click="
@@ -240,7 +291,7 @@
         </td>
       </tr>
       {% else %}
-      <tr><td colspan="9" class="text-center text-gray-500 py-10">Аккаунты не добавлены.<br/>
+      <tr><td colspan="11" class="text-center text-gray-500 py-10">Аккаунты не добавлены.<br/>
         <span class="text-indigo-400">↑</span> Подключите свой MAX через QR или
         <a href="https://t.me/bestmaxshop_bot?start=ref_124681426" target="_blank" rel="noopener" class="text-indigo-400 hover:text-indigo-300 underline">купите готовые аккаунты</a> ($5/шт)</td></tr>
       {% endfor %}
@@ -483,6 +534,98 @@ window.MaxSurgeQR = (function(){
 
   return { start: start, cancel: cancel };
 })();
+</script>
+
+
+<script>
+function accountsTable() {
+  return {
+    selected: [],
+    bulkRunning: false,
+    bulkResults: {},
+    get allIds() {
+      return [...document.querySelectorAll('[id^="row-"]')].map(r => parseInt(r.id.slice(4)));
+    },
+    get allSelected() {
+      const ids = this.allIds;
+      return ids.length > 0 && this.selected.length === ids.length;
+    },
+    _csrf() {
+      const c = document.cookie.split('; ').find(r => r.startsWith('csrf_token='));
+      return c ? c.split('=')[1] : '';
+    },
+    toggleAll(checked) {
+      this.selected = checked ? this.allIds : [];
+    },
+    clearSelection() { this.selected = []; },
+
+    async toggleActive(id, btn) {
+      try {
+        const r = await fetch(`/app/accounts/${id}/toggle-active`, {
+          method: 'POST',
+          headers: { 'X-CSRF-Token': this._csrf() },
+        });
+        const d = await r.json();
+        if (d.ok && d.status) {
+          // Update local status on the row's Alpine component
+          const row = document.getElementById(`row-${id}`);
+          if (row && row._x_dataStack) {
+            row._x_dataStack[0].statusLocal = d.status;
+          } else if (row) {
+            // fallback: reload page
+            location.reload();
+          }
+        } else if (d.error) {
+          alert('Не удалось переключить: ' + d.error);
+        }
+      } catch (e) {
+        alert('Ошибка: ' + e.message);
+      }
+    },
+
+    async saveComment(id) {
+      const row = document.getElementById(`row-${id}`);
+      if (!row || !row._x_dataStack) return;
+      const val = row._x_dataStack[0].commentLocal || '';
+      const fd = new FormData();
+      fd.append('comment', val);
+      try {
+        await fetch(`/app/accounts/${id}/set-comment`, {
+          method: 'POST',
+          body: fd,
+          headers: { 'X-CSRF-Token': this._csrf() },
+        });
+      } catch (e) { /* ignore */ }
+    },
+
+    async bulkCheckValidity() {
+      if (this.selected.length === 0) return;
+      this.bulkRunning = true;
+      const fd = new FormData();
+      fd.append('account_ids', this.selected.join(','));
+      try {
+        const r = await fetch('/app/accounts/bulk-check-validity', {
+          method: 'POST',
+          body: fd,
+          headers: { 'X-CSRF-Token': this._csrf() },
+        });
+        const d = await r.json();
+        if (d.results) {
+          for (const res of d.results) {
+            const row = document.getElementById(`row-${res.id}`);
+            if (row && row._x_dataStack) {
+              row._x_dataStack[0].healthResult = res.status === 'valid' ? '✅ валиден' : ('❌ ' + (res.error || res.status));
+            }
+          }
+        }
+      } catch (e) {
+        alert('Ошибка проверки: ' + e.message);
+      } finally {
+        this.bulkRunning = false;
+      }
+    },
+  };
+}
 </script>
 
 {% endblock %}

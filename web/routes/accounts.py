@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 from loguru import logger
 from sqlalchemy import select
 
-from db.models import MaxAccount, async_session_factory
+from db.models import MaxAccount, AccountStatus, async_session_factory
 from db.plan_limits import check_limit
 from max_client.account import account_manager
 from web.routes._scope import get_request_user, scope_query
