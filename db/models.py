@@ -43,6 +43,7 @@ class AccountStatus(str, Enum):
     ACTIVE = "active"
     BLOCKED = "blocked"
     WARMING = "warming"
+    PAUSED = "paused"
     PENDING_AUTH = "pending_auth"
 
 
@@ -79,6 +80,7 @@ class MaxAccount(Base):
     device_id: Mapped[str | None] = mapped_column(String(64), nullable=True)  # UUID from PyMax
     app_version: Mapped[str] = mapped_column(String(16), default="25.12.13")  # min 25.12.13 for QR
     role: Mapped[str] = mapped_column(String(32), default="")  # custom tag/role for grouping
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)  # free-form note
     sms_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     profile_name: Mapped[str | None] = mapped_column(String(256), nullable=True)
     max_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)

@@ -441,6 +441,78 @@ async def account_chats(request: Request, account_id: int):
 #  ACCOUNT ROLES/TAGS
 # ════════════════════════════════════════════════════════════════════
 
+@router.post("/{account_id}/set-comment")
+async def set_comment(request: Request, account_id: int, comment: str = Form("")):
+    """Set a free-form comment on the account."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        acc = await s.get(MaxAccount, account_id)
+        if not acc:
+            return JSONResponse({"error": "not_found"}, 404)
+        if user and not user.is_superadmin and acc.owner_id != user.id:
+            return JSONResponse({"error": "forbidden"}, 403)
+        acc.comment = (comment or "").strip()[:500] or None
+        await s.commit()
+    return JSONResponse({"ok": True, "comment": acc.comment or ""})
+
+
+@router.post("/{account_id}/toggle-active")
+async def toggle_active(request: Request, account_id: int):
+    """Flip account between ACTIVE and PAUSED (user-controlled on/off)."""
+    user = await get_request_user(request)
+    async with async_session_factory() as s:
+        acc = await s.get(MaxAccount, account_id)
+        if not acc:
+            return JSONResponse({"error": "not_found"}, 404)
+        if user and not user.is_superadmin and acc.owner_id != user.id:
+            return JSONResponse({"error": "forbidden"}, 403)
+        if acc.status == AccountStatus.ACTIVE:
+            acc.status = AccountStatus.PAUSED
+        elif acc.status == AccountStatus.PAUSED:
+            acc.status = AccountStatus.ACTIVE
+        else:
+            return JSONResponse({"error": f"cannot_toggle_from_{acc.status.value}", "current": acc.status.value}, 400)
+        await s.commit()
+        new_status = acc.status.value
+    return JSONResponse({"ok": True, "status": new_status})
+
+
+@router.post("/bulk-check-validity")
+async def bulk_check_validity(request: Request, account_ids: str = Form("")):
+    """Check validity on multiple accounts in parallel.
+
+    account_ids: comma-separated list of IDs.
+    Returns: {"results": [{"id":, "phone":, "status":, "error":}, ...]}
+    """
+    user = await get_request_user(request)
+    if not user:
+        return JSONResponse({"error": "unauthorized"}, 401)
+
+    try:
+        ids = [int(x) for x in account_ids.split(",") if x.strip()]
+    except ValueError:
+        return JSONResponse({"error": "bad_ids"}, 400)
+    ids = ids[:50]  # cap to avoid abuse
+
+    async with async_session_factory() as s:
+        from sqlalchemy import select
+        q = select(MaxAccount).where(MaxAccount.id.in_(ids))
+        if not user.is_superadmin:
+            q = q.where(MaxAccount.owner_id == user.id)
+        accs = (await s.execute(q)).scalars().all()
+
+    import asyncio as _asyncio
+    async def _check_one(acc):
+        try:
+            client = await account_manager.restore_session(acc.phone)
+            return {"id": acc.id, "phone": acc.phone, "status": "valid" if client else "invalid"}
+        except Exception as e:
+            return {"id": acc.id, "phone": acc.phone, "status": "invalid", "error": str(e)[:100]}
+
+    results = await _asyncio.gather(*[_check_one(a) for a in accs], return_exceptions=False)
+    return JSONResponse({"results": results})
+
+
 @router.post("/{account_id}/set-role")
 async def set_role(request: Request, account_id: int, role: str = Form("")):
     """Set custom role/tag for account."""
