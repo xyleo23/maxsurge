@@ -310,23 +310,15 @@ async def create_payment_robokassa(request: Request, plan: str = Form(...)):
         payment.yk_payment_id = f"rb_{inv_id}"
         await s.commit()
 
-    # Build receipt for 54-ФЗ (digital service, УСН)
-    receipt_items = [
-        rb_build_receipt_item(
-            name=plan_info["description"],
-            price=amount,
-            quantity=1,
-            tax="none",
-        )
-    ]
-
+    # ИП на НПД: не формируем receipt через Robokassa — клиент пробивает
+    # чек сам через приложение "Мой налог" ФНС. Robokassa поддерживает
+    # интеграцию "Чек самозанятого" — подключается отдельно в ЛК.
     try:
         pay_url = rb_create_payment_url(
             amount=amount,
             order_id=inv_id,
             description=plan_info["description"],
             email=user.email,
-            receipt_items=receipt_items,
         )
     except Exception as e:
         logger.exception("Robokassa create payment error")
