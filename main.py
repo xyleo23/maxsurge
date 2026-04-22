@@ -32,6 +32,7 @@ from web.routes.metrics_r import router as metrics_router
 from web.routes.posts_r import router as posts_router
 from web.routes.import_contacts_r import router as import_contacts_router
 from web.routes.blog_r import router as blog_router
+from web.routes.industries_r import router as industries_router
 from web.routes.changelog_r import router as changelog_router
 from web.routes.help_r import router as help_router
 from web.routes.email_r import router as email_router
@@ -475,6 +476,7 @@ app.include_router(metrics_router)
 app.include_router(posts_router, prefix="/app")
 app.include_router(import_contacts_router, prefix="/app")
 app.include_router(blog_router)
+app.include_router(industries_router)
 from web.routes.contact_r import router as contact_router
 app.include_router(contact_router)
 app.include_router(api_ingest_router)

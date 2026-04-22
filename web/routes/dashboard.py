@@ -117,7 +117,7 @@ async def dashboard(request: Request):
     onboarding = [
         {"key": "account", "title": "Подключить MAX аккаунт", "done": accounts_total > 0, "url": "/app/accounts/"},
         {"key": "template", "title": "Создать шаблон сообщения", "done": templates_total > 0, "url": "/app/templates/"},
-        {"key": "lead", "title": "Собрать лиды (2GIS или расширение)", "done": leads_total > 0, "url": "/app/extension/"},
+        {"key": "lead", "title": "Собрать лиды (парсер карт или импорт CSV)", "done": leads_total > 0, "url": "/app/extension/"},
         {"key": "send", "title": "Отправить первое сообщение", "done": sent_week > 0, "url": "/app/sender/"},
         {"key": "ai", "title": "Подключить AI ключ", "done": has_ai_key, "url": "/app/settings/"},
         {"key": "bot", "title": "Создать MAX бот (лид/бонус)", "done": bots_count > 0, "url": "/app/bots/"},
