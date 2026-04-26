@@ -114,26 +114,45 @@ async def dashboard(request: Request):
     has_ai_key = bool(user and user.ai_api_key)
     has_paid_plan = user and user.plan.value in ("start", "basic", "pro", "lifetime")
 
-    onboarding = [
+    # Level 1 — путь к первой рассылке (aha-moment)
+    onboarding_l1 = [
         {"key": "account", "title": "Подключить MAX аккаунт", "done": accounts_total > 0, "url": "/app/accounts/"},
         {"key": "template", "title": "Создать шаблон сообщения", "done": templates_total > 0, "url": "/app/templates/"},
         {"key": "lead", "title": "Собрать лиды (парсер карт или импорт CSV)", "done": leads_total > 0, "url": "/app/extension/"},
         {"key": "send", "title": "Отправить первое сообщение", "done": sent_week > 0, "url": "/app/sender/"},
+    ]
+    # Level 2 — продвинутые возможности для зрелых пользователей
+    onboarding_l2 = [
         {"key": "ai", "title": "Подключить AI ключ", "done": has_ai_key, "url": "/app/settings/"},
         {"key": "bot", "title": "Создать MAX бот (лид/бонус)", "done": bots_count > 0, "url": "/app/bots/"},
         {"key": "guard", "title": "Настроить стража чата", "done": guards_count > 0, "url": "/app/guard/"},
         {"key": "neurochat", "title": "Запустить нейрочаттинг", "done": neuro_count > 0, "url": "/app/neurochat/"},
         {"key": "pay", "title": "Оплатить тариф", "done": has_paid_plan, "url": "/app/billing/"},
     ]
-    onboarding_done = sum(1 for o in onboarding if o["done"])
-    show_onboarding = onboarding_done < len(onboarding) and not getattr(user, "is_superadmin", False)
+    l1_done = sum(1 for o in onboarding_l1 if o["done"])
+    l2_done = sum(1 for o in onboarding_l2 if o["done"])
+    is_admin = getattr(user, "is_superadmin", False)
+    show_onboarding_l1 = l1_done < len(onboarding_l1) and not is_admin
+    show_onboarding_l2 = (l1_done == len(onboarding_l1)) and l2_done < len(onboarding_l2) and not is_admin
+    # Back-compat: legacy vars for any other template usage
+    onboarding = onboarding_l1 + onboarding_l2
+    onboarding_done = l1_done + l2_done
+    show_onboarding = show_onboarding_l1 or show_onboarding_l2
 
     return templates.TemplateResponse(request=request, name="dashboard.html", context={
         "user": user,
         "onboarding": onboarding,
+        "onboarding_l1": onboarding_l1,
+        "onboarding_l2": onboarding_l2,
+        "l1_done": l1_done,
+        "l2_done": l2_done,
+        "l1_total": len(onboarding_l1),
+        "l2_total": len(onboarding_l2),
         "onboarding_done": onboarding_done,
         "onboarding_total": len(onboarding),
         "show_onboarding": show_onboarding,
+        "show_onboarding_l1": show_onboarding_l1,
+        "show_onboarding_l2": show_onboarding_l2,
         "leads_total": leads_total,
         "leads_new": leads_new,
         "leads_contacted": leads_contacted,

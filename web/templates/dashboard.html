@@ -37,31 +37,27 @@
   <div class="text-xs text-[color:var(--text-muted)]">Обновлено только что</div>
 </div>
 
-{% if show_onboarding %}
+{% macro onboarding_card(title, subtitle, steps, done, total, cols) %}
 <div class="card mb-6" style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(16,185,129,0.05));border-color:rgba(16,185,129,0.3)">
   <div class="flex items-start justify-between mb-4">
     <div>
       <div class="flex items-center gap-2 mb-1">
         <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-        <h3 class="font-semibold" style="color:var(--text-primary)">Добро пожаловать в MaxSurge!</h3>
+        <h3 class="font-semibold" style="color:var(--text-primary)">{{ title }}</h3>
       </div>
-      <p class="text-sm" style="color:var(--text-muted)">Пройдите несколько шагов, чтобы отправить первую рассылку</p>
+      <p class="text-sm" style="color:var(--text-muted)">{{ subtitle }}</p>
     </div>
     <div class="text-right">
-      <div class="text-2xl font-bold text-emerald-600">{{ onboarding_done }}/{{ onboarding_total }}</div>
+      <div class="text-2xl font-bold text-emerald-600">{{ done }}/{{ total }}</div>
       <div class="text-xs" style="color:var(--text-muted)">выполнено</div>
     </div>
   </div>
-
-  <!-- Progress bar -->
   <div class="h-2 bg-gray-800/50 rounded-full overflow-hidden mb-5">
-    <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-500 rounded-full transition-all"
-         style="width: {{ (onboarding_done / onboarding_total * 100)|round|int }}%"></div>
+    <div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all"
+         style="width: {{ (done / total * 100)|round|int }}%"></div>
   </div>
-
-  <!-- Steps -->
-  <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-    {% for step in onboarding %}
+  <div class="grid grid-cols-1 md:grid-cols-{{ cols }} gap-3">
+    {% for step in steps %}
     <a href="{{ step.url }}" class="block p-3 rounded-lg border transition-all {% if step.done %}border-green-500/30 bg-green-500/5{% else %}border-[var(--border)] hover:border-emerald-500/40 bg-[var(--bg-card-alt)]{% endif %}">
       <div class="flex items-center gap-2 mb-1">
         {% if step.done %}
@@ -79,6 +75,21 @@
     {% endfor %}
   </div>
 </div>
+{% endmacro %}
+
+{% if show_onboarding_l1 %}
+  {{ onboarding_card("Запуск — 4 шага до первой рассылки", "Закончите этот список — и платформа начнёт приносить первых клиентов", onboarding_l1, l1_done, l1_total, 4) }}
+{% elif show_onboarding_l2 %}
+  <div class="card mb-4 p-4 flex items-center gap-3" style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.3)">
+    <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <div>
+      <div class="font-semibold" style="color:var(--text-primary)">Первая рассылка запущена — база настроена</div>
+      <div class="text-xs" style="color:var(--text-muted)">Ниже — продвинутые инструменты, которые помогут выжать из MaxSurge максимум</div>
+    </div>
+  </div>
+  {{ onboarding_card("Развитие — продвинутые фичи", "Подключайте по мере роста задач. Ничего из этого не обязательно.", onboarding_l2, l2_done, l2_total, 5) }}
 {% endif %}
 
 <!-- Stats Grid -->
