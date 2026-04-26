@@ -1,15 +1,22 @@
-"""Backfill: проверить открытость списка участников для существующих ChatCatalog.
+"""Lightweight liveness check для ChatCatalog: resolve без join.
 
-Идёт по записям где members_open IS NULL, пробует load_members через
-первый активный аккаунт юзера (или owner-aware: для записей с owner_id —
-через аккаунт владельца). Записывает результат в БД.
+Идёт по записям где members_open IS NULL.
+Через resolve_group_by_link получает chat_id (= чат жив).
+Не делает join — это значило бы засорять наш аккаунт сотнями чатов.
+
+Логика:
+- resolve OK → members_open=True (оптимистично, чат жив, скорее всего открыт)
+- resolve fails 'not.found' → members_open=False (мёртвая ссылка)
+- любая другая ошибка → оставить NULL для повтора
+
+Реальную openness узнаем когда юзер впервые парсит этот чат
+(см. parser.py: success → True, access denied → False).
 
 Usage:
     ./venv/bin/python scripts/check_chat_openness.py [--limit 100] [--dry-run]
 """
 import argparse
 import asyncio
-import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -17,9 +24,22 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sqlalchemy import select  # noqa
-from db.models import ChatCatalog, MaxAccount, AccountStatus, async_session_factory, init_db  # noqa
+from db.models import ChatCatalog, async_session_factory, init_db  # noqa
 from max_client.account import account_manager  # noqa
-from max_client.ops import load_members  # noqa
+
+
+async def _resolve_one(client, link: str) -> tuple[str, int | None]:
+    """Returns (status, chat_id). status: 'alive' | 'dead' | 'error'."""
+    try:
+        chat = await client.resolve_group_by_link(link)
+        if chat and chat.id:
+            return ("alive", chat.id)
+        return ("dead", None)
+    except Exception as e:
+        err = str(e).lower()
+        if "not.found" in err or "not found" in err or "finder" in err:
+            return ("dead", None)
+        return ("error", None)
 
 
 async def main(limit: int, dry_run: bool, only_unchecked: bool) -> None:
@@ -28,89 +48,64 @@ async def main(limit: int, dry_run: bool, only_unchecked: bool) -> None:
 
     pairs = await account_manager.get_all_active_clients()
     if not pairs:
-        print("ERROR: нет активных MAX-аккаунтов для проверки", file=sys.stderr)
+        print("ERROR: нет активных MAX-аккаунтов", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Используем {len(pairs)} аккаунт(а) для чека")
+    print(f"Используем {len(pairs)} аккаунт(а)")
 
     async with async_session_factory() as s:
-        q = select(ChatCatalog)
+        q = select(ChatCatalog).where(ChatCatalog.is_channel == False)
         if only_unchecked:
             q = q.where(ChatCatalog.members_open.is_(None))
-        q = q.where(ChatCatalog.is_channel == False)  # каналы не парсятся
-        q = q.limit(limit)
+        q = q.where(ChatCatalog.invite_link.isnot(None))
+        q = q.order_by(ChatCatalog.members_count.desc().nullslast()).limit(limit)
         rows = (await s.execute(q)).scalars().all()
 
+    if not rows:
+        print("Нет записей для проверки.")
+        return
+
     print(f"К проверке: {len(rows)} записей")
+    print(f"Mode: {'DRY-RUN' if dry_run else 'LIVE'}")
     print()
 
-    open_count = 0
-    closed_count = 0
-    error_count = 0
+    counters = {"alive": 0, "dead": 0, "error": 0}
 
     for i, row in enumerate(rows, 1):
-        if not row.chat_id:
-            print(f"[{i}/{len(rows)}] {row.name[:40]:40} skip (no chat_id)")
-            error_count += 1
-            continue
-
-        # Берём аккаунт владельца если есть, иначе любой активный
-        client = None
-        if row.owner_id:
-            async with async_session_factory() as s:
-                acc = (await s.execute(
-                    select(MaxAccount).where(
-                        MaxAccount.owner_id == row.owner_id,
-                        MaxAccount.status == AccountStatus.ACTIVE,
-                    ).limit(1)
-                )).scalar_one_or_none()
-            if acc:
-                client = await account_manager.get_client(acc.phone)
-        if client is None:
-            client = pairs[i % len(pairs)][1]
-
+        _acc, client = pairs[i % len(pairs)]
         try:
-            members, _ = await load_members(client, row.chat_id, count=10)
-            is_open = len(members) > 0
+            status, chat_id = await _resolve_one(client, row.invite_link)
         except Exception as e:
-            err = str(e)[:60]
-            print(f"[{i}/{len(rows)}] {row.name[:40]:40} ERROR: {err}")
-            error_count += 1
-            if not dry_run:
-                async with async_session_factory() as s:
-                    r = await s.get(ChatCatalog, row.id)
-                    if r:
-                        r.members_open = False  # пометим как недоступный
-                        r.last_checked_at = datetime.utcnow()
-                        await s.commit()
-            await asyncio.sleep(2)
-            continue
+            status, chat_id = "error", None
+            print(f"[{i}/{len(rows)}] {row.name[:40]:40} CAUGHT: {str(e)[:50]}")
 
-        if is_open:
-            open_count += 1
-            mark = "✓ open"
-        else:
-            closed_count += 1
-            mark = "✗ closed"
-
-        print(f"[{i}/{len(rows)}] {row.name[:40]:40} {mark} ({len(members)} members)")
+        counters[status] += 1
+        marks = {"alive": "✓ alive", "dead":  "💀 dead", "error": "⚠ error"}
+        chat_id_str = f"id={chat_id}" if chat_id else ""
+        print(f"[{i}/{len(rows)}] {row.name[:40]:40} {marks[status]:10} {chat_id_str}")
 
         if not dry_run:
             async with async_session_factory() as s:
                 r = await s.get(ChatCatalog, row.id)
                 if r:
-                    r.members_open = is_open
                     r.last_checked_at = datetime.utcnow()
+                    if status == "alive":
+                        r.members_open = True
+                        if chat_id and not r.chat_id:
+                            r.chat_id = chat_id
+                    elif status == "dead":
+                        r.members_open = False
+                    # error: оставляем NULL для retry
                     await s.commit()
 
-        await asyncio.sleep(3)  # rate-limit safety
+        # Rate-limit safety (resolve дешевле load_members, но всё равно бережно)
+        await asyncio.sleep(1.5)
 
     print()
     print("=" * 50)
-    print(f"Open:    {open_count}")
-    print(f"Closed:  {closed_count}")
-    print(f"Errors:  {error_count}")
-    print(f"Total:   {len(rows)}")
+    for k, v in counters.items():
+        print(f"  {k:<10} {v}")
+    print(f"  total      {len(rows)}")
 
 
 if __name__ == "__main__":
