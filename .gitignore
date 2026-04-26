@@ -42,3 +42,6 @@ Thumbs.db
 max_leadfinder.db-shm
 max_leadfinder.db-wal
 web/static/qr_login/
+
+# Node (Tailwind build deps only — not part of runtime)
+node_modules/
