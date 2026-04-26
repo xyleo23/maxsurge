@@ -1,5 +1,80 @@
 {% extends "base.html" %}
-{% block title %} — Сбор участников{% endblock %}
+{% block title %} — Сбор участников<script>
+function chatPicker() {
+  return {
+    tab: 'mine',
+    items: [],
+    categories: [],
+    search: '',
+    category: '',
+    page: 1,
+    perPage: 50,
+    total: 0,
+    hasNext: false,
+    loading: false,
+    selected: null,
+    locked: false,
+    lockedReason: '',
+    totalMine: 0,
+    totalMaxsurge: 0,
+    manualChatId: '',
+    manualChatName: '',
+
+    init() { this.load(); },
+
+    setTab(t) {
+      if (t === this.tab) return;
+      this.tab = t;
+      this.selected = null;
+      this.search = '';
+      this.category = '';
+      this.page = 1;
+      this.items = [];
+      if (t !== 'url') this.load();
+    },
+
+    async load() {
+      if (this.tab === 'url') return;
+      this.loading = true;
+      try {
+        const params = new URLSearchParams({
+          source: this.tab,
+          search: this.search,
+          category: this.category,
+          page: this.page,
+        });
+        const r = await fetch('/app/parser/chat-pick?' + params.toString());
+        const d = await r.json();
+        if (d.error) {
+          this.items = []; this.locked = false; return;
+        }
+        this.locked = !!d.locked;
+        this.lockedReason = d.reason || '';
+        this.items = d.items || [];
+        this.categories = d.categories || [];
+        this.total = d.total || 0;
+        this.hasNext = !!d.has_next;
+        if (this.tab === 'mine') this.totalMine = d.total;
+        if (this.tab === 'maxsurge') this.totalMaxsurge = d.total;
+      } catch (e) {
+        this.items = [];
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    reload() { this.page = 1; this.load(); },
+    nextPage() { if (this.hasNext) { this.page++; this.load(); } },
+    prevPage() { if (this.page > 1) { this.page--; this.load(); } },
+
+    select(item) {
+      this.selected = (this.selected && this.selected.id === item.id) ? null : item;
+    },
+  };
+}
+</script>
+
+{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold text-[color:var(--text-primary)] mb-6">Сбор участников MAX</h1>
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -22,19 +97,118 @@
       <button type="submit" class="btn-primary w-full">Вступить в чаты</button>
     </form>
   </div>
-  <!-- Сбор участников -->
-  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5">
-    <h2 class="font-semibold text-[color:var(--text-primary)] mb-4">Сбор участников чата</h2>
+  <!-- Сбор участников: 3-tab picker -->
+  <div class="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-5"
+       x-data="chatPicker()" x-init="init()">
+    <h2 class="font-semibold text-[color:var(--text-primary)] mb-3">Сбор участников чата</h2>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 mb-3 text-xs border-b border-[var(--border)]">
+      <button type="button" @click="setTab('mine')"
+              :class="tab === 'mine' ? 'text-emerald-400 border-emerald-500' : 'text-gray-500 border-transparent hover:text-white'"
+              class="px-3 py-1.5 border-b-2 transition">
+        Мои чаты <span class="text-[10px] opacity-60" x-text="totalMine ? '(' + totalMine + ')' : ''"></span>
+      </button>
+      <button type="button" @click="setTab('maxsurge')"
+              :class="tab === 'maxsurge' ? 'text-emerald-400 border-emerald-500' : 'text-gray-500 border-transparent hover:text-white'"
+              class="px-3 py-1.5 border-b-2 transition">
+        База MaxSurge
+        <span class="text-[10px] opacity-60" x-text="locked ? '🔒' : (totalMaxsurge ? '(' + totalMaxsurge + ')' : '')"></span>
+      </button>
+      <button type="button" @click="setTab('url')"
+              :class="tab === 'url' ? 'text-emerald-400 border-emerald-500' : 'text-gray-500 border-transparent hover:text-white'"
+              class="px-3 py-1.5 border-b-2 transition">
+        Ввести ID
+      </button>
+    </div>
+
+    <!-- Search bar (для Мои / База) -->
+    <div x-show="tab !== 'url'" class="mb-3 flex gap-2">
+      <input x-model.debounce.300ms="search" @input="reload()"
+             type="search" placeholder="🔍 Поиск..."
+             class="form-input text-xs flex-1"/>
+      <select x-model="category" @change="reload()" class="form-input text-xs w-32">
+        <option value="">Все</option>
+        <template x-for="c in categories"><option :value="c" x-text="c"></option></template>
+      </select>
+    </div>
+
+    <!-- Locked banner для не-Basic+ -->
+    <div x-show="tab === 'maxsurge' && locked"
+         class="p-3 mb-3 rounded-lg border border-yellow-700/50 bg-yellow-900/20 text-xs">
+      <div class="flex items-start gap-2">
+        <span class="text-yellow-400">🔒</span>
+        <div class="flex-1">
+          <p class="text-yellow-300 font-semibold">База MaxSurge — с тарифа Basic</p>
+          <p class="text-yellow-200/80 mt-1" x-text="lockedReason || 'Тысячи проверенных чатов с открытыми списками для парсинга. Доступно с тарифа Basic+.'"></p>
+        </div>
+        <a href="/app/billing/" class="text-xs px-3 py-1 rounded border border-yellow-600 text-yellow-200 hover:bg-yellow-900/40 whitespace-nowrap">Перейти на Basic →</a>
+      </div>
+    </div>
+
+    <!-- List of chats (Мои / База) -->
+    <div x-show="tab !== 'url' && !locked && items.length > 0" class="max-h-[280px] overflow-y-auto -mx-1 mb-3 border border-[var(--border)] rounded-lg">
+      <template x-for="item in items" :key="item.id">
+        <div @click="select(item)"
+             class="px-3 py-2 text-xs flex items-center justify-between gap-2 cursor-pointer hover:bg-emerald-900/20 border-b border-[var(--border)]/40 transition"
+             :class="selected && selected.id === item.id ? 'bg-emerald-900/30' : ''">
+          <div class="flex-1 min-w-0">
+            <div class="text-[color:var(--text-primary)] truncate" x-text="item.name"></div>
+            <div class="text-[10px] text-gray-500 mt-0.5">
+              <span x-text="item.members_count ? item.members_count + ' уч.' : '?'"></span>
+              <span x-show="item.category" class="ml-2" x-text="'· ' + item.category"></span>
+              <span x-show="tab === 'maxsurge' && item.parsed_count > 0" class="ml-2 text-emerald-500" x-text="'· парсили ' + item.parsed_count + 'x'"></span>
+            </div>
+          </div>
+          <span x-show="selected && selected.id === item.id" class="text-emerald-400">✓</span>
+        </div>
+      </template>
+    </div>
+
+    <!-- Empty -->
+    <div x-show="tab === 'mine' && items.length === 0 && !loading"
+         class="text-xs text-gray-500 mb-3 italic">
+      Пока пусто. Спарсите чат через поле "Ввести ID" — он появится здесь.
+    </div>
+    <div x-show="tab === 'maxsurge' && !locked && items.length === 0 && !loading"
+         class="text-xs text-gray-500 mb-3 italic">
+      По вашему запросу ничего не найдено.
+    </div>
+    <div x-show="loading" class="text-xs text-gray-500 mb-3 italic">⏳ загружаю...</div>
+
+    <!-- Pagination -->
+    <div x-show="tab !== 'url' && !locked && total > perPage" class="flex items-center justify-between text-[10px] text-gray-500 mb-3">
+      <span>Стр. <span x-text="page"></span> из <span x-text="Math.ceil(total/perPage)"></span></span>
+      <div class="flex gap-1">
+        <button type="button" @click="prevPage()" :disabled="page <= 1" class="px-2 py-0.5 rounded border border-[var(--border)] disabled:opacity-30">‹</button>
+        <button type="button" @click="nextPage()" :disabled="!hasNext" class="px-2 py-0.5 rounded border border-[var(--border)] disabled:opacity-30">›</button>
+      </div>
+    </div>
+
+    <!-- The actual parse form: chat_id + name autofill from selection, or manual on URL tab -->
     <form method="post" action="/app/parser/parse">
-      <label class="text-gray-400 text-xs mb-1 block">Chat ID (числовой)</label>
-      <input name="chat_id" type="number" class="form-input mb-3" placeholder="12345678"/>
-      <label class="text-gray-400 text-xs mb-1 block">Название (для отображения)</label>
-      <input name="chat_name" class="form-input mb-3" placeholder="Мой чат"/>
-      <select name="phone" class="form-input mb-3">
-        <option value="">Авто</option>
+      <div x-show="tab === 'url'">
+        <label class="text-gray-400 text-xs mb-1 block">Chat ID (числовой)</label>
+        <input x-model="manualChatId" name="chat_id" type="number" class="form-input mb-2" placeholder="12345678" required/>
+        <label class="text-gray-400 text-xs mb-1 block">Название</label>
+        <input x-model="manualChatName" name="chat_name" class="form-input mb-2" placeholder="Мой чат"/>
+      </div>
+      <div x-show="tab !== 'url'">
+        <input type="hidden" name="chat_id" :value="selected ? selected.chat_id : ''"/>
+        <input type="hidden" name="chat_name" :value="selected ? selected.name : ''"/>
+        <div x-show="selected" class="text-xs mb-2 px-2 py-1.5 rounded bg-emerald-900/20 border border-emerald-700/40">
+          ✓ Выбрано: <strong x-text="selected ? selected.name : ''"></strong>
+        </div>
+      </div>
+      <select name="phone" class="form-input text-xs mb-3">
+        <option value="">Авто-аккаунт</option>
         {% for a in accounts %}<option value="{{ a.phone }}">{{ a.phone }}</option>{% endfor %}
       </select>
-      <button type="submit" class="btn-primary w-full">Спарсить участников</button>
+      <button type="submit" class="btn-primary w-full text-sm"
+              :disabled="tab !== 'url' && !selected"
+              :class="(tab !== 'url' && !selected) ? 'opacity-50 cursor-not-allowed' : ''">
+        🎯 Спарсить участников
+      </button>
     </form>
   </div>
   <!-- P4: Парсинг по сообщениям -->

@@ -209,6 +209,8 @@ class ChatCatalog(Base):
     parsed_count: Mapped[int] = mapped_column(Integer, default=0)   # сколько раз парсили
     last_parsed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     added_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    members_open: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=None)  # True = парсинг успешен, False = закрыт, None = не проверено
+    last_checked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 # ── Задачи прогрева ──────────────────────────────────────

@@ -196,7 +196,8 @@ async def parse_chat(chat_id: int, chat_name: str = "", phone: str | None = None
             saved += 1
         await s.commit()
 
-        # Обновить каталог
+        # Обновить или создать запись в публичном каталоге MaxSurge.
+        # Парсинг прошёл успешно (>=1 участник) → список открыт → шарим.
         cat = (await s.execute(
             select(ChatCatalog).where(ChatCatalog.chat_id == chat_id)
         )).scalar_one_or_none()
@@ -204,6 +205,23 @@ async def parse_chat(chat_id: int, chat_name: str = "", phone: str | None = None
             cat.parsed_count += 1
             cat.last_parsed_at = datetime.utcnow()
             cat.members_count = len(members)
+            if len(members) > 0:
+                cat.members_open = True
+                cat.last_checked_at = datetime.utcnow()
+            await s.commit()
+        elif len(members) > 0:
+            # Auto-discovery: добавляем в общую базу (owner_id=NULL)
+            s.add(ChatCatalog(
+                owner_id=None,
+                chat_id=chat_id,
+                name=(chat_name or f"Chat {chat_id}")[:512],
+                members_count=len(members),
+                is_channel=False,
+                parsed_count=1,
+                last_parsed_at=datetime.utcnow(),
+                members_open=True,
+                last_checked_at=datetime.utcnow(),
+            ))
             await s.commit()
 
     _parse_status["parsed"] += saved
