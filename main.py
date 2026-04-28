@@ -35,8 +35,8 @@ from web.routes.blog_r import router as blog_router
 from web.routes.industries_r import router as industries_router
 from web.routes.changelog_r import router as changelog_router
 from web.routes.help_r import router as help_router
-from web.routes.support_api_r import router as support_api_router
-from web.routes.support_op_r import router as support_op_router
+# from web.routes.support_api_r import router as support_api_router  # disabled until SupportChannel model is committed
+# from web.routes.support_op_r import router as support_op_router  # disabled until SupportChannel model is committed
 from web.routes.email_r import router as email_router
 from web.routes.webhook_r import router as webhook_router
 from web.routes.lead_capture_r import router as lead_capture_router
@@ -487,8 +487,8 @@ app.include_router(api_ingest_router)
 app.include_router(tracking_router)
 app.include_router(changelog_router)
 app.include_router(help_router)
-app.include_router(support_api_router)
-app.include_router(support_op_router)
+# app.include_router(support_api_router)
+# app.include_router(support_op_router)
 app.include_router(email_router)
 app.include_router(lead_capture_router)
 
