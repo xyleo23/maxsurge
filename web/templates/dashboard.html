@@ -1,33 +1,33 @@
 {% extends "base.html" %}
 {% block title %} — Дашборд{% endblock %}
 {% block content %}
-<!-- Charts -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-  <div class="card">
-    <div class="card-header">Лиды за 14 дней</div>
-    <div class="p-4"><canvas id="leadsChart" height="180"></canvas></div>
-  </div>
-  <div class="card">
-    <div class="card-header">Сообщения за 14 дней</div>
-    <div class="p-4"><canvas id="msgsChart" height="180"></canvas></div>
+{# trial-banner-marker #}
+{% if user and user.plan and user.plan.value == "trial" %}
+<div class="card mb-6 p-4" style="background:linear-gradient(135deg,rgba(245,158,11,0.10),rgba(234,88,12,0.06));border-color:rgba(245,158,11,0.35)">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+        <span class="text-amber-400 text-xl">⏳</span>
+      </div>
+      <div>
+        <div class="font-semibold" style="color:var(--text-primary)">
+          Пробный период:
+          {% if user.plan_expires_at %}
+            осталось <span class="text-amber-400">
+              {% set _delta = (user.plan_expires_at - now).days if now else 7 %}
+              {{ _delta if _delta > 0 else 0 }} дн.
+            </span>
+          {% else %}
+            7 дней
+          {% endif %}
+        </div>
+        <div class="text-xs" style="color:var(--text-muted)">Все основные функции открыты — пробуйте без ограничений до конца пробного периода</div>
+      </div>
+    </div>
+    <a href="/app/billing/" class="btn-primary text-sm whitespace-nowrap">Выбрать тариф →</a>
   </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
-<script>
-(function(){
-  var labels = {{ chart_labels_json|safe }};
-  var leadsData = {{ chart_leads_json|safe }};
-  var msgsData = {{ chart_msgs_json|safe }};
-  var opts = {responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}};
-  new Chart(document.getElementById('leadsChart'),{
-    type:'bar', data:{labels:labels, datasets:[{label:'Лиды',data:leadsData,backgroundColor:'rgba(16,185,129,0.5)',borderColor:'#10B981',borderWidth:1,borderRadius:4}]}, options:opts
-  });
-  new Chart(document.getElementById('msgsChart'),{
-    type:'bar', data:{labels:labels, datasets:[{label:'Отправлено',data:msgsData,backgroundColor:'rgba(16,185,129,0.5)',borderColor:'#10b981',borderWidth:1,borderRadius:4}]}, options:opts
-  });
-})();
-</script>
+{% endif %}
 
 <div class="flex items-center justify-between mb-6">
   <div>
@@ -79,6 +79,18 @@
 
 {% if show_onboarding_l1 %}
   {{ onboarding_card("Запуск — 4 шага до первой рассылки", "Закончите этот список — и платформа начнёт приносить первых клиентов", onboarding_l1, l1_done, l1_total, 4) }}
+  <div class="card mb-6 p-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs" style="background:var(--bg-card-alt);border-color:var(--border)">
+    <span style="color:var(--text-muted)">📚 Подробные инструкции:</span>
+    <a href="/help/quick-start" class="hover:text-emerald-600 transition" style="color:var(--text-primary)">Первая рассылка за 5 минут</a>
+    <span style="color:var(--text-muted)">·</span>
+    <a href="/help/adding-accounts" class="hover:text-emerald-600 transition" style="color:var(--text-primary)">Как подключить MAX-аккаунт</a>
+    <span style="color:var(--text-muted)">·</span>
+    <a href="/help/mailing-limits-safe" class="hover:text-emerald-600 transition" style="color:var(--text-primary)">Безопасные лимиты</a>
+    <span style="color:var(--text-muted)">·</span>
+    <a href="/help/cases" class="hover:text-emerald-600 transition" style="color:var(--text-primary)">Сценарии под вашу нишу</a>
+    <span style="color:var(--text-muted)">·</span>
+    <a href="/help/faq" class="hover:text-emerald-600 transition" style="color:var(--text-primary)">FAQ</a>
+  </div>
 {% elif show_onboarding_l2 %}
   <div class="card mb-4 p-4 flex items-center gap-3" style="background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.3)">
     <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
@@ -264,4 +276,34 @@
   </table>
 </div>
 {% endif %}
+
+<!-- Charts -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+  <div class="card">
+    <div class="card-header">Лиды за 14 дней</div>
+    <div class="p-4"><canvas id="leadsChart" height="180"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-header">Сообщения за 14 дней</div>
+    <div class="p-4"><canvas id="msgsChart" height="180"></canvas></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  var labels = {{ chart_labels_json|safe }};
+  var leadsData = {{ chart_leads_json|safe }};
+  var msgsData = {{ chart_msgs_json|safe }};
+  var opts = {responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}};
+  new Chart(document.getElementById('leadsChart'),{
+    type:'bar', data:{labels:labels, datasets:[{label:'Лиды',data:leadsData,backgroundColor:'rgba(16,185,129,0.5)',borderColor:'#10B981',borderWidth:1,borderRadius:4}]}, options:opts
+  });
+  new Chart(document.getElementById('msgsChart'),{
+    type:'bar', data:{labels:labels, datasets:[{label:'Отправлено',data:msgsData,backgroundColor:'rgba(16,185,129,0.5)',borderColor:'#10b981',borderWidth:1,borderRadius:4}]}, options:opts
+  });
+})();
+</script>
+
+
 {% endblock %}

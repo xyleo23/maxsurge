@@ -111,3 +111,34 @@ async def change_password(
             await s.commit()
 
     return RedirectResponse("/app/settings/?msg=Пароль+изменён", status_code=303)
+
+
+@router.post("/delete-account")
+async def delete_account(request: Request, confirm_email: str = Form("")):
+    """Самоудаление аккаунта пользователем — необратимо."""
+    user = await get_current_user(request)
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    if confirm_email.strip().lower() != user.email.lower():
+        return RedirectResponse("/app/settings/?msg=Email+не+совпадает", status_code=303)
+
+    if getattr(user, "is_superadmin", False):
+        return RedirectResponse(
+            "/app/settings/?msg=Суперадмин+не+может+самоудалиться.+Сначала+передайте+роль.",
+            status_code=303,
+        )
+
+    async with async_session_factory() as s:
+        u = await s.get(SiteUser, user.id)
+        if u:
+            await s.delete(u)
+            await s.commit()
+
+    response = RedirectResponse("/?msg=Аккаунт+удалён", status_code=303)
+    from main import COOKIE_NAME as _C
+    try:
+        response.delete_cookie(_C)
+    except Exception:
+        response.delete_cookie("maxsurge_session")
+    return response

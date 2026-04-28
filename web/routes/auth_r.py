@@ -234,7 +234,7 @@ async def login(request: Request, email: str = Form(...), password: str = Form(.
 # ── Logout ──────────────────────────────────────────
 @router.get("/auth/logout")
 async def logout():
-    response = RedirectResponse("/", status_code=303)
+    response = RedirectResponse("/login", status_code=303)
     response.delete_cookie(COOKIE_NAME)
     return response
 

@@ -1,5 +1,26 @@
 {% extends "base.html" %}
-{% block title %} — Настройки{% endblock %}
+{% block title %} — Настройки
+{# delete-account-marker #}
+<div class="card mt-6 lg:col-span-2" style="border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.04)">
+  <div class="card-header" style="color:#f87171">⚠ Опасная зона</div>
+  <p class="text-sm mb-3" style="color:var(--text-muted)">
+    Удаление аккаунта необратимо: будут стёрты ваши лиды, MAX-аккаунты, шаблоны, рассылки и история. Платежи останутся в финансовой отчётности (по требованию законодательства).
+  </p>
+  <form method="post" action="/app/settings/delete-account"
+        onsubmit="return confirm('Точно удалить аккаунт? Это действие нельзя отменить.');"
+        x-data="{confirm: ''}">
+    <label class="text-xs mb-1 block" style="color:var(--text-muted)">Введите свой email для подтверждения: <code>{{ user.email }}</code></label>
+    <input x-model="confirm" name="confirm_email" placeholder="{{ user.email }}" class="form-input mb-3"/>
+    <button type="submit"
+            class="px-4 py-2 rounded-lg text-sm font-medium border border-red-500/40 text-red-400 hover:bg-red-500/10 transition"
+            :disabled="confirm !== '{{ user.email }}'"
+            :class="confirm !== '{{ user.email }}' ? 'opacity-40 cursor-not-allowed' : ''">
+      🗑 Удалить аккаунт
+    </button>
+  </form>
+</div>
+
+{% endblock %}
 {% block content %}
 <div class="mb-6">
   <h1 class="text-2xl font-bold" style="color:var(--text-primary)">Настройки</h1>

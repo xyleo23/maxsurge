@@ -58,7 +58,7 @@ def _base_html(title: str, content: str) -> str:
   <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f8fafc;padding:40px 20px">
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" border="0" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
-        <tr><td style="background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);padding:30px;text-align:center">
+        <tr><td style="background:linear-gradient(135deg,#10b981,#059669,#047857);padding:30px;text-align:center">
           <div style="display:inline-block;background:rgba(255,255,255,0.15);padding:12px 20px;border-radius:10px">
             <span style="color:#fff;font-size:24px;font-weight:bold;letter-spacing:0.5px">&#9889; MaxSurge</span>
           </div>
@@ -69,7 +69,7 @@ def _base_html(title: str, content: str) -> str:
         </td></tr>
         <tr><td style="padding:20px 40px 30px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:12px;text-align:center">
           MaxSurge — сервис для бизнес-коммуникаций в мессенджере MAX<br/>
-          <a href="https://maxsurge.ru" style="color:#6366f1;text-decoration:none">maxsurge.ru</a>
+          <a href="https://maxsurge.ru" style="color:#10b981;text-decoration:none">maxsurge.ru</a>
         </td></tr>
       </table>
     </td></tr>
@@ -85,16 +85,16 @@ def send_welcome_email(email: str, name: str | None = None) -> bool:
     <p>Ваш аккаунт успешно создан. Вам доступен пробный период на <strong>7 дней</strong> со всеми основными функциями.</p>
     <p>Что можно сделать прямо сейчас:</p>
     <ul>
-      <li>Подключить MAX аккаунт через SMS</li>
+      <li>Подключить MAX аккаунт через QR-код</li>
       <li>Собрать лиды из 2GIS</li>
       <li>Создать задачу рассылки</li>
       <li>Настроить AI автоответчик</li>
     </ul>
     <p style="margin-top:30px">
-      <a href="https://maxsurge.ru/app/" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:600">Перейти в панель</a>
+      <a href="https://maxsurge.ru/app/" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:600">Перейти в панель</a>
     </p>
     <p style="color:#94a3b8;font-size:13px;margin-top:30px">
-      Вопросы? Пишите на <a href="mailto:support@maxsurge.ru" style="color:#6366f1">support@maxsurge.ru</a>
+      Вопросы? Пишите на <a href="mailto:support@maxsurge.ru" style="color:#10b981">support@maxsurge.ru</a>
     </p>
     """
     return _send_email(
@@ -111,11 +111,11 @@ def send_verify_email(email: str, token: str) -> bool:
     <p>Спасибо за регистрацию в MaxSurge!</p>
     <p>Чтобы подтвердить ваш email, нажмите кнопку ниже:</p>
     <p style="margin:30px 0">
-      <a href="{verify_url}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:600">Подтвердить email</a>
+      <a href="{verify_url}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:600">Подтвердить email</a>
     </p>
     <p style="color:#94a3b8;font-size:13px">
       Если кнопка не работает, скопируйте ссылку в браузер:<br/>
-      <a href="{verify_url}" style="color:#6366f1;word-break:break-all">{verify_url}</a>
+      <a href="{verify_url}" style="color:#10b981;word-break:break-all">{verify_url}</a>
     </p>
     <p style="color:#94a3b8;font-size:13px;margin-top:20px">
       Если вы не регистрировались на MaxSurge — просто проигнорируйте это письмо.
@@ -135,12 +135,12 @@ def send_password_reset_email(email: str, token: str) -> bool:
     <p>Мы получили запрос на восстановление пароля для вашего аккаунта MaxSurge.</p>
     <p>Чтобы установить новый пароль, нажмите кнопку ниже:</p>
     <p style="margin:30px 0">
-      <a href="{reset_url}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:600">Сбросить пароль</a>
+      <a href="{reset_url}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 30px;border-radius:8px;text-decoration:none;font-weight:600">Сбросить пароль</a>
     </p>
     <p style="color:#94a3b8;font-size:13px">
       Ссылка действительна <strong>1 час</strong>.<br/>
       Если кнопка не работает:<br/>
-      <a href="{reset_url}" style="color:#6366f1;word-break:break-all">{reset_url}</a>
+      <a href="{reset_url}" style="color:#10b981;word-break:break-all">{reset_url}</a>
     </p>
     <p style="color:#94a3b8;font-size:13px;margin-top:20px">
       Если вы не запрашивали сброс пароля — проигнорируйте это письмо.
@@ -163,7 +163,7 @@ def send_trial_ending_email(email: str, days_left: int, name: str | None = None)
         "<p>Ваш пробный период MaxSurge заканчивается через <strong>" + str(days_left) + " дн.</strong></p>"
         "<p>Чтобы не потерять данные — выберите тариф:</p>"
         "<p style='text-align:center;margin:24px 0'>"
-        "<a href='https://maxsurge.ru/app/billing/' style='background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Выбрать тариф</a>"
+        "<a href='https://maxsurge.ru/app/billing/' style='background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Выбрать тариф</a>"
         "</p>"
         "<p style='color:#94a3b8;font-size:13px'>При оплате от 3000₽ — бонусные дни бесплатно.</p>"
     )
@@ -178,7 +178,7 @@ def send_upsell_email(email: str, current_plan: str, name: str | None = None) ->
         "<p>Вы на тарифе <strong>" + current_plan + "</strong>. С апгрейдом вы получите:</p>"
         "<ul><li>Больше аккаунтов</li><li>Нейрочаттинг AI</li><li>Страж чата</li><li>A/B тесты</li></ul>"
         "<p style='text-align:center;margin:24px 0'>"
-        "<a href='https://maxsurge.ru/app/billing/' style='background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Посмотреть тарифы</a>"
+        "<a href='https://maxsurge.ru/app/billing/' style='background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Посмотреть тарифы</a>"
         "</p>"
     )
     return _send_email(email, subject, _base_html("MaxSurge", body))
@@ -195,7 +195,7 @@ def send_winback_email(email: str, name: str | None = None) -> bool:
         "<li>Страж чата — автомодерация</li>"
         "<li>Click tracking — CTR аналитика</li></ul>"
         "<p style='text-align:center;margin:24px 0'>"
-        "<a href='https://maxsurge.ru/app/' style='background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Вернуться</a>"
+        "<a href='https://maxsurge.ru/app/' style='background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600'>Вернуться</a>"
         "</p>"
     )
     return _send_email(email, subject, _base_html("MaxSurge", body))

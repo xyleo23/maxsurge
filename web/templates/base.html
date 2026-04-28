@@ -197,9 +197,16 @@
             <a href="/app/blacklist/" class="sidebar-link {% if '/app/blacklist' in request.url.path %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>Блэклист</a>
       <a href="/app/billing/" class="sidebar-link {% if '/app/billing' in request.url.path %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>Тарифы &amp; оплата</a>
       <a href="/app/referral/" class="sidebar-link {% if '/app/referral' in request.url.path %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857"/></svg>Рефералы</a>
+      <div class="sep">Помощь</div>
+      <a href="/help" class="sidebar-link {% if request.url.path == '/help' or (request.url.path.startswith('/help/') and '/faq' not in request.url.path and '/cases' not in request.url.path) %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>База знаний</a>
+      <a href="/help/faq" class="sidebar-link {% if '/help/faq' in request.url.path %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Частые вопросы</a>
+      <a href="/help/cases" class="sidebar-link {% if '/help/cases' in request.url.path %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>Сценарии</a>
+      <a href="https://t.me/beliaevd" target="_blank" rel="noopener" onclick="if(typeof ym==='function'){ym(108689029,'reachGoal','support_sidebar_click',{from:location.pathname});}" class="sidebar-link"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>Чат поддержки <span style="color:#10B981;font-size:10px">●</span></a>
+      <a href="https://t.me/maxsurge_ru" target="_blank" rel="noopener" class="sidebar-link"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>Канал @maxsurge_ru</a>
       {% if request.state.user is defined and request.state.user and request.state.user.is_superadmin %}
       <div class="sep">Админ</div>
-      <a href="/app/admin/" class="sidebar-link {% if '/app/admin' in request.url.path %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Админ-панель</a>
+      <a href="/app/admin/" class="sidebar-link {% if request.url.path == '/app/admin/' or request.url.path.startswith('/app/admin') and not '/app/support' in request.url.path %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Админ-панель</a>
+      <a href="/app/support/" class="sidebar-link {% if '/app/support' in request.url.path %}active{% endif %}"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414-1.414m-1.414 1.414L6 6m4.243 4.243L11.5 9.014"/></svg>Диалоги поддержки</a>
       {% endif %}
     </nav>
     <!-- Theme switcher in sidebar footer -->
@@ -237,14 +244,74 @@
   <main class="flex-1 overflow-auto min-h-screen">
     <div class="p-6 pt-20 lg:pt-10 max-w-[1400px]">
       {% if msg %}
-      <div class="toast mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:var(--text-primary)" x-data="{show:true}" x-show="show" x-init="setTimeout(()=>show=false,5000)">
-        <svg class="w-4 h-4 text-brand-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      {%- set _msg_lower = msg|lower -%}
+      {%- set _is_error = ("ошибк" in _msg_lower or "неверн" in _msg_lower or "не+" in _msg_lower or "не совпа" in _msg_lower or "не настро" in _msg_lower or "запрещ" in _msg_lower or "недостат" in _msg_lower or "failed" in _msg_lower) -%}
+      <div class="toast mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2"
+           style="{% if _is_error %}background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:var(--text-primary){% else %}background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:var(--text-primary){% endif %}"
+           x-data="{show:true}" x-show="show" x-init="setTimeout(()=>show=false,5000)">
+        {% if _is_error %}
+        <svg class="w-4 h-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {% else %}
+        <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        {% endif %}
         {{ msg }}
       </div>
       {% endif %}
+
+      {# ── Контекстная подсказка по разделу: ссылка на нужный гайд в /help ── #}
+      {% set _hint = none %}
+      {% set _path = request.url.path %}
+      {% if _path.startswith('/app/sender') %}
+        {% set _hint = {'url':'/help/mailing-text-media', 'title':'Массовая отправка сообщений и медиа', 'time':'5 мин'} %}
+      {% elif _path.startswith('/app/inviter') %}
+        {% set _hint = {'url':'/help/inviting', 'title':'Приглашение пользователей в чаты пачками', 'time':'4 мин'} %}
+      {% elif _path.startswith('/app/scraper') %}
+        {% set _hint = {'url':'/help/parse-2gis', 'title':'Сбор лидов из 2GIS — пошаговая инструкция', 'time':'5 мин'} %}
+      {% elif _path.startswith('/app/parser') %}
+        {% set _hint = {'url':'/help/parse-chats', 'title':'Парсинг участников чатов MAX', 'time':'4 мин'} %}
+      {% elif _path.startswith('/app/autoresponder') %}
+        {% set _hint = {'url':'/help/autoresponder', 'title':'Настройка AI-автоответчика', 'time':'5 мин'} %}
+      {% elif _path.startswith('/app/neurochat') %}
+        {% set _hint = {'url':'/help/neurochat-setup', 'title':'Нейрочаттинг — AI-маркетинг в групповых чатах', 'time':'6 мин'} %}
+      {% elif _path.startswith('/app/accounts') %}
+        {% set _hint = {'url':'/help/adding-accounts', 'title':'Как добавить MAX-аккаунт в панель', 'time':'3 мин'} %}
+      {% elif _path.startswith('/app/warming') %}
+        {% set _hint = {'url':'/help/warming', 'title':'Прогрев аккаунтов и защита от блокировок', 'time':'5 мин'} %}
+      {% elif _path.startswith('/app/templates') %}
+        {% set _hint = {'url':'/help/spintax', 'title':'Спинтакс и переменные в шаблонах', 'time':'4 мин'} %}
+      {% elif _path.startswith('/app/campaigns') %}
+        {% set _hint = {'url':'/help/scheduling', 'title':'Запланированная отправка и часовые пояса', 'time':'4 мин'} %}
+      {% elif _path.startswith('/app/bots') %}
+        {% set _hint = {'url':'/help/max-bots-lead', 'title':'Lead-боты: сбор контактов через @MasterBot', 'time':'5 мин'} %}
+      {% elif _path.startswith('/app/guard') %}
+        {% set _hint = {'url':'/help/guard-automod', 'title':'Страж чата — автомодерация групп MAX', 'time':'4 мин'} %}
+      {% elif _path.startswith('/app/forwarder') %}
+        {% set _hint = {'url':'/help/cases', 'title':'Сценарии под вашу нишу', 'time':'4 мин'} %}
+      {% elif _path.startswith('/app/billing') %}
+        {% set _hint = {'url':'/help/billing-refund', 'title':'Тарифы, оплата и возврат денег', 'time':'3 мин'} %}
+      {% elif _path.startswith('/app/referral') %}
+        {% set _hint = {'url':'/help/referral-program', 'title':'Реферальная программа: 20% + 5%', 'time':'2 мин'} %}
+      {% endif %}
+      {% if _hint %}
+      <div class="mb-5 flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm" style="background:var(--bg-card-alt);border:1px solid var(--border)" x-data="{show: localStorage.getItem('hint-hide-' + window.location.pathname) !== '1'}" x-show="show" x-cloak>
+        <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span style="color:var(--text-muted)">Не уверены, как пользоваться?</span>
+        <a href="{{ _hint.url }}" onclick="if(typeof ym==='function'){ym(108689029,'reachGoal','help_hint_click',{from:location.pathname,to:'{{ _hint.url }}'});}" class="font-medium hover:underline" style="color:var(--text-primary)">{{ _hint.title }}</a>
+        <span class="text-xs" style="color:var(--text-muted)">· {{ _hint.time }}</span>
+        <button @click="show=false; localStorage.setItem('hint-hide-' + window.location.pathname,'1'); if(typeof ym==='function'){ym(108689029,'reachGoal','help_hint_close',{page:location.pathname});}" class="ml-auto opacity-50 hover:opacity-100 transition" title="Скрыть подсказку">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      {% endif %}
+
       {% block content %}{% endblock %}
     </div>
   </main>
+
+  {# Support widget — для всех залогиненных юзеров, КРОМЕ страниц самого operator UI #}
+  {% if request.state.user is defined and request.state.user and not request.url.path.startswith('/app/support') and not request.url.path.startswith('/app/admin/support') %}
+  <script defer src="/static/support-widget.js"></script>
+  {% endif %}
 
   <script>
     function themeManager(){

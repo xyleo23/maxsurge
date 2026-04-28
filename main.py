@@ -35,6 +35,8 @@ from web.routes.blog_r import router as blog_router
 from web.routes.industries_r import router as industries_router
 from web.routes.changelog_r import router as changelog_router
 from web.routes.help_r import router as help_router
+from web.routes.support_api_r import router as support_api_router
+from web.routes.support_op_r import router as support_op_router
 from web.routes.email_r import router as email_router
 from web.routes.webhook_r import router as webhook_router
 from web.routes.lead_capture_r import router as lead_capture_router
@@ -60,7 +62,8 @@ from web.routes.files_r import router as files_router
 from web.routes.settings_r import router as settings_router
 from web.routes.billing_r import router as billing_router
 from web.routes.referral_r import router as referral_router
-from web.routes.twofa_r import router as twofa_router
+# 2FA disabled by user request — see commit history if you need to re-enable
+# from web.routes.twofa_r import router as twofa_router
 from web.routes.neurochat_r import router as neurochat_router
 from web.routes.bots_r import router as bots_router
 from web.routes.guard_r import router as guard_router
@@ -230,6 +233,7 @@ CSRF_EXEMPT_PREFIXES = (
     "/forgot-password",
     "/reset-password",
     "/api/lead",            # public lead capture (exit intent)
+    "/api/support/",        # support widget (own session cookie + same-origin)
     "/email/unsubscribe",   # public unsubscribe
 )
 
@@ -483,6 +487,8 @@ app.include_router(api_ingest_router)
 app.include_router(tracking_router)
 app.include_router(changelog_router)
 app.include_router(help_router)
+app.include_router(support_api_router)
+app.include_router(support_op_router)
 app.include_router(email_router)
 app.include_router(lead_capture_router)
 
@@ -494,7 +500,7 @@ for r in [dashboard_router, leads_router, accounts_router, templates_router,
           sender_router, scraper_router, parser_router, checker_router,
           warming_router, profile_router, catalog_router, analytics_router,
           autoresponder_router, inviter_router, forwarder_router,
-          tasks_router, files_router, admin_router, settings_router, billing_router, referral_router, twofa_router, neurochat_router, bots_router, guard_router, logs_router, csv_router, marketplace_router, notifications_router, blacklist_router, campaigns_router]:
+          tasks_router, files_router, admin_router, settings_router, billing_router, referral_router, neurochat_router, bots_router, guard_router, logs_router, csv_router, marketplace_router, notifications_router, blacklist_router, campaigns_router]:
     app.include_router(r, prefix="/app")
 
 
