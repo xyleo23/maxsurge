@@ -63,11 +63,7 @@
         <input name="proxy" placeholder="http://user:pass@host:port" class="form-input mb-3 font-mono text-xs"/>
         <button type="submit" class="btn-primary w-full">🔑 Импортировать</button>
       </form>
-      <p class="mt-2 text-xs text-gray-500">Для купленных аккаунтов или экспортированных из другого софта. Формат совместим с PyMax / Max Sheiker Manager.</p>
-      <a href="https://t.me/bestmaxshop_bot?start=ref_124681426" target="_blank" rel="noopener" class="mt-2 inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 transition">
-        <span class="inline-block w-2 h-2 rounded-full bg-green-400"></span>
-        Купить готовые аккаунты MAX ($5/шт) →
-      </a>
+      <p class="mt-2 text-xs text-gray-500">Для уже подключённых аккаунтов или экспортированных из другого софта. Формат совместим с PyMax / Max Sheiker Manager.</p>
     </div>
 
     <!-- Session file mode -->
@@ -96,7 +92,6 @@
       <div class="mt-3 p-3 bg-[var(--bg-input)] rounded-lg text-xs text-gray-400">
         <div class="flex items-center justify-between mb-1">
           <span class="font-semibold text-gray-300">Формат CSV:</span>
-          <a href="https://t.me/bestmaxshop_bot?start=ref_124681426" target="_blank" rel="noopener" class="text-xs text-indigo-400 hover:text-indigo-300">Купить аккаунты →</a>
         </div>
         <pre class="text-xs overflow-x-auto">phone,login_token,device_id,proxy
 +79001234567,eyJhbGc...,uuid-here,http://u:p@host:p
@@ -121,8 +116,7 @@
       </div>
       <div>
         <div class="text-emerald-600 font-semibold mb-1">🔑 Токен</div>
-        <p class="text-gray-400 text-xs">Для купленных аккаунтов с маркетплейса. Продавец отдаёт login_token + device_id.</p>
-        <a href="https://t.me/bestmaxshop_bot?start=ref_124681426" target="_blank" rel="noopener" class="mt-1 inline-block text-xs text-indigo-400 hover:text-indigo-300">→ BestMaxShop ($5/акк, авто-доставка)</a>
+        <p class="text-gray-400 text-xs">Для аккаунтов экспортированных из другого софта (login_token + device_id).</p>
       </div>
       <div>
         <div class="text-emerald-600 font-semibold mb-1">📂 Session file</div>
@@ -324,8 +318,7 @@
       </tr>
       {% else %}
       <tr><td colspan="11" class="text-center text-gray-500 py-10">Аккаунты не добавлены.<br/>
-        <span class="text-indigo-400">↑</span> Подключите свой MAX через QR или
-        <a href="https://t.me/bestmaxshop_bot?start=ref_124681426" target="_blank" rel="noopener" class="text-indigo-400 hover:text-indigo-300 underline">купите готовые аккаунты</a> ($5/шт)</td></tr>
+        <span class="text-emerald-500">↑</span> Подключите свой MAX через QR-код, токен или session-файл</td></tr>
       {% endfor %}
     </tbody>
   </table></div>
