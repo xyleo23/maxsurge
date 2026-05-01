@@ -35,7 +35,7 @@ test.describe('Public pages', () => {
     await page.goto('/terms');
     await expect(page.locator('body')).toContainText(/Беляев/);
     await expect(page.locator('body')).toContainText(/НПД/);
-    await expect(page.locator('body')).toContainText(/233304095766/); // ИНН
+    await expect(page.locator('body')).toContainText(/2311391544/); // ИНН
   });
 
   test('privacy page cites 152-ФЗ', async ({ page }) => {

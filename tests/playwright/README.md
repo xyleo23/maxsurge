@@ -4,7 +4,7 @@
 
 ## Что покрыто (21 тест)
 
-- **public_pages** (10) — landing, login, register с legal-consent, /terms с ИНН/ОГРНИП, /privacy с 152-ФЗ, /status, /openapi 404, /api/docs 404, /metrics 401, security headers
+- **public_pages** (10) — landing, login, register с legal-consent, /terms с реквизитами юрлица, /privacy с 152-ФЗ, /status, /openapi 404, /api/docs 404, /metrics 401, security headers
 - **auth_flow** (4) — login valid, admin redirect unauthenticated, bad login, logout
 - **accounts_ui** (6) — roles CRUD via API (create/rename/delete), bulk-check-validity, catalog URL state, checker 3 режимов, posts calendar, import-contacts dual-pane
 - **setup** (1) — login once, сохраняет state в `.auth/admin.json` для переиспользования

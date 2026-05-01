@@ -310,9 +310,9 @@ async def create_payment_robokassa(request: Request, plan: str = Form(...)):
         payment.yk_payment_id = f"rb_{inv_id}"
         await s.commit()
 
-    # ИП на НПД: не формируем receipt через Robokassa — клиент пробивает
-    # чек сам через приложение "Мой налог" ФНС. Robokassa поддерживает
-    # интеграцию "Чек самозанятого" — подключается отдельно в ЛК.
+    # Receipt не формируем здесь — фискализация через настройки Robokassa
+    # (для ООО на УСН/ОСН в ЛК Robokassa нужно подключить онлайн-кассу или
+    # внешний агрегатор. Для тестового режима receipt не обязателен).
     try:
         pay_url = rb_create_payment_url(
             amount=amount,

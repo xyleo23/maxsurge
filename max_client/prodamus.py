@@ -97,7 +97,7 @@ def create_payment_url(
             "price": f"{amount:.2f}",
             "quantity": "1",
             "tax": {
-                "tax_type": 0,         # НПД/без НДС
+                "tax_type": 0,         # без НДС (УСН/НПД)
                 "payment_method": 4,    # полный расчёт
                 "payment_object": 4,    # услуга
             },

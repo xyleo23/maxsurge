@@ -321,7 +321,7 @@ systemctl restart maxsurge
 - URL уведомления (urlNotification): `https://maxsurge.ru/app/billing/webhook-pd`
 - URL возврата (urlReturn/urlSuccess): `https://maxsurge.ru/app/billing/success-pd`
 - Протокол подписи: HMAC-SHA256
-- Режим: самозанятый (ИП на НПД)
+- Получатель платежа: ООО «ВЕЛАР» (ИНН 2311391544, ОГРН 1262300018860)
 
 ### Выбор
 `PAYMENT_GATEWAY` = `yookassa` | `robokassa` | `prodamus` | `all`. Управляет какие кнопки показывать в `/app/billing/`.
@@ -341,7 +341,7 @@ systemctl restart maxsurge
 `https://maxsurge.ru/status` — uptime страница, доступна без авторизации. Показывает состояние БД, диска, компонентов. Полезна для SEO-доверия и клиентских писем.
 
 ## Юридические страницы
-- `/terms` — Публичная оферта (ИП на НПД)
+- `/terms` — Публичная оферта (ООО «ВЕЛАР»)
 - `/privacy` — Политика обработки ПДн (152-ФЗ)
 - `/contacts` — Контакты и реквизиты
 - `/about` — О компании
